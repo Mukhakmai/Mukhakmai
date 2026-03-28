@@ -48,6 +48,12 @@
         /* Question Choices */
         .choices-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
         .choice-btn { background: #f8f9fa; border: 2px solid #eee; padding: 15px; border-radius: 8px; font-weight: bold; color: var(--dark); cursor: pointer; transition: 0.3s; }
+
+        /* Packages Grid */
+        .packages-grid { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin-top: 20px; }
+        .pkg-card { width: 250px; padding: 20px; border-radius: 15px; background: white; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.05); position: relative; border: 2px solid #eee; }
+        .pkg-card.premium { border-color: var(--primary); background: #fcf9ff; }
+        .pkg-price { font-size: 2em; font-weight: 800; color: var(--dark); margin: 15px 0; }
     </style>
 </head>
 <body>
@@ -67,7 +73,28 @@
 <div id="view-home" class="container fade-in text-center">
     <h1 style="color: var(--primary); font-size: 2.5em;">مخك معي؟ 🔥</h1>
     <p style="font-size: 1.1em; color: #7f8c8d;">تصفح الفئات المتاحة واشترك لتبدأ الجلسة</p>
+    
     <div class="categories-grid" id="home-categories-preview"></div>
+
+    <div style="margin-top: 50px; padding-top: 30px; border-top: 2px dashed #ccc;">
+        <h2 style="color: var(--dark);">اختر باقتك وانطلق 💎</h2>
+        <div class="packages-grid">
+            <div class="pkg-card">
+                <h3 style="color: var(--secondary);">باقة الويكند</h3>
+                <div class="pkg-price">15 ريال</div>
+                <p style="color: #7f8c8d; font-size: 0.9em;">وصول كامل لجميع التحديات لمدة 3 أيام، مثالية لجمعة الأصحاب!</p>
+                <button class="btn-main btn-secondary" onclick="window.subscribeToPackage('weekend')">اشترك الآن</button>
+            </div>
+            
+            <div class="pkg-card premium">
+                <div class="badge" style="background: var(--danger); right: -10px; left: auto;">الأكثر طلباً 🔥</div>
+                <h3 style="color: var(--primary);">الباقة الشهرية</h3>
+                <div class="pkg-price">39 ريال</div>
+                <p style="color: #7f8c8d; font-size: 0.9em;">تحديات لامحدودة لمدة 30 يوم، وإضافة أسئلة جديدة باستمرار!</p>
+                <button class="btn-main btn-primary" onclick="window.subscribeToPackage('monthly')">اشترك الآن</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div id="view-auth" class="container hidden fade-in">
@@ -214,6 +241,27 @@
         if(tabId === 'admin') window.loadAdminList();
     };
 
+    // دالة الاشتراك الجديدة
+    window.subscribeToPackage = async (type) => {
+        if(!auth.currentUser) {
+            alert("لازم تسجل دخولك أولاً عشان تشترك! 👤");
+            window.switchTab('auth');
+            return;
+        }
+        
+        // هنا محاكاة بسيطة لتفعيل الاشتراك وتحديثه في قاعدة البيانات
+        try {
+            await updateDoc(doc(db, "users", auth.currentUser.uid), { isSubscribed: true });
+            isSubscribed = true;
+            alert("تم تفعيل اشتراكك بنجاح! شكراً لثقتك 🥳💎");
+            window.switchTab('auth');
+            window.showProfileTab('subs');
+            renderSubs({ isSubscribed: true });
+        } catch(e) {
+            alert("حدث خطأ، تأكد من اتصالك بالإنترنت.");
+        }
+    };
+
     onAuthStateChanged(auth, async (user) => {
         if(user) {
             document.getElementById("logged-out-view").classList.add("hidden");
@@ -304,8 +352,8 @@
 
     function renderSubs(data) {
         const div = document.getElementById("subs-list");
-        if(isSubscribed) div.innerHTML = `<div style="padding:15px; background:#f0fff0; border:1px solid #27ae60; border-radius:10px;"><b>باقة مخك معي المميزة ✅</b><p>الحالة: نشط</p></div>`;
-        else div.innerHTML = `<p>لا يوجد اشتراكات نشطة حالياً. <a href="#" onclick="window.switchTab('home')">اشترك الآن</a></p>`;
+        if(isSubscribed) div.innerHTML = `<div style="padding:15px; background:#f0fff0; border:1px solid #27ae60; border-radius:10px; color: #2c3e50;"><b>باقة مخك معي المميزة ✅</b><p>الحالة: نشط</p><button class="btn-main btn-secondary" onclick="window.switchTab('home')">العب الآن 🚀</button></div>`;
+        else div.innerHTML = `<p>لا يوجد اشتراكات نشطة حالياً. <br><br> <button class="btn-main btn-primary" onclick="window.switchTab('home')">اشترك الآن</button></p>`;
     }
 
     window.checkSubscriptionAndPlay = () => {
