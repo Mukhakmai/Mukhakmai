@@ -306,6 +306,67 @@
 </div>
 
 <script type="module">
+    // --- وظائف إدارة الفئات الجديدة ---
+
+// 1. إضافة فئة جديدة لقاعدة البيانات
+window.saveNewCategory = async () => {
+    const name = document.getElementById("admin-new-cat-name").value.trim();
+    if (!name) { alert("اكتب اسم الفئة أولاً!"); return; }
+
+    try {
+        await addDoc(collection(db, "categories"), {
+            name: name,
+            createdAt: serverTimestamp()
+        });
+        document.getElementById("admin-new-cat-name").value = "";
+        alert("تمت إضافة الفئة بنجاح! 🎉");
+        window.loadCategoriesForAdmin(); // تحديث القائمة فوراً
+    } catch (e) {
+        console.error("خطأ في الإضافة:", e);
+    }
+};
+
+// 2. تحميل الفئات وعرضها في القائمة المنسدلة والتاغات
+window.loadCategoriesForAdmin = async () => {
+    const select = document.getElementById("admin-q-cat-select");
+    const tagsDiv = document.getElementById("admin-cats-tags");
+    
+    const snap = await getDocs(query(collection(db, "categories"), orderBy("createdAt", "desc")));
+    const cats = snap.docs.map(d => ({id: d.id, ...d.data()}));
+
+    // تحديث القائمة المنسدلة
+    select.innerHTML = '<option value="">-- اختر الفئة من هنا --</option>';
+    cats.forEach(c => {
+        select.innerHTML += `<option value="${c.name}">${c.name}</option>`;
+    });
+
+    // تحديث شكل التاغات للتوضيح
+    tagsDiv.innerHTML = cats.map(c => `
+        <span style="background: var(--bg-color); padding: 5px 12px; border-radius: 20px; border: 1px solid var(--primary); font-size: 0.9em;">
+            ${c.name} 
+            <button onclick="window.delCat('${c.id}')" style="color:var(--danger); border:none; background:none; cursor:pointer; margin-right:5px; font-weight:bold;">×</button>
+        </span>
+    `).join('');
+};
+
+// 3. حذف فئة
+window.delCat = async (id) => {
+    if (confirm("هل تريد حذف هذه الفئة؟ (لن تحذف الأسئلة المرتبطة بها لكنها لن تظهر في القائمة)")) {
+        await deleteDoc(doc(db, "categories", id));
+        window.loadCategoriesForAdmin();
+    }
+};
+
+// 4. تعديل دالة حفظ السؤال لتأخذ القيمة من السليكت
+// (عدل السطر الأول داخل دالة saveAdminQ القديمة عندك)
+// const catInput = document.getElementById("admin-q-cat-select").value; 
+
+// --- استدعاء تحميل الفئات عند فتح صفحة الأدمن ---
+const originalSwitchTab = window.switchTab;
+window.switchTab = (tabId) => {
+    originalSwitchTab(tabId);
+    if(tabId === 'admin') window.loadCategoriesForAdmin();
+};
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
     import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, getDoc, setDoc, updateDoc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
