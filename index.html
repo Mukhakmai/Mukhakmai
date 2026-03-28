@@ -6,26 +6,23 @@
     <title>مخك معي؟ 🧠 | منصة التحدي الاحترافية</title>
     
     <link rel="icon" href="favicon.png" type="image/png">
-    
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    
     <style>
         /* === إعدادات الثيمات (المتغيرات) === */
         :root { 
             --primary: #8e44ad; --secondary: #f39c12; --success: #27ae60; --danger: #e74c3c; 
-            /* الثيم الفاتح (الافتراضي) */
             --bg-color: #f0f4f8; --card-bg: #ffffff; --text-main: #2c3e50; --text-muted: #7f8c8d; 
             --border-color: #eee; --card-shadow: 0 10px 30px rgba(0,0,0,0.08); --glass-filter: none;
             --nav-bg: #ffffff;
         }
 
-        /* الثيم الداكن (Dark Mode) */
         [data-theme="dark"] {
             --bg-color: #0f172a; --card-bg: #1e293b; --text-main: #f8fafc; --text-muted: #94a3b8;
             --border-color: #334155; --card-shadow: 0 10px 30px rgba(0,0,0,0.5); --glass-filter: none;
             --nav-bg: #1e293b;
         }
 
-        /* الثيم الزجاجي (Glassmorphism) */
         [data-theme="glass"] {
             --bg-color: linear-gradient(135deg, #f3e8ff 0%, #ffedd5 100%); 
             --card-bg: rgba(255, 255, 255, 0.45); --text-main: #2c3e50; --text-muted: #555;
@@ -39,13 +36,11 @@
         /* === التنسيقات الأساسية === */
         body { font-family: 'Tajawal', sans-serif; background: var(--bg-color); color: var(--text-main); margin: 0; padding-top: 100px; transition: background 0.4s ease, color 0.4s ease; }
         
-        /* Navbar */
         .navbar { background: var(--nav-bg); backdrop-filter: var(--glass-filter); box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: fixed; top: 0; width: 100%; height: 100px; display: flex; justify-content: space-between; align-items: center; z-index: 1000; padding: 0 20px; box-sizing: border-box; transition: background 0.4s ease; }
         .nav-links { display: flex; gap: 10px; align-items: center; }
         .nav-btn { background: none; border: none; font-family: 'Tajawal', sans-serif; font-weight: 700; cursor: pointer; padding: 8px 12px; border-radius: 8px; transition: 0.3s; color: var(--text-main); }
         .nav-btn.active { color: var(--primary); border-bottom: 3px solid var(--primary); border-radius: 0; }
         
-        /* تأثير النبض لزر اللعب */
         @keyframes pulse {
             0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(243, 156, 18, 0.7); }
             70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(243, 156, 18, 0); }
@@ -53,7 +48,6 @@
         }
         .btn-play-nav { background: linear-gradient(45deg, var(--secondary), #d35400); color: white !important; padding: 8px 20px; border-radius: 20px; animation: pulse 2s infinite; }
 
-        /* أزرار الثيم */
         .theme-btn { background: var(--card-bg); border: 2px solid var(--border-color); border-radius: 50%; width: 35px; height: 35px; cursor: pointer; font-size: 1.1em; transition: 0.3s; margin-left: 5px; }
         .theme-btn:hover { transform: scale(1.1); }
 
@@ -62,7 +56,6 @@
         .fade-in { animation: fadeIn 0.4s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        /* الصناديق والبطاقات */
         .auth-box { background: var(--card-bg); backdrop-filter: var(--glass-filter); padding: 30px; border-radius: 20px; box-shadow: var(--card-shadow); text-align: center; margin-bottom: 30px; position: relative; border: 1px solid var(--border-color); transition: 0.4s ease; }
         
         input, select, textarea { width: 100%; padding: 12px; margin: 10px 0; border: 2px solid var(--border-color); border-radius: 10px; font-family: 'Tajawal'; box-sizing: border-box; background: var(--bg-color); color: var(--text-main); }
@@ -76,7 +69,6 @@
         .menu-item { padding: 10px 20px; cursor: pointer; font-weight: bold; color: var(--text-muted); transition: 0.3s; }
         .menu-item.active { color: var(--primary); border-bottom: 3px solid var(--primary); }
 
-        /* شبكة الفئات */
         .categories-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; margin-top: 20px; }
         .category-card { position: relative; background: var(--card-bg); backdrop-filter: var(--glass-filter); padding: 25px 10px; border-radius: 15px; border: 2px solid var(--border-color); box-shadow: var(--card-shadow); transition: transform 0.3s, box-shadow 0.3s; text-align: center; cursor: pointer; }
         .category-card:hover { transform: translateY(-7px); box-shadow: 0 15px 35px rgba(0,0,0,0.15); border-color: var(--primary); }
@@ -90,13 +82,45 @@
         .choice-btn { background: var(--bg-color); border: 2px solid var(--border-color); padding: 15px; border-radius: 8px; font-weight: bold; color: var(--text-main); cursor: pointer; transition: 0.3s; }
         .choice-btn:hover { background: var(--primary); color: white; border-color: var(--primary); transform: scale(1.02); }
 
-        /* الباقات */
         .packages-grid { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin-top: 20px; }
         .pkg-card { width: 250px; padding: 20px; border-radius: 15px; background: var(--card-bg); backdrop-filter: var(--glass-filter); text-align: center; box-shadow: var(--card-shadow); position: relative; border: 2px solid var(--border-color); transition: transform 0.3s; }
         .pkg-card:hover { transform: translateY(-10px); }
         .pkg-card.premium { border-color: var(--primary); }
         .pkg-price { font-size: 2em; font-weight: 800; color: var(--text-main); margin: 15px 0; }
     </style>
+
+    <script>
+        // تفعيل الثيم المحفوظ فوراً لمنع الشاشة البيضاء
+        const savedTheme = localStorage.getItem('savedTheme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+
+        window.setTheme = (themeName) => {
+            document.documentElement.setAttribute('data-theme', themeName);
+            localStorage.setItem('savedTheme', themeName);
+        };
+
+        window.switchTab = (tabId) => {
+            document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            const target = document.getElementById(`view-${tabId}`);
+            if(target) target.classList.remove('hidden');
+            if(document.getElementById(`tab-${tabId}`)) document.getElementById(`tab-${tabId}`).classList.add('active');
+            if(tabId === 'admin' && window.loadAdminList) window.loadAdminList();
+        };
+
+        window.showProfileTab = (tab) => {
+            document.getElementById("p-info").classList.toggle("hidden", tab !== 'info');
+            document.getElementById("p-subs").classList.toggle("hidden", tab !== 'subs');
+            document.getElementById("m-info").classList.toggle("active", tab === 'info');
+            document.getElementById("m-subs").classList.toggle("active", tab === 'subs');
+        };
+
+        window.toggleAuth = (signup) => {
+            document.getElementById("login-form").classList.toggle("hidden", signup);
+            document.getElementById("signup-form").classList.toggle("hidden", !signup);
+            document.getElementById("auth-error").innerText = "";
+        };
+    </script>
 </head>
 <body>
 
@@ -225,4 +249,328 @@
         <p id="results-subtext" style="font-size: 1.2em; line-height: 1.6; margin-bottom: 25px; color: var(--text-muted);"></p>
         <div style="display: flex; justify-content: space-around; background: var(--bg-color); padding: 20px; border-radius: 15px; margin-bottom: 20px;">
             <div><b id="res-t1-name"></b><div id="res-t1-score" style="font-size:2em; color: var(--primary);">0</div></div>
-            <div><b id="res-t2-name"></b><div id="res-t2-
+            <div><b id="res-t2-name"></b><div id="res-t2-score" style="font-size:2em; color: var(--secondary);">0</div></div>
+        </div>
+        <button class="btn-main btn-secondary" onclick="window.location.reload()">تحدي جديد 🔄</button>
+    </div>
+</div>
+
+<div id="view-admin" class="container hidden fade-in">
+    <div class="auth-box" style="border: 2px solid var(--danger);">
+        <h2 style="color: var(--danger);">⚙️ لوحة الإدارة</h2>
+        <input type="text" id="admin-q-cat" placeholder="اسم الفئة (مثلاً: كورة، جغرافيا)">
+        <select id="admin-q-pts"><option value="200">200 نقطة</option><option value="400">400 نقطة</option><option value="600">600 نقطة</option></select>
+        <textarea id="admin-q-txt" placeholder="نص السؤال..."></textarea>
+        <input type="text" id="admin-q-ans" placeholder="الإجابة الصحيحة ✅">
+        <input type="text" id="admin-q-w1" placeholder="خيار خاطئ 1 ❌">
+        <input type="text" id="admin-q-w2" placeholder="خيار خاطئ 2 ❌">
+        <input type="text" id="admin-q-w3" placeholder="خيار خاطئ 3 ❌">
+        <input type="file" id="admin-q-media" accept="image/*,audio/*,video/*">
+        <button id="btn-save-admin" class="btn-main btn-primary" onclick="window.saveAdminQ()">حفظ ورفع السؤال ☁️</button>
+    </div>
+    <div class="auth-box"><h3>📋 الأسئلة الحالية</h3><div id="admin-qs-list"></div></div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+    import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, getDoc, setDoc, updateDoc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBRPly4tY1nUSIimYn5dvbKuO3ayn8p_4o",
+      authDomain: "mukhakmai.firebaseapp.com",
+      projectId: "mukhakmai",
+      storageBucket: "mukhakmai.firebasestorage.app",
+      messagingSenderId: "455973425276",
+      appId: "1:455973425276:web:5c8dd4954061ecae52b9f9"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+
+    const adminEmail = "ziad95005@gmail.com"; 
+
+    let allQuestions = [];
+    let playedIds = [];
+    let selectedCategories = [];
+    let gameQuestions = [];
+    let currentQuestionIndex = 0;
+    let teamScores = { team1: 0, team2: 0 };
+    let pickingTurn = 1;
+    let teamNames = { team1: "", team2: "" };
+    let isSubscribed = false;
+    let hideScoresMode = false;
+
+    window.subscribeToPackage = async (type) => {
+        if(!auth.currentUser) {
+            alert("لازم تسجل دخولك أولاً عشان تشترك! 👤");
+            window.switchTab('auth');
+            return;
+        }
+        try {
+            await updateDoc(doc(db, "users", auth.currentUser.uid), { isSubscribed: true });
+            isSubscribed = true;
+            alert("تم تفعيل اشتراكك بنجاح! شكراً لثقتك 🥳💎");
+            window.switchTab('auth');
+            window.showProfileTab('subs');
+            renderSubs({ isSubscribed: true });
+        } catch(e) {
+            alert("حدث خطأ، تأكد من اتصالك بالإنترنت.");
+        }
+    };
+
+    onAuthStateChanged(auth, async (user) => {
+        if(user) {
+            document.getElementById("logged-out-view").classList.add("hidden");
+            document.getElementById("logged-in-view").classList.remove("hidden");
+            document.getElementById("u-email").innerText = user.email;
+            document.getElementById("tab-auth").innerText = "👤 حسابي";
+            const uDoc = await getDoc(doc(db, "users", user.uid));
+            const data = uDoc.data();
+            isSubscribed = data?.isSubscribed || false;
+            playedIds = data?.playedQuestions || [];
+            if(user.email.toLowerCase() === adminEmail.toLowerCase()) {
+                document.getElementById("tab-admin").classList.remove("hidden");
+                isSubscribed = true;
+            }
+            renderSubs(data);
+        } else {
+            document.getElementById("logged-out-view").classList.remove("hidden");
+            document.getElementById("logged-in-view").classList.add("hidden");
+            document.getElementById("tab-admin").classList.add("hidden");
+            document.getElementById("tab-auth").innerText = "حسابي";
+        }
+        fetchData();
+    });
+
+    async function fetchData() {
+        const snap = await getDocs(collection(db, "live_questions"));
+        allQuestions = snap.docs.map(d => ({id: d.id, ...d.data()}));
+        renderGrids();
+    }
+
+    function renderGrids() {
+        const hGrid = document.getElementById("home-categories-preview");
+        const gGrid = document.getElementById("game-categories-grid");
+        if(hGrid) hGrid.innerHTML = "";
+        if(gGrid) gGrid.innerHTML = "";
+        
+        const cats = [...new Set(allQuestions.map(q => q.category))];
+        cats.forEach(cat => {
+            const fresh = allQuestions.filter(q => q.category === cat && !playedIds.includes(q.id)).length;
+            const chal = Math.floor(fresh / 6);
+            const card = document.createElement("div");
+            card.className = "category-card";
+            card.innerHTML = `<div class="badge" style="background:${chal > 0 ? 'var(--secondary)':'#3498db'}">${chal > 0 ? chal+' تحدي جديد' : 'إعادة لعب 🔄'}</div><h3 style="color: var(--text-main);">${cat}</h3>`;
+            if(hGrid) hGrid.appendChild(card.cloneNode(true));
+            if(gGrid) {
+                const clone = card.cloneNode(true);
+                clone.onclick = () => window.selectCat(cat, clone, chal);
+                gGrid.appendChild(clone);
+            }
+        });
+    }
+
+    window.handleSignup = async () => {
+        const e = document.getElementById("signup-email").value.trim();
+        const p = document.getElementById("signup-password").value.trim();
+        try {
+            const res = await createUserWithEmailAndPassword(auth, e, p);
+            await setDoc(doc(db, "users", res.user.uid), { email: e, isSubscribed: false, playedQuestions: [], createdAt: serverTimestamp() });
+            alert("تم التسجيل بنجاح! ⚡");
+            window.switchTab('home');
+        } catch(e) { document.getElementById("auth-error").innerText = "فشل التسجيل. تأكد من البيانات أو أن الإيميل غير مستخدم."; }
+    };
+
+    window.handleLogin = async () => {
+        const e = document.getElementById("login-email").value.trim();
+        const p = document.getElementById("login-password").value.trim();
+        try { 
+            await signInWithEmailAndPassword(auth, e, p); 
+            alert("أهلاً بك 👋"); 
+            window.switchTab('home');
+        } catch(e) { document.getElementById("auth-error").innerText = "خطأ في الإيميل أو كلمة المرور!"; }
+    };
+
+    window.handleLogout = () => { signOut(auth); window.switchTab('home'); };
+
+    function renderSubs(data) {
+        const div = document.getElementById("subs-list");
+        if(isSubscribed) div.innerHTML = `<div style="padding:15px; background:var(--bg-color); border:1px solid #27ae60; border-radius:10px;"><b>باقة مخك معي المميزة ✅</b><p>الحالة: نشط</p><button class="btn-main btn-secondary" onclick="window.switchTab('home')">العب الآن 🚀</button></div>`;
+        else div.innerHTML = `<p>لا يوجد اشتراكات نشطة حالياً. <br><br> <button class="btn-main btn-primary" onclick="window.switchTab('home')">اشترك الآن</button></p>`;
+    }
+
+    window.checkSubscriptionAndPlay = () => {
+        if(!auth.currentUser) { alert("سجل دخولك أولاً! 👤"); window.switchTab('auth'); return; }
+        if(!isSubscribed) { alert("يجب الاشتراك للعب 💎"); window.switchTab('home'); return; }
+        window.switchTab('game');
+    };
+
+    window.startPickingPhase = () => {
+        teamNames.team1 = document.getElementById("team1-name-input").value || "الفريق 1";
+        teamNames.team2 = document.getElementById("team2-name-input").value || "الفريق 2";
+        hideScoresMode = document.getElementById("hide-scores-checkbox").checked;
+        document.getElementById("setup-names").classList.add("hidden");
+        document.getElementById("category-selection-screen").classList.remove("hidden");
+        updateStatus();
+    };
+
+    window.selectCat = (cat, el, chal) => {
+        if(selectedCategories.length >= 6 || selectedCategories.includes(cat)) return;
+        selectedCategories.push(cat);
+        el.style.borderColor = "var(--primary)";
+        el.style.background = "var(--bg-color)";
+        pickingTurn = pickingTurn === 1 ? 2 : 1;
+        updateStatus();
+    };
+
+    function updateStatus() {
+        const status = document.getElementById("picking-status");
+        const rem = 6 - selectedCategories.length;
+        status.innerText = `دور ${pickingTurn === 1 ? teamNames.team1 : teamNames.team2} يختار (باقي ${rem})`;
+        if(rem === 0) status.innerHTML = `<button class="btn-main btn-secondary" onclick="window.generateGame()">ابدأ اللعب 🚀</button>`;
+    }
+
+    window.generateGame = async () => {
+        gameQuestions = [];
+        let ptsArr = [200, 200, 400, 400, 600, 600];
+        for(let i=0; i<6; i++) {
+            let cat = selectedCategories[i];
+            let target = ptsArr[i];
+            let q = allQuestions.find(x => x.category === cat && x.points === target && !playedIds.includes(x.id)) ||
+                    allQuestions.find(x => x.category === cat && !playedIds.includes(x.id)) ||
+                    allQuestions.find(x => x.category === cat && x.points === target) ||
+                    allQuestions.find(x => x.category === cat);
+            if(q) {
+                gameQuestions.push(q);
+                if(!playedIds.includes(q.id)) { playedIds.push(q.id); await updateDoc(doc(db, "users", auth.currentUser.uid), { playedQuestions: playedIds }); }
+            }
+        }
+        document.getElementById("category-selection-screen").classList.add("hidden");
+        window.showQuestion();
+    };
+
+    window.showQuestion = () => {
+        const q = gameQuestions[currentQuestionIndex];
+        const area = document.getElementById("active-question-area");
+        document.getElementById("game-play-screen").classList.remove("hidden");
+        document.getElementById("view-answer-screen").classList.add("hidden");
+        
+        document.getElementById("name1-display").innerText = teamNames.team1;
+        document.getElementById("name2-display").innerText = teamNames.team2;
+        document.getElementById("score1-display").innerText = hideScoresMode ? "??" : teamScores.team1;
+        document.getElementById("score2-display").innerText = hideScoresMode ? "??" : teamScores.team2;
+
+        let choicesHTML = "";
+        if(q.wrongAnswers && q.wrongAnswers[0] !== "") {
+            let all = [q.correctAnswer, ...q.wrongAnswers].sort(() => Math.random() - 0.5);
+            choicesHTML = `<div class="choices-grid">${all.map(c => `<div class="choice-btn">${c}</div>`).join('')}</div>`;
+        }
+
+        const turnName = currentQuestionIndex % 2 === 0 ? teamNames.team1 : teamNames.team2;
+        area.innerHTML = `
+            <p style="color:var(--primary); font-weight:bold;">سؤال لـ: ${turnName} (${q.points} نقطة)</p>
+            <h2 style="font-size:1.8em">${q.question}</h2>
+            ${choicesHTML}
+            ${window.renderMedia(q)}
+            <button class="btn-main btn-secondary" onclick="window.goToAnswerScreen()">كشف الإجابة 👁️</button>
+        `;
+    };
+
+    window.goToAnswerScreen = () => {
+        const q = gameQuestions[currentQuestionIndex];
+        document.getElementById("game-play-screen").classList.add("hidden");
+        document.getElementById("view-answer-screen").classList.remove("hidden");
+        document.getElementById("final-answer-text").innerText = q.correctAnswer;
+        document.getElementById("btn-give-t1").innerText = `نقطة لـ ${teamNames.team1} ✅`;
+        document.getElementById("btn-give-t2").innerText = `نقطة لـ ${teamNames.team2} ✅`;
+        document.getElementById("answer-media-content").innerHTML = window.renderMedia(q);
+    };
+
+    window.confirmAward = (win) => {
+        if(win === 'team1') teamScores.team1 += gameQuestions[currentQuestionIndex].points;
+        if(win === 'team2') teamScores.team2 += gameQuestions[currentQuestionIndex].points;
+        currentQuestionIndex++;
+        if(currentQuestionIndex < 6) window.showQuestion(); else window.showFinalWinner();
+    };
+
+    window.showFinalWinner = () => {
+        document.getElementById("view-answer-screen").classList.add("hidden");
+        document.getElementById("view-results").classList.remove("hidden");
+        const ann = document.getElementById("winner-announcement");
+        const sub = document.getElementById("results-subtext");
+        const winMsgs = ["مخكم شغال.. ما شاء الله! 🔥", "الفوز لنا واللعب لغيرنا! 🏆"];
+        const loseMsgs = ["تعوضونها بالتحدي الجاي 🔄", "مخكم كان في إجازة؟ 😂"];
+        const w = winMsgs[Math.floor(Math.random()*winMsgs.length)];
+        const l = loseMsgs[Math.floor(Math.random()*loseMsgs.length)];
+
+        if(teamScores.team1 > teamScores.team2) { ann.innerText = `كفو يا ${teamNames.team1}!`; sub.innerHTML = `${w}<br><small>${teamNames.team2}: ${l}</small>`; }
+        else if(teamScores.team2 > teamScores.team1) { ann.innerText = `كفو يا ${teamNames.team2}!`; sub.innerHTML = `${w}<br><small>${teamNames.team1}: ${l}</small>`; }
+        else { ann.innerText = "تعادل حماسي! 🤝"; sub.innerText = "الكل مخه شغال اليوم!"; }
+
+        document.getElementById("res-t1-name").innerText = teamNames.team1;
+        document.getElementById("res-t2-name").innerText = teamNames.team2;
+        document.getElementById("res-t1-score").innerText = teamScores.team1;
+        document.getElementById("res-t2-score").innerText = teamScores.team2;
+    };
+
+    window.renderMedia = (q) => {
+        if(!q.mediaUrl) return "";
+        if(q.mediaType === 'image') return `<img src="${q.mediaUrl}" style="width:100%; border-radius:10px; margin:15px 0;">`;
+        if(q.mediaType === 'audio') return `<audio controls src="${q.mediaUrl}" style="width:100%; margin:15px 0;"></audio>`;
+        if(q.mediaType === 'video') return `<video controls src="${q.mediaUrl}" style="width:100%; border-radius:10px; margin:15px 0;"></video>`;
+        return "";
+    };
+
+    window.saveAdminQ = async () => {
+        const btn = document.getElementById("btn-save-admin");
+        const catInput = document.getElementById("admin-q-cat").value.trim();
+        const correctAns = document.getElementById("admin-q-ans").value.trim();
+        
+        if(!catInput || !correctAns) { alert("أكمل البيانات الأساسية (الفئة والإجابة)!"); return; }
+
+        btn.disabled = true; btn.innerText = "جاري الرفع... ⏳";
+        const f = document.getElementById("admin-q-media").files[0];
+        let url = "", type = "";
+        if(f) {
+            const refM = ref(storage, `media/${Date.now()}_${f.name}`);
+            await uploadBytes(refM, f);
+            url = await getDownloadURL(refM);
+            type = f.type.split('/')[0];
+        }
+        await addDoc(collection(db, "live_questions"), {
+            category: catInput,
+            points: parseInt(document.getElementById("admin-q-pts").value),
+            question: document.getElementById("admin-q-txt").value,
+            correctAnswer: correctAns,
+            wrongAnswers: [document.getElementById("admin-q-w1").value, document.getElementById("admin-q-w2").value, document.getElementById("admin-q-w3").value],
+            mediaUrl: url, mediaType: type, timestamp: serverTimestamp()
+        });
+        
+        alert("تم رفع السؤال بنجاح! ✅"); 
+        
+        document.getElementById("admin-q-txt").value = "";
+        document.getElementById("admin-q-ans").value = "";
+        document.getElementById("admin-q-w1").value = "";
+        document.getElementById("admin-q-w2").value = "";
+        document.getElementById("admin-q-w3").value = "";
+        if(f) document.getElementById("admin-q-media").value = "";
+        
+        window.loadAdminList();
+        btn.disabled = false; btn.innerText = "حفظ ورفع السؤال ☁️";
+    };
+
+    window.loadAdminList = async () => {
+        const list = document.getElementById("admin-qs-list");
+        if(!list) return;
+        const snap = await getDocs(query(collection(db, "live_questions"), orderBy("timestamp", "desc")));
+        list.innerHTML = snap.docs.map(d => `<div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid var(--border-color);"><span>${d.data().question}</span><button onclick="window.delQ('${d.id}')" style="color:var(--danger); border:none; background:none; cursor:pointer; font-weight:bold;">حذف</button></div>`).join('');
+    };
+
+    window.delQ = async (id) => { if(confirm("هل أنت متأكد من حذف هذا السؤال؟")) { await deleteDoc(doc(db, "live_questions", id)); window.loadAdminList(); } };
+</script>
+</body>
+</html>
