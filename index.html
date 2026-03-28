@@ -87,6 +87,21 @@
         .pkg-card:hover { transform: translateY(-10px); }
         .pkg-card.premium { border-color: var(--primary); }
         .pkg-price { font-size: 2em; font-weight: 800; color: var(--text-main); margin: 15px 0; }
+        /* هذا الكود يخلي اللوغو يوضح أكثر في الثيم الداكن */
+[data-theme="dark"] .logo img {
+    filter: drop-shadow(0px 0px 8px rgba(255, 255, 255, 0.2));
+}
+
+/* يحمي اللوغو من الانضغاط في الشاشات الصغيرة */
+.logo img {
+    max-width: 180px;
+    height: auto;
+    transition: transform 0.3s ease;
+}
+
+.logo img:hover {
+    transform: scale(1.05);
+}
     </style>
 
     <script>
@@ -125,9 +140,9 @@
 <body>
 
 <nav class="navbar">
-    <div class="logo" onclick="window.switchTab('home')" style="display: flex; align-items: center; cursor: pointer;">
-      <img src="logo-transparent.png" alt="لوغو مخك معي" style="height: 90px; max-width: 100%;">
-    </div>
+  <div class="logo" onclick="window.switchTab('home')" style="display: flex; align-items: center; cursor: pointer; padding: 5px;">
+    <img src="logo-clean.png" alt="مخك معي" style="height: 80px; width: auto; object-fit: contain; filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.1));">
+</div>
     <div class="nav-links">
         <div style="display: flex; gap: 5px; margin-left: 10px;">
             <button class="theme-btn" onclick="window.setTheme('light')" title="فاتح">☀️</button>
