@@ -35,7 +35,7 @@
         .categories-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; margin-top: 20px; }
         .category-card { position: relative; background: white; padding: 25px 10px; border-radius: 15px; border: 2px solid #eee; transition: 0.3s; text-align: center; cursor: pointer; }
         .category-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .badge { position: absolute; top: -8px; left: -8px; color: white; padding: 4px 10px; border-radius: 8px; font-size: 0.7em; font-weight: bold; box-shadow: 0 4px 8px rgba(0,0,0,0.1); z-index: 5; }
+        .badge { position: absolute; top: -8px; left: -8px; color: white; padding: 4px 10px; border-radius: 8px; font-size: 0.75em; font-weight: bold; box-shadow: 0 4px 8px rgba(0,0,0,0.1); z-index: 5; }
 
         /* Scores Display */
         .score-display { display: flex; justify-content: space-around; margin-bottom: 20px; gap: 15px; }
@@ -63,6 +63,26 @@
     <div id="packages-section" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
         <div class="auth-box"><h3>تحدي ليلة</h3><p>12.99 ريال</p><button class="btn-main btn-primary" onclick="window.switchTab('auth')">اشترك</button></div>
         <div class="auth-box" style="border: 2px solid var(--secondary);"><h3>اشتراك شهري</h3><p>49.99 ريال</p><button class="btn-main btn-secondary" onclick="window.switchTab('auth')">اشترك</button></div>
+    </div>
+</div>
+
+<div id="view-auth" class="container hidden fade-in">
+    <div class="auth-box">
+        <div id="login-form">
+            <h2>تسجيل الدخول 👋</h2>
+            <input type="email" id="login-email" placeholder="البريد الإلكتروني">
+            <input type="password" id="login-password" placeholder="كلمة المرور">
+            <button class="btn-main btn-primary" onclick="window.handleLogin()">دخول</button>
+            <p style="margin-top:15px; font-size:0.9em;">ما عندك حساب؟ <a href="#" onclick="window.toggleAuth(true)" style="color:var(--primary); font-weight:bold;">سجل حساب جديد</a></p>
+        </div>
+        <div id="signup-form" class="hidden">
+            <h2>إنشاء حساب جديد ✨</h2>
+            <input type="email" id="signup-email" placeholder="البريد الإلكتروني">
+            <input type="password" id="signup-password" placeholder="كلمة المرور (6 خانات فأكثر)">
+            <button class="btn-main btn-secondary" onclick="window.handleSignup()">إنشاء الحساب</button>
+            <p style="margin-top:15px; font-size:0.9em;">عندك حساب فعلاً؟ <a href="#" onclick="window.toggleAuth(false)" style="color:var(--primary); font-weight:bold;">ادخل من هنا</a></p>
+        </div>
+        <p id="auth-error" style="color:var(--danger); margin-top:10px; font-weight:bold;"></p>
     </div>
 </div>
 
@@ -106,12 +126,12 @@
 
 <div id="view-results" class="container hidden fade-in" style="text-align: center;">
     <div class="auth-box" style="border: 3px solid var(--secondary);">
-        <h1>🏆</h1>
+        <h1 style="font-size: 3em;">🏆</h1>
         <h2 id="winner-announcement" style="font-size: 2.2em; margin-top: 0;"></h2>
         <p id="results-subtext" style="font-size: 1.2em; line-height: 1.6; margin-bottom: 25px;"></p>
         <div style="display: flex; justify-content: space-around; background: #f8f9fa; padding: 20px; border-radius: 15px; margin-bottom: 20px;">
-            <div><b id="res-t1-name"></b><div id="res-t1-score" style="font-size:2em;"></div></div>
-            <div><b id="res-t2-name"></b><div id="res-t2-score" style="font-size:2em;"></div></div>
+            <div><b id="res-t1-name"></b><div id="res-t1-score" style="font-size:2em;">0</div></div>
+            <div><b id="res-t2-name"></b><div id="res-t2-score" style="font-size:2em;">0</div></div>
         </div>
         <button class="btn-main btn-secondary" onclick="window.location.reload()">تحدي جديد 🔄</button>
     </div>
@@ -119,31 +139,21 @@
 
 <div id="view-admin" class="container hidden fade-in">
     <div class="auth-box" style="border: 2px solid var(--danger);">
-        <h2 style="color: var(--danger);">⚙️ إضافة سؤال</h2>
+        <h2 style="color: var(--danger);">⚙️ إضافة سؤال جديد</h2>
         <select id="admin-q-cat"><option value="تاريخ">تاريخ</option><option value="رياضة">رياضة</option><option value="فيديو">فيديو/صوت</option><option value="عام">عام</option></select>
         <select id="admin-q-pts"><option value="200">200</option><option value="400">400</option><option value="600">600</option></select>
         <textarea id="admin-q-txt" placeholder="نص السؤال..."></textarea>
         <input type="file" id="admin-q-media" accept="image/*,audio/*,video/*">
         <input type="text" id="admin-q-ans" placeholder="الإجابة الصحيحة">
-        <button id="btn-save-admin" class="btn-main btn-primary" onclick="window.saveAdminQ()">حفظ ورفع ☁️</button>
+        <button id="btn-save-admin" class="btn-main btn-primary" onclick="window.saveAdminQ()">حفظ ورفع السؤال ☁️</button>
     </div>
-    <div class="auth-box" id="admin-list-container"><h3>📋 الأسئلة الحالية</h3><div id="admin-qs-list"></div></div>
-</div>
-
-<div id="view-auth" class="container hidden fade-in">
-    <div class="auth-box">
-        <h2>تسجيل الدخول</h2>
-        <input type="email" id="email-input" placeholder="الإيميل">
-        <input type="password" id="password-input" placeholder="كلمة المرور">
-        <button class="btn-main btn-primary" onclick="window.simulateLogin()">دخول</button>
-        <p id="auth-error" style="color:red"></p>
-    </div>
+    <div class="auth-box"><h3>📋 الأسئلة الحالية</h3><div id="admin-qs-list"></div></div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-    import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, getDoc, updateDoc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+    import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, getDoc, updateDoc, setDoc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
     import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
 
     const firebaseConfig = {
@@ -160,7 +170,6 @@
     const db = getFirestore(app);
     const storage = getStorage(app);
 
-    // ✅ تم تحديث إيميل الإدارة هنا
     const adminEmail = "ziad95005@gmail.com"; 
 
     let allQuestions = [];
@@ -193,16 +202,17 @@
                 document.getElementById("tab-admin").classList.remove("hidden");
                 isSubscribed = true;
             }
+        } else {
+            document.getElementById("tab-auth").innerText = "تسجيل الدخول";
+            document.getElementById("tab-admin").classList.add("hidden");
         }
         fetchInitialData();
     });
 
     async function fetchInitialData() {
-        try {
-            const qSnap = await getDocs(collection(db, "live_questions"));
-            allQuestions = qSnap.docs.map(d => ({id: d.id, ...d.data()}));
-            renderAllGrids();
-        } catch(e) { console.error(e); }
+        const qSnap = await getDocs(collection(db, "live_questions"));
+        allQuestions = qSnap.docs.map(d => ({id: d.id, ...d.data()}));
+        renderAllGrids();
     }
 
     function renderAllGrids() {
@@ -230,10 +240,40 @@
         });
     }
 
+    window.toggleAuth = (showSignup) => {
+        document.getElementById("login-form").classList.toggle("hidden", showSignup);
+        document.getElementById("signup-form").classList.toggle("hidden", !showSignup);
+        document.getElementById("auth-error").innerText = "";
+    };
+
+    window.handleSignup = async () => {
+        const email = document.getElementById("signup-email").value.trim();
+        const password = document.getElementById("signup-password").value.trim();
+        const err = document.getElementById("auth-error");
+        if(password.length < 6) { err.innerText = "كلمة المرور قصيرة!"; return; }
+        try {
+            const cred = await createUserWithEmailAndPassword(auth, email, password);
+            await setDoc(doc(db, "users", cred.user.uid), { email, isSubscribed: false, playedQuestions: [], createdAt: serverTimestamp() });
+            alert("تم إنشاء الحساب! ⚡");
+            window.switchTab('home');
+        } catch(e) { err.innerText = "فشل التسجيل. الإيميل قد يكون مستخدماً."; }
+    };
+
+    window.handleLogin = async () => {
+        const email = document.getElementById("login-email").value.trim();
+        const password = document.getElementById("login-password").value.trim();
+        const err = document.getElementById("auth-error");
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+            alert("تم الدخول! 👋");
+            window.switchTab('home');
+        } catch(e) { err.innerText = "خطأ في الإيميل أو الباسورد!"; }
+    };
+
     window.checkSubscriptionAndPlay = () => {
-        if(!auth.currentUser) { alert("سجل دخولك أولاً 👤"); window.switchTab('auth'); return; }
+        if(!auth.currentUser) { alert("سجل دخولك أولاً! 👤"); window.switchTab('auth'); return; }
         if(!isSubscribed) {
-            if(confirm("يجب الاشتراك لفتح التحديات 💎\nهل تود الذهاب للباقات؟")) window.switchTab('home');
+            if(confirm("يجب الاشتراك للعب 💎\nهل تود الذهاب للباقات؟")) window.switchTab('home');
             return;
         }
         window.switchTab('game');
@@ -253,16 +293,16 @@
         selectedCategories.push(cat);
         el.style.borderColor = "var(--primary)";
         el.style.background = "#f3e5f5";
-        pickingTurn = pickingTurn === 1 ? 2 : 1;
+        pickingTurn = (pickingTurn === 1) ? 2 : 1;
         updatePickingStatus();
     };
 
     function updatePickingStatus() {
         const status = document.getElementById("picking-status");
         const remaining = 6 - selectedCategories.length;
-        const currentName = pickingTurn === 1 ? teamNames.team1 : teamNames.team2;
+        const currentName = (pickingTurn === 1) ? teamNames.team1 : teamNames.team2;
         status.innerText = `دور ${currentName} يختار (باقي ${remaining})`;
-        if(remaining === 0) status.innerHTML = `<button class="btn-main btn-secondary" onclick="window.generateGame()">ابدأ التحدي 🚀</button>`;
+        if(remaining === 0) status.innerHTML = `<button class="btn-main btn-secondary" onclick="window.generateGame()">ابدأ الجولة 🚀</button>`;
     }
 
     window.generateGame = async () => {
@@ -279,7 +319,7 @@
                 gameQuestions.push(q);
                 if(!playedIds.includes(q.id)) { 
                     playedIds.push(q.id); 
-                    try { await updateDoc(doc(db, "users", auth.currentUser.uid), { playedQuestions: playedIds }); } catch(e){}
+                    await updateDoc(doc(db, "users", auth.currentUser.uid), { playedQuestions: playedIds });
                 }
             }
         }
@@ -292,7 +332,6 @@
         const area = document.getElementById("active-question-area");
         document.getElementById("game-play-screen").classList.remove("hidden");
         document.getElementById("view-answer-screen").classList.add("hidden");
-        
         document.getElementById("name1-display").innerText = teamNames.team1;
         document.getElementById("name2-display").innerText = teamNames.team2;
         window.updateScoreDisplay();
@@ -324,12 +363,8 @@
     };
 
     window.updateScoreDisplay = () => {
-        const s1 = document.getElementById("score1-display");
-        const s2 = document.getElementById("score2-display");
-        if(s1 && s2) {
-            s1.innerText = hideScoresMode ? "??" : teamScores.team1;
-            s2.innerText = hideScoresMode ? "??" : teamScores.team2;
-        }
+        document.getElementById("score1-display").innerText = hideScoresMode ? "??" : teamScores.team1;
+        document.getElementById("score2-display").innerText = hideScoresMode ? "??" : teamScores.team2;
     };
 
     window.showFinalWinner = () => {
@@ -339,11 +374,11 @@
         const sub = document.getElementById("results-subtext");
         const winMsgs = ["مخكم شغال.. ما شاء الله! 🔥", "الفوز لنا واللعب لغيرنا! 🏆"];
         const loseMsgs = ["تعوضونها بالتحدي الجاي 🔄", "مخكم كان في إجازة؟ 😂"];
-        const wMsg = winMsgs[Math.floor(Math.random()*winMsgs.length)];
-        const lMsg = loseMsgs[Math.floor(Math.random()*loseMsgs.length)];
+        const w = winMsgs[Math.floor(Math.random()*winMsgs.length)];
+        const l = loseMsgs[Math.floor(Math.random()*loseMsgs.length)];
 
-        if(teamScores.team1 > teamScores.team2) { ann.innerText = `كفو يا ${teamNames.team1}!`; sub.innerHTML = `${wMsg}<br><small>${teamNames.team2}: ${lMsg}</small>`; }
-        else if(teamScores.team2 > teamScores.team1) { ann.innerText = `كفو يا ${teamNames.team2}!`; sub.innerHTML = `${wMsg}<br><small>${teamNames.team1}: ${lMsg}</small>`; }
+        if(teamScores.team1 > teamScores.team2) { ann.innerText = `كفو يا ${teamNames.team1}!`; sub.innerHTML = `${w}<br><small>${teamNames.team2}: ${l}</small>`; }
+        else if(teamScores.team2 > teamScores.team1) { ann.innerText = `كفو يا ${teamNames.team2}!`; sub.innerHTML = `${w}<br><small>${teamNames.team1}: ${l}</small>`; }
         else { ann.innerText = "تعادل حماسي! 🤝"; sub.innerText = "الكل مخه شغال اليوم!"; }
 
         document.getElementById("res-t1-name").innerText = teamNames.team1;
@@ -358,13 +393,6 @@
         if(q.mediaType === 'audio') return `<audio controls src="${q.mediaUrl}" style="width:100%; margin:15px 0;"></audio>`;
         if(q.mediaType === 'video') return `<video controls src="${q.mediaUrl}" style="width:100%; border-radius:10px; margin:15px 0;"></video>`;
         return "";
-    };
-
-    window.simulateLogin = async () => {
-        const e = document.getElementById("email-input").value;
-        const p = document.getElementById("password-input").value;
-        try { await signInWithEmailAndPassword(auth, e, p); alert("تم الدخول!"); window.switchTab('home'); }
-        catch(err) { document.getElementById("auth-error").innerText = "خطأ في الدخول"; }
     };
 
     window.saveAdminQ = async () => {
@@ -385,8 +413,8 @@
             correctAnswer: document.getElementById("admin-q-ans").value,
             mediaUrl: mUrl, mediaType: mType, timestamp: serverTimestamp()
         });
-        alert("تم الرفع!"); window.loadAdminList();
-        btn.disabled = false; btn.innerText = "حفظ ورفع ☁️";
+        alert("تم الرفع! ✅"); window.loadAdminList();
+        btn.disabled = false; btn.innerText = "حفظ ورفع السؤال ☁️";
     };
 
     window.loadAdminList = async () => {
