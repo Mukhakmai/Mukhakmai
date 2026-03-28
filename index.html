@@ -271,19 +271,38 @@
 </div>
 
 <div id="view-admin" class="container hidden fade-in">
-    <div class="auth-box" style="border: 2px solid var(--danger);">
-        <h2 style="color: var(--danger);">⚙️ لوحة الإدارة</h2>
-        <input type="text" id="admin-q-cat" placeholder="اسم الفئة (مثلاً: كورة، جغرافيا)">
-        <select id="admin-q-pts"><option value="200">200 نقطة</option><option value="400">400 نقطة</option><option value="600">600 نقطة</option></select>
+    <div class="auth-box" style="border: 2px solid var(--primary); margin-bottom: 20px;">
+        <h2 style="color: var(--primary);">📁 إضافة فئة جديدة</h2>
+        <div style="display: flex; gap: 10px;">
+            <input type="text" id="admin-new-cat-name" placeholder="اسم الفئة (مثلاً: كورة، جغرافيا)">
+            <button class="btn-main btn-primary" style="margin-top:0; width: auto; padding: 10px 25px;" onclick="window.saveNewCategory()">إضافة الفئة +</button>
+        </div>
+        <div id="admin-cats-tags" style="margin-top: 15px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
+            </div>
+    </div>
+
+    <div class="auth-box" style="border: 2px solid var(--secondary);">
+        <h2 style="color: var(--secondary);">❓ إضافة سؤال جديد</h2>
+        <label style="display: block; text-align: right; font-weight: bold; margin-bottom: 5px;">اختر الفئة:</label>
+        <select id="admin-q-cat-select">
+            <option value="">-- اختر الفئة أولاً --</option>
+        </select>
+        
+        <select id="admin-q-pts">
+            <option value="200">200 نقطة</option>
+            <option value="400">400 نقطة</option>
+            <option value="600">600 نقطة</option>
+        </select>
         <textarea id="admin-q-txt" placeholder="نص السؤال..."></textarea>
         <input type="text" id="admin-q-ans" placeholder="الإجابة الصحيحة ✅">
         <input type="text" id="admin-q-w1" placeholder="خيار خاطئ 1 ❌">
         <input type="text" id="admin-q-w2" placeholder="خيار خاطئ 2 ❌">
         <input type="text" id="admin-q-w3" placeholder="خيار خاطئ 3 ❌">
         <input type="file" id="admin-q-media" accept="image/*,audio/*,video/*">
-        <button id="btn-save-admin" class="btn-main btn-primary" onclick="window.saveAdminQ()">حفظ ورفع السؤال ☁️</button>
+        <button id="btn-save-admin" class="btn-main btn-secondary" onclick="window.saveAdminQ()">حفظ ورفع السؤال ☁️</button>
     </div>
-    <div class="auth-box"><h3>📋 الأسئلة الحالية</h3><div id="admin-qs-list"></div></div>
+
+    <div class="auth-box"><h3>📋 قائمة الأسئلة الحالية</h3><div id="admin-qs-list"></div></div>
 </div>
 
 <script type="module">
