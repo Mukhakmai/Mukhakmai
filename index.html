@@ -114,11 +114,9 @@
         .btn-powerup { background: var(--card-bg); border: 2px solid var(--secondary); color: var(--text-main); font-family: 'Tajawal'; padding: 8px 15px; border-radius: 20px; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 5px; }
         .btn-powerup:hover { background: var(--secondary); color: white; transform: scale(1.05); }
         
-        /* مؤقت وعدّاد */
         .timer-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; backdrop-filter: blur(5px); }
         .timer-circle { width: 150px; height: 150px; border: 8px solid var(--secondary); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 4em; font-weight: bold; margin-bottom: 20px; text-shadow: 0 4px 10px rgba(0,0,0,0.5); }
         
-        /* مؤشر الدبل والبلوك */
         .modifier-badge { display: inline-block; background: var(--danger); color: white; padding: 5px 15px; border-radius: 15px; font-size: 0.8em; font-weight: bold; animation: pulse 1.5s infinite; margin-bottom: 15px; }
 
         /* --- تنسيقات شاشة معاينة الفئة للإدارة --- */
@@ -340,8 +338,11 @@
         
         <hr style="border-color: var(--border-color); margin: 20px 0;">
         <h3 style="color: var(--primary);">🚀 أدوات سريعة (للمطور)</h3>
+        
+        <button class="btn-main" style="background: var(--danger); margin-bottom: 10px;" onclick="window.deleteAllHunterQuestions()">مسح جميع أسئلة (Hunter x Hunter) القديمة 🗑️</button>
+        
         <button id="btn-bulk-upload" class="btn-main" style="background: #27ae60;" onclick="window.uploadBulkQuestions()">رفع 60 سؤال (Hunter x Hunter) دفعة واحدة 🚀</button>
-        <p style="font-size: 0.8em; color: var(--danger);">ملاحظة: تأكد من إضافة فئة باسم "Hunter x Hunter" قبل الضغط على الزر.</p>
+        <p style="font-size: 0.8em; color: var(--danger);">ملاحظة: امسح الأسئلة القديمة أولاً لتجنب التكرار.</p>
     </div>
     
     <div class="auth-box"><h3>📋 قائمة الأسئلة الحالية</h3><div id="admin-qs-list"></div></div>
@@ -891,7 +892,7 @@
             let mediaContent = '<div style="color:var(--text-muted); font-size:0.8em;">لا توجد صورة</div>';
             
             if (q.mediaUrl) {
-                if (q.mediaType === 'image') mediaContent = `<img src="${q.mediaUrl}" alt="صورة السؤال">`;
+                if (q.mediaType === 'image') mediaContent = `<img src="${q.mediaUrl}" alt="صورة السؤال" style="max-height: 100%; max-width: 100%;">`;
                 else if (q.mediaType === 'video') mediaContent = `<video src="${q.mediaUrl}" style="width:100%; height:100%; object-fit:cover;"></video>`;
                 else mediaContent = `<div style="color:var(--primary); font-size:0.8em;">صوت مرفق 🎵</div>`;
             }
@@ -980,12 +981,30 @@
         }
     };
 
+    // دالة حذف جميع أسئلة هنتر
+    window.deleteAllHunterQuestions = async () => {
+        if(!confirm("تحذير! سيتم حذف جميع الأسئلة المتعلقة بـ Hunter x Hunter. هل أنت متأكد؟")) return;
+        
+        const qSnap = await getDocs(collection(db, "live_questions"));
+        let count = 0;
+        
+        qSnap.forEach(async (docSnap) => {
+            if(docSnap.data().category === "Hunter x Hunter") {
+                await deleteDoc(doc(db, "live_questions", docSnap.id));
+                count++;
+            }
+        });
+        
+        alert(`تم حذف ${count} سؤال قديم بنجاح!`);
+        window.loadAdminList();
+    };
+
     // --- سكربت رفع الأسئلة دفعة واحدة ---
     window.uploadBulkQuestions = async () => {
         const categoryName = "Hunter x Hunter"; 
         const btn = document.getElementById("btn-bulk-upload");
         
-        if (!confirm(`هل أنت متأكد من رفع 60 سؤال مع الصور لفئة: ${categoryName}؟\n(ملاحظة: إذا رفعتها مسبقاً، احذف الفئة القديمة أولاً لتجنب التكرار)`)) return;
+        if (!confirm(`هل أنت متأكد من رفع 60 سؤال مع الصور لفئة: ${categoryName}؟\n(ملاحظة: تأكد من حذف الأسئلة القديمة أولاً لتجنب التكرار)`)) return;
         
         btn.disabled = true;
         btn.innerText = "جاري الرفع... ⏳";
