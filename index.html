@@ -421,6 +421,63 @@
 </div>
 
 <script type="module">
+    let selectedCategoriesList = []; 
+
+// دالة اختيار الفئات المتعددة
+window.toggleCategorySelection = (catName, element) => {
+    const index = selectedCategoriesList.indexOf(catName);
+    if (index > -1) {
+        selectedCategoriesList.splice(index, 1);
+        element.classList.remove('selected');
+    } else {
+        if (selectedCategoriesList.length >= 6) { alert("الحد الأقصى 6 فئات! ✋"); return; }
+        selectedCategoriesList.push(catName);
+        element.classList.add('selected');
+    }
+    window.updateSelectionUI();
+};
+
+window.updateSelectionUI = () => {
+    const count = selectedCategoriesList.length;
+    document.getElementById("selection-counter").innerText = `تم اختيار (${count}) فئات`;
+    document.getElementById("btn-confirm-categories").style.display = (count >= 3) ? "block" : "none";
+};
+
+window.proceedToSettings = () => {
+    document.getElementById("step-select-category").classList.add("hidden");
+    document.getElementById("step-game-settings").classList.remove("hidden");
+};
+
+window.goBackToCategories = () => {
+    document.getElementById("step-select-category").classList.remove("hidden");
+    document.getElementById("step-game-settings").classList.add("hidden");
+};
+
+// عرض الفئات للأدمن والمستخدم
+window.renderGameCategories = async () => {
+    const grid = document.getElementById("pro-categories-grid");
+    grid.innerHTML = "جاري التحميل...";
+    selectedCategoriesList = [];
+    window.updateSelectionUI();
+
+    const snap = await getDocs(query(collection(db, "categories"), orderBy("name", "asc")));
+    grid.innerHTML = "";
+
+    snap.docs.forEach(d => {
+        const cat = d.data();
+        if(cat.isHidden && auth.currentUser.email !== adminEmail) return;
+
+        const card = document.createElement("div");
+        card.className = `category-card-pro ${cat.isHidden ? 'cat-hidden' : ''}`;
+        card.innerHTML = `
+            ${auth.currentUser.email === adminEmail ? `<div class="admin-edit-btn" onclick="event.stopPropagation(); window.manageCategory('${d.id}', '${cat.name}')">✏️</div>` : ''}
+            <img src="${cat.imageUrl || 'https://cdn-icons-png.flaticon.com/512/3407/3407024.png'}" class="category-icon">
+            <h3>${cat.name}</h3>
+        `;
+        card.onclick = () => window.toggleCategorySelection(cat.name, card);
+        grid.appendChild(card);
+    });
+};
     // --- وظائف إدارة الفئات الجديدة ---
 
 // 1. إضافة فئة جديدة لقاعدة البيانات
