@@ -110,17 +110,25 @@
         .powerup-title { font-weight: bold; font-size: 0.9em; margin-bottom: 5px; color: var(--primary); }
         .powerup-desc { font-size: 0.7em; color: var(--text-muted); }
 
-        /* أزرار تفعيل الخصائص داخل اللعبة */
         .active-powerups-bar { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap; }
         .btn-powerup { background: var(--card-bg); border: 2px solid var(--secondary); color: var(--text-main); font-family: 'Tajawal'; padding: 8px 15px; border-radius: 20px; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 5px; }
         .btn-powerup:hover { background: var(--secondary); color: white; transform: scale(1.05); }
         
-        /* مؤقت وعدّاد */
         .timer-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; backdrop-filter: blur(5px); }
         .timer-circle { width: 150px; height: 150px; border: 8px solid var(--secondary); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 4em; font-weight: bold; margin-bottom: 20px; text-shadow: 0 4px 10px rgba(0,0,0,0.5); }
         
-        /* مؤشر الدبل والبلوك */
         .modifier-badge { display: inline-block; background: var(--danger); color: white; padding: 5px 15px; border-radius: 15px; font-size: 0.8em; font-weight: bold; animation: pulse 1.5s infinite; margin-bottom: 15px; }
+
+        /* --- تنسيقات شاشة معاينة الفئة للإدارة --- */
+        #view-category-preview { background: var(--bg-color); min-height: 100vh; padding-bottom: 50px; }
+        .preview-header { display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); padding: 15px 20px; border-radius: 15px; border: 2px solid var(--primary); margin-bottom: 20px; box-shadow: var(--card-shadow); }
+        .preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .preview-card { background: var(--card-bg); border-radius: 15px; overflow: hidden; border: 1px solid var(--border-color); box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: 0.3s; display: flex; flex-direction: column; }
+        .preview-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-color: var(--primary); }
+        .preview-img-container { height: 180px; width: 100%; background: #f8f9fa; display: flex; justify-content: center; align-items: center; border-bottom: 1px solid var(--border-color); overflow: hidden; }
+        .preview-img-container img { width: 100%; height: 100%; object-fit: cover; }
+        .preview-content { padding: 15px; flex-grow: 1; display: flex; flex-direction: column; text-align: right; }
+        .preview-actions { display: flex; gap: 5px; justify-content: flex-end; padding: 10px 15px; background: rgba(0,0,0,0.02); border-top: 1px dashed var(--border-color); }
     </style>
 
     <script>
@@ -295,6 +303,16 @@
     <button class="btn-main btn-danger" style="max-width: 200px; margin-top:10px;" onclick="window.closeTimerModal()">إغلاق ✖️</button>
 </div>
 
+<div id="view-category-preview" class="container hidden fade-in">
+    <div class="preview-header">
+        <h2 id="preview-title" style="margin: 0; color: var(--primary);">معاينة الفئة</h2>
+        <button class="btn-main" style="width: auto; padding: 8px 15px; margin: 0; background: var(--secondary);" onclick="window.closeCategoryPreview()">⬅️ رجوع للإدارة</button>
+    </div>
+    <div id="preview-questions-grid" class="preview-grid">
+        </div>
+</div>
+
+
 <div id="view-admin" class="container hidden fade-in">
     <div class="auth-box" style="border: 2px solid var(--primary); margin-bottom: 20px;">
         <h2 style="color: var(--primary);">📁 إدارة الفئات</h2>
@@ -322,8 +340,8 @@
         <h3 style="color: var(--primary);">🚀 أدوات سريعة (للمطور)</h3>
         <button id="btn-bulk-upload" class="btn-main" style="background: #27ae60;" onclick="window.uploadBulkQuestions()">رفع 60 سؤال (Hunter x Hunter) دفعة واحدة 🚀</button>
         <p style="font-size: 0.8em; color: var(--danger);">ملاحظة: تأكد من إضافة فئة باسم "Hunter x Hunter" قبل الضغط على الزر.</p>
-
     </div>
+    
     <div class="auth-box"><h3>📋 قائمة الأسئلة الحالية</h3><div id="admin-qs-list"></div></div>
 </div>
 
@@ -356,6 +374,7 @@
     let teamNames = { team1: "", team2: "" };
     let isSubscribed = false, hideScoresMode = false;
     let allLoadedCategories = [];
+    let adminCategorizedQs = {}; // لتخزين الأسئلة لشاشة المعاينة
 
     // ====== إعدادات الخصائص (Power-ups) ======
     const AVAILABLE_POWERUPS = [
@@ -370,7 +389,7 @@
     let team1SelectedPowerups = [];
     let team2SelectedPowerups = [];
     let usedPowerups = { team1: [], team2: [] };
-    let activeGameModifiers = { double: false, block: false }; // تتغير مع كل سؤال
+    let activeGameModifiers = { double: false, block: false }; 
     let timerInterval = null;
 
     // رسم واجهة اختيار الخصائص
@@ -389,7 +408,6 @@
         renderGrid('t2');
     };
 
-    // منع اختيار أكثر من 3 خصائص
     window.handlePowerupToggle = (team, checkbox) => {
         const selectedArr = team === 't1' ? team1SelectedPowerups : team2SelectedPowerups;
         const label = document.getElementById(`label-${team}-${checkbox.value}`);
@@ -496,7 +514,7 @@
             card.onclick = () => window.toggleCategorySelection(cat.name, card);
             grid.appendChild(card);
         });
-        window.renderPowerupSelection(); // تأكيد رسم الخصائص
+        window.renderPowerupSelection(); 
     };
 
     // ====== إعداد الجولة وبدء اللعب ======
@@ -515,7 +533,6 @@
         
         for (let i = 0; i < 6; i++) {
             let catName = selectedCategoriesList[i % selectedCategoriesList.length];
-            // تم إضافة شرط !x.isHidden لكي لا يتم سحب الأسئلة المخفية أثناء اللعب
             let q = allQuestions.find(x => x.category === catName && !x.isHidden && x.points === pointsToPick[i] && !playedIds.includes(x.id) && !gameQuestions.includes(x)) ||
                     allQuestions.find(x => x.category === catName && !x.isHidden && !playedIds.includes(x.id) && !gameQuestions.includes(x)) ||
                     allQuestions.find(x => x.category === catName && !x.isHidden && !gameQuestions.includes(x));
@@ -526,8 +543,8 @@
         }
         if(gameQuestions.length < 6) { alert("عذراً، أسئلة غير كافية بالفئات المحددة."); return; }
         
-        usedPowerups = { team1: [], team2: [] }; // إعادة تعيين
-        activeGameModifiers = { double: false, block: false }; // تصفير المزايا
+        usedPowerups = { team1: [], team2: [] }; 
+        activeGameModifiers = { double: false, block: false }; 
         document.getElementById("step-game-settings").classList.add("hidden");
         currentQuestionIndex = 0; teamScores = { team1: 0, team2: 0 };
         window.showQuestion();
@@ -554,7 +571,6 @@
             choicesHTML = `<div class="choices-grid hidden" id="dynamic-choices-grid"><p style="text-align:center; grid-column:span 2;">عذراً، لا توجد خيارات مبرمجة لهذا السؤال.</p></div>`;
         }
 
-        // إظهار أزرار الخصائص المتاحة للفريق صاحب الدور فقط
         const teamPowerupsArr = isTeam1Turn ? team1SelectedPowerups : team2SelectedPowerups;
         let powerupsHtml = '';
         teamPowerupsArr.forEach(pid => {
@@ -564,7 +580,6 @@
             }
         });
 
-        // رسم مؤشرات الخصائص المفعلة
         let badgesHtml = '';
         if(activeGameModifiers.double) badgesHtml += `<div class="modifier-badge">تم تفعيل دبل النقاط! ✌️ (للفريق المجيب صح)</div>`;
         if(activeGameModifiers.block) badgesHtml += `<div class="modifier-badge" style="background:var(--secondary)">تم تفعيل البلوك! 🚫 (الخصم محروم من النقطة)</div>`;
@@ -588,26 +603,21 @@
         return "";
     };
 
-    // ====== تنفيذ الخصائص (Power-ups Logic) ======
     window.activatePowerup = async (team, pId) => {
-        usedPowerups[team].push(pId); // تسجيلها كمستخدمة
+        usedPowerups[team].push(pId); 
         
         if (pId === 'change') {
-            // جلب كل الأسئلة اللي ما انلعبت ومو موجودة في الجولة الحالية
             let availableQs = allQuestions.filter(x => !playedIds.includes(x.id) && !gameQuestions.some(gq => gq.id === x.id));
-            
             if (availableQs.length > 0) {
-                // اختيار سؤال عشوائي تماماً بنقاطه الأصلية
                 let randomIndex = Math.floor(Math.random() * availableQs.length);
                 let newQ = availableQs[randomIndex];
-                
                 gameQuestions[currentQuestionIndex] = newQ;
                 playedIds.push(newQ.id);
                 await updateDoc(doc(db, "users", auth.currentUser.uid), { playedQuestions: playedIds });
                 alert(`تم تغيير السؤال إلى سؤال عشوائي بـ ${newQ.points} نقطة! 🔄`);
             } else { 
                 alert("لا توجد أسئلة بديلة متاحة في قاعدة البيانات!"); 
-                usedPowerups[team].pop(); // نرجع له الخاصية إذا ما فيه أسئلة
+                usedPowerups[team].pop(); 
                 return;
             }
         } 
@@ -616,12 +626,8 @@
         else if (pId === 'call') { window.openTimerModal("الاتصال بصديق 📱", 30); } 
         else if (pId === 'search') { window.openTimerModal("البحث بالإنترنت 🌐", 15); }
 
-        window.showQuestion(); // إعادة تحديث الشاشة لتطبيق التأثير وإخفاء الزر
-
-        // إظهار الخيارات فوراً لو كانت الخاصية 4 خيارات
-        if (pId === 'choices') {
-            document.getElementById('dynamic-choices-grid').classList.remove('hidden');
-        }
+        window.showQuestion(); 
+        if (pId === 'choices') document.getElementById('dynamic-choices-grid').classList.remove('hidden');
     };
 
     // نظام المؤقتات
@@ -668,14 +674,10 @@
         t2Btn.innerText = `نقطة لـ ${teamNames.team2} ✅`;
         t1Btn.disabled = false; t2Btn.disabled = false;
 
-        // تطبيق خاصية البلوك
         if (activeGameModifiers.block) {
             const isTeam1Turn = (currentQuestionIndex % 2 === 0);
-            if (isTeam1Turn) {
-                t2Btn.disabled = true; t2Btn.innerText = "🚫 ممنوع بالإجابة (بلوك)";
-            } else {
-                t1Btn.disabled = true; t1Btn.innerText = "🚫 ممنوع بالإجابة (بلوك)";
-            }
+            if (isTeam1Turn) { t2Btn.disabled = true; t2Btn.innerText = "🚫 ممنوع بالإجابة (بلوك)"; } 
+            else { t1Btn.disabled = true; t1Btn.innerText = "🚫 ممنوع بالإجابة (بلوك)"; }
         }
     };
 
@@ -684,21 +686,15 @@
         const isTeam1Turn = (currentQuestionIndex % 2 === 0);
         let earnedPoints = q.points;
 
-        // تطبيق خاصية الدبل
         if (activeGameModifiers.double) {
-            if ((isTeam1Turn && win === 'team1') || (!isTeam1Turn && win === 'team2')) {
-                earnedPoints *= 2; 
-            }
+            if ((isTeam1Turn && win === 'team1') || (!isTeam1Turn && win === 'team2')) { earnedPoints *= 2; }
         }
 
         if(win === 'team1') teamScores.team1 += earnedPoints;
         if(win === 'team2') teamScores.team2 += earnedPoints;
         
         currentQuestionIndex++;
-        
-        // تصفير خصائص الدبل والبلوك للسؤال القادم
         activeGameModifiers = { double: false, block: false };
-
         if(currentQuestionIndex < 6) window.showQuestion(); else window.showFinalWinner();
     };
 
@@ -743,7 +739,6 @@
 
     window.handleLogout = () => { signOut(auth); location.reload(); };
 
-    // إضافة فئة جديدة
     window.saveNewCategory = async () => {
         const name = document.getElementById("admin-new-cat-name").value.trim();
         if (!name) { alert("اكتب اسم الفئة أولاً!"); return; }
@@ -755,18 +750,15 @@
         } catch (e) { console.error("خطأ:", e); }
     };
 
-    // تحميل وعرض الفئات للإدارة
     window.loadCategoriesForAdmin = async () => {
         const datalist = document.getElementById("categories-list");
         const snap = await getDocs(query(collection(db, "categories"), orderBy("name", "asc")));
         allLoadedCategories = snap.docs.map(d => ({id: d.id, ...d.data()}));
-        
         datalist.innerHTML = allLoadedCategories.map(c => `<option value="${c.name}">`).join('');
         window.renderCategoryTags(allLoadedCategories);
         window.loadAdminList();
     };
 
-    // فلترة وعرض تاغات الفئات
     window.filterCategories = (term) => {
         const filtered = allLoadedCategories.filter(c => c.name.includes(term));
         window.renderCategoryTags(filtered);
@@ -782,7 +774,6 @@
         `).join('');
     };
 
-    // حذف فئة
     window.delCat = async (id) => {
         if (confirm("هل تريد حذف هذه الفئة؟")) {
             await deleteDoc(doc(db, "categories", id));
@@ -790,26 +781,6 @@
         }
     };
 
-    // إدارة الفئة من البطاقة (تعديل اسم، أيقونة، إخفاء، حذف)
-    window.manageCategory = async (id, currentName) => {
-        const action = prompt(`إدارة فئة (${currentName}):\n1. تعديل الاسم\n2. تغيير رابط الأيقونة\n3. إخفاء/إظهار\n4. حذف الفئة\n(اكتب الرقم):`);
-        const catRef = doc(db, "categories", id);
-        if(action === "1") {
-            const newName = prompt("الاسم الجديد:", currentName);
-            if(newName) await updateDoc(catRef, { name: newName });
-        } else if(action === "2") {
-            const newUrl = prompt("رابط الصورة الجديد:");
-            if(newUrl) await updateDoc(catRef, { imageUrl: newUrl });
-        } else if(action === "3") {
-            const current = (await getDoc(catRef)).data().isHidden;
-            await updateDoc(catRef, { isHidden: !current });
-        } else if(action === "4") {
-            if(confirm("سيتم حذف الفئة نهائياً! هل أنت متأكد؟")) await deleteDoc(catRef);
-        }
-        window.renderGameCategories();
-    };
-
-    // حفظ سؤال جديد
     window.saveAdminQ = async () => {
         const btn = document.getElementById("btn-save-admin");
         const catInput = document.getElementById("admin-q-cat-input").value.trim(); 
@@ -832,16 +803,13 @@
             question: document.getElementById("admin-q-txt").value,
             correctAnswer: correctAns,
             wrongAnswers: [document.getElementById("admin-q-w1").value, document.getElementById("admin-q-w2").value, document.getElementById("admin-q-w3").value],
-            mediaUrl: url, mediaType: type, timestamp: serverTimestamp()
+            mediaUrl: url, mediaType: type, timestamp: serverTimestamp(),
+            isHidden: false
         });
         
         alert("تم رفع السؤال بنجاح! ✅"); 
-        
-        document.getElementById("admin-q-txt").value = "";
-        document.getElementById("admin-q-ans").value = "";
-        document.getElementById("admin-q-w1").value = "";
-        document.getElementById("admin-q-w2").value = "";
-        document.getElementById("admin-q-w3").value = "";
+        document.getElementById("admin-q-txt").value = ""; document.getElementById("admin-q-ans").value = "";
+        document.getElementById("admin-q-w1").value = ""; document.getElementById("admin-q-w2").value = ""; document.getElementById("admin-q-w3").value = "";
         if(f) document.getElementById("admin-q-media").value = "";
         
         window.loadAdminList();
@@ -849,7 +817,7 @@
     };
 
     // ==========================================
-    // ====== تحديث قائمة الأسئلة (الأكورديون) ======
+    // ====== تحديث قائمة الأسئلة ومعاينتها ======
     // ==========================================
     window.loadAdminList = async () => {
         const list = document.getElementById("admin-qs-list");
@@ -860,175 +828,232 @@
         const snap = await getDocs(query(collection(db, "live_questions"), orderBy("timestamp", "desc")));
         allQuestions = snap.docs.map(d => ({id: d.id, ...d.data()}));
         
-        // تجميع الأسئلة حسب الفئة
-        const categorizedQs = {};
+        adminCategorizedQs = {};
         allQuestions.forEach(q => {
-            if (!categorizedQs[q.category]) categorizedQs[q.category] = [];
-            categorizedQs[q.category].push(q);
+            if (!adminCategorizedQs[q.category]) adminCategorizedQs[q.category] = [];
+            adminCategorizedQs[q.category].push(q);
         });
 
         let html = '';
-        for (const [catName, qs] of Object.entries(categorizedQs)) {
-            const safeId = catName.replace(/[^a-zA-Z0-9_]/g, '-'); // معرف آمن للـ HTML
+        for (const [catName, qs] of Object.entries(adminCategorizedQs)) {
+            const safeId = catName.replace(/[^a-zA-Z0-9_]/g, '-');
             html += `
                 <div style="background: var(--bg-color); border: 2px solid var(--primary); border-radius: 10px; margin-bottom: 10px; overflow: hidden;">
-                    <div style="padding: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: rgba(142, 68, 173, 0.1);" onclick="document.getElementById('cat-qs-${safeId}').classList.toggle('hidden')">
-                        <h4 style="margin: 0; color: var(--text-main);">${catName}</h4>
-                        <span style="background: var(--primary); color: white; padding: 3px 10px; border-radius: 15px; font-size: 0.8em; font-weight: bold;">${qs.length} سؤال</span>
+                    <div style="padding: 15px; display: flex; justify-content: space-between; align-items: center; background: rgba(142, 68, 173, 0.1);">
+                        <h4 style="margin: 0; color: var(--text-main); display: flex; align-items: center; gap: 10px;">
+                            ${catName}
+                            <span style="background: var(--primary); color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.7em;">${qs.length}</span>
+                        </h4>
+                        <div style="display: flex; gap: 10px;">
+                            <button onclick="window.openCategoryPreview('${catName}')" style="background: var(--secondary); color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-family: 'Tajawal'; font-weight: bold; font-size: 0.9em;">👁️ معاينة الفئة</button>
+                            <button onclick="document.getElementById('cat-qs-${safeId}').classList.toggle('hidden')" style="background: transparent; color: var(--primary); border: 1px solid var(--primary); padding: 5px 10px; border-radius: 5px; cursor: pointer; font-family: 'Tajawal'; font-size: 0.9em;">🔽 القائمة</button>
+                        </div>
                     </div>
+                    
                     <div id="cat-qs-${safeId}" class="hidden" style="padding: 10px; border-top: 1px solid var(--border-color);">
             `;
 
             qs.forEach(q => {
                 const isHidden = q.isHidden ? true : false;
                 html += `
-                    <div style="background: var(--card-bg); padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid var(--border-color); text-align: right; opacity: ${isHidden ? '0.5' : '1'};">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
-                            <span style="font-weight: bold; color: var(--text-main); width: 70%;">${q.question}</span>
-                            <span style="color: var(--secondary); font-weight: bold; font-size: 0.9em;">[${q.points} نقطة]</span>
-                        </div>
-                        <div style="font-size: 0.85em; color: var(--success); margin-bottom: 10px;">✅ ${q.correctAnswer}</div>
-                        <div style="display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap;">
-                            <button onclick="window.editQ('${q.id}')" style="background: #3498db; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-family: 'Tajawal'; font-size: 0.9em;">✏️ تعديل</button>
-                            <button onclick="window.toggleHideQ('${q.id}', ${isHidden})" style="background: #95a5a6; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-family: 'Tajawal'; font-size: 0.9em;">👁️ ${isHidden ? 'إظهار' : 'إخفاء'}</button>
-                            <button onclick="window.delQ('${q.id}')" style="background: var(--danger); color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-family: 'Tajawal'; font-size: 0.9em;">🗑️ حذف</button>
+                    <div style="background: var(--card-bg); padding: 10px; border-radius: 8px; margin-bottom: 5px; border: 1px solid var(--border-color); text-align: right; opacity: ${isHidden ? '0.5' : '1'};">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-weight: bold; font-size: 0.9em; width: 60%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${q.question}</span>
+                            <div style="display: flex; gap: 5px;">
+                                <button onclick="window.editQ('${q.id}')" style="background: #3498db; color: white; border: none; padding: 3px 8px; border-radius: 3px; cursor: pointer; font-size: 0.8em;">✏️</button>
+                                <button onclick="window.toggleHideQ('${q.id}', ${isHidden})" style="background: #95a5a6; color: white; border: none; padding: 3px 8px; border-radius: 3px; cursor: pointer; font-size: 0.8em;">${isHidden ? '👁️' : '🙈'}</button>
+                                <button onclick="window.delQ('${q.id}')" style="background: var(--danger); color: white; border: none; padding: 3px 8px; border-radius: 3px; cursor: pointer; font-size: 0.8em;">🗑️</button>
+                            </div>
                         </div>
                     </div>
                 `;
             });
-
             html += `</div></div>`;
         }
-
-        if (Object.keys(categorizedQs).length === 0) {
-            list.innerHTML = "<p>لا توجد أسئلة حالياً.</p>";
-        } else {
-            list.innerHTML = html;
-        }
+        if (Object.keys(adminCategorizedQs).length === 0) { list.innerHTML = "<p>لا توجد أسئلة حالياً.</p>"; } else { list.innerHTML = html; }
     };
 
-    // حذف سؤال
-    window.delQ = async (id) => { 
+    window.openCategoryPreview = (catName) => {
+        document.getElementById("view-admin").classList.add("hidden");
+        document.getElementById("view-category-preview").classList.remove("hidden");
+        document.getElementById("preview-title").innerText = `معاينة: ${catName}`;
+        
+        const grid = document.getElementById("preview-questions-grid");
+        const qs = adminCategorizedQs[catName] || [];
+        
+        if (qs.length === 0) { grid.innerHTML = "<p>لا توجد أسئلة في هذه الفئة.</p>"; return; }
+
+        let html = '';
+        qs.forEach(q => {
+            const isHidden = q.isHidden ? true : false;
+            let mediaContent = '<div style="color:var(--text-muted); font-size:0.8em;">لا توجد صورة</div>';
+            
+            if (q.mediaUrl) {
+                if (q.mediaType === 'image') mediaContent = `<img src="${q.mediaUrl}" alt="صورة السؤال">`;
+                else if (q.mediaType === 'video') mediaContent = `<video src="${q.mediaUrl}" style="width:100%; height:100%; object-fit:cover;"></video>`;
+                else mediaContent = `<div style="color:var(--primary); font-size:0.8em;">صوت مرفق 🎵</div>`;
+            }
+
+            html += `
+                <div class="preview-card" style="opacity: ${isHidden ? '0.5' : '1'}; border-color: ${isHidden ? 'var(--danger)' : 'var(--border-color)'};">
+                    <div class="preview-img-container">
+                        ${mediaContent}
+                    </div>
+                    <div class="preview-content">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                            <span style="color: var(--secondary); font-weight: bold; font-size: 0.9em;">[${q.points} نقطة]</span>
+                            ${isHidden ? '<span style="color:var(--danger); font-size:0.8em; font-weight:bold;">مخفي 🙈</span>' : ''}
+                        </div>
+                        <h4 style="margin: 0 0 10px 0; color: var(--text-main); line-height: 1.4;">${q.question}</h4>
+                        <div style="font-size: 0.9em; color: var(--success); font-weight: bold; margin-top: auto;">✅ ${q.correctAnswer}</div>
+                    </div>
+                    <div class="preview-actions">
+                        <button onclick="window.editQ('${q.id}', '${catName}')" class="btn-main" style="margin:0; padding: 5px; font-size: 0.8em; background: #3498db; width: 33%;">تعديل</button>
+                        <button onclick="window.toggleHideQ('${q.id}', ${isHidden}, '${catName}')" class="btn-main" style="margin:0; padding: 5px; font-size: 0.8em; background: #95a5a6; width: 33%;">${isHidden ? 'إظهار' : 'إخفاء'}</button>
+                        <button onclick="window.delQ('${q.id}', '${catName}')" class="btn-main" style="margin:0; padding: 5px; font-size: 0.8em; background: var(--danger); width: 33%;">حذف</button>
+                    </div>
+                </div>
+            `;
+        });
+        grid.innerHTML = html;
+    };
+
+    window.closeCategoryPreview = () => {
+        document.getElementById("view-category-preview").classList.add("hidden");
+        document.getElementById("view-admin").classList.remove("hidden");
+        window.loadAdminList(); 
+    };
+
+    window.delQ = async (id, currentPreviewCat = null) => { 
         if(confirm("متأكد من حذف هذا السؤال؟ لا يمكن التراجع!")) { 
             await deleteDoc(doc(db, "live_questions", id)); 
-            window.loadAdminList(); 
+            if(currentPreviewCat) {
+                adminCategorizedQs[currentPreviewCat] = adminCategorizedQs[currentPreviewCat].filter(q => q.id !== id);
+                window.openCategoryPreview(currentPreviewCat);
+            } else { window.loadAdminList(); }
         } 
     };
 
-    // إخفاء / إظهار سؤال
-    window.toggleHideQ = async (id, currentState) => {
+    window.toggleHideQ = async (id, currentState, currentPreviewCat = null) => {
         try {
             await updateDoc(doc(db, "live_questions", id), { isHidden: !currentState });
-            window.loadAdminList();
+            if(currentPreviewCat) {
+                let qToUpdate = adminCategorizedQs[currentPreviewCat].find(q => q.id === id);
+                if(qToUpdate) qToUpdate.isHidden = !currentState;
+                window.openCategoryPreview(currentPreviewCat);
+            } else { window.loadAdminList(); }
         } catch (e) { alert("حدث خطأ أثناء تعديل حالة السؤال."); }
     };
 
-    // تعديل سؤال
-    window.editQ = async (id) => {
+    window.editQ = async (id, currentPreviewCat = null) => {
         const qRef = doc(db, "live_questions", id);
         const qSnap = await getDoc(qRef);
         if (!qSnap.exists()) return;
         const qData = qSnap.data();
 
-        const action = prompt(`ما الذي تريد تعديله في هذا السؤال؟\n1. نص السؤال\n2. الإجابة الصحيحة\n3. النقاط\n(اكتب الرقم 1 أو 2 أو 3):`);
+        const action = prompt(`تعديل السؤال:\n1. نص السؤال\n2. الإجابة الصحيحة\n3. النقاط\n4. رابط الصورة\n(اكتب الرقم):`);
         
+        let updateData = null;
         if (action === "1") {
             const newText = prompt("نص السؤال الجديد:", qData.question);
-            if (newText && newText !== qData.question) {
-                await updateDoc(qRef, { question: newText });
-                window.loadAdminList();
-            }
+            if (newText && newText !== qData.question) updateData = { question: newText };
         } else if (action === "2") {
             const newAns = prompt("الإجابة الصحيحة الجديدة:", qData.correctAnswer);
-            if (newAns && newAns !== qData.correctAnswer) {
-                await updateDoc(qRef, { correctAnswer: newAns });
-                window.loadAdminList();
-            }
+            if (newAns && newAns !== qData.correctAnswer) updateData = { correctAnswer: newAns };
         } else if (action === "3") {
-            const newPts = prompt("النقاط الجديدة (مثال: 200, 400, 600):", qData.points);
-            if (newPts && !isNaN(newPts)) {
-                await updateDoc(qRef, { points: parseInt(newPts) });
-                window.loadAdminList();
-            }
+            const newPts = prompt("النقاط الجديدة (مثال: 200, 400):", qData.points);
+            if (newPts && !isNaN(newPts)) updateData = { points: parseInt(newPts) };
+        } else if (action === "4") {
+            const newUrl = prompt("رابط الصورة الجديد (اتركه فارغاً للحذف):", qData.mediaUrl || "");
+            updateData = { mediaUrl: newUrl, mediaType: newUrl ? "image" : "" };
+        }
+
+        if (updateData) {
+            await updateDoc(qRef, updateData);
+            if(currentPreviewCat) {
+                let qToUpdate = adminCategorizedQs[currentPreviewCat].find(q => q.id === id);
+                if(qToUpdate) Object.assign(qToUpdate, updateData);
+                window.openCategoryPreview(currentPreviewCat);
+            } else { window.loadAdminList(); }
         }
     };
 
     // --- سكربت رفع الأسئلة دفعة واحدة ---
     window.uploadBulkQuestions = async () => {
-        const categoryName = "Hunter x Hunter"; // تم التعديل هنا ليتطابق مع موقعك بالضبط
+        const categoryName = "Hunter x Hunter"; 
         const btn = document.getElementById("btn-bulk-upload");
         
-        if (!confirm(`هل أنت متأكد من رفع 60 سؤال لفئة: ${categoryName}؟`)) return;
+        if (!confirm(`هل أنت متأكد من رفع 60 سؤال مع الصور لفئة: ${categoryName}؟`)) return;
         
         btn.disabled = true;
         btn.innerText = "جاري الرفع... ⏳";
 
         const questionsData = [
             // --- 200 نقطة ---
-            { q: "ما هو سلاح غون فريكس الرئيسي في بداية الأنمي قبل تعلم النين؟", a: "صنارة صيد", w: ["سيف", "قوس وسهم", "مسدس"], p: 200 },
-            { q: "من هو الصديق الأول الذي التقى به غون في طريقه لامتحان الصيادين؟", a: "ليوريو", w: ["كيلوا", "كورابيكا", "هيسوكا"], p: 200 },
-            { q: "ما هو هدف كورابيكا الرئيسي في الحياة؟", a: "الانتقام لعشيرته واستعادة العيون القرمزية", w: ["أن يصبح أعظم صياد", "العثور على والده", "حكم عصابة العناكب"], p: 200 },
-            { q: "ما هو صنف النين الخاص بغون فريكس؟", a: "التعزيز", w: ["التحويل", "التجسيد", "التلاعب"], p: 200 },
-            { q: "من هو قائد عصابة العناكب (غيني ريودان)؟", a: "كرولو لوسيلفر", w: ["هيسوكا", "إيلومي", "فيتان"], p: 200 },
-            { q: "ما هو اسم اللعبة التي دخلها غون وكيلوا للبحث عن جين؟", a: "جريد آيلاند (Greed Island)", w: ["هانتر آيلاند", "نين وورلد", "دارك كونتيننت"], p: 200 },
-            { q: "ما هو اسم عائلة كيلوا المشهورة بالاغتيال؟", a: "زولديك", w: ["فريكس", "كوروتا", "لوسيلفر"], p: 200 },
-            { q: "ما هو الرقم الذي يحمله هيسوكا في امتحان الصيادين الأول الذي ظهر فيه؟", a: "44", w: ["99", "405", "100"], p: 200 },
-            { q: "ما هي قدرة كيلوا الرئيسية في النين؟", a: "تحويل الهالة إلى كهرباء", w: ["التحكم في النار", "التخفي", "استنساخ نفسه"], p: 200 },
-            { q: "من هو المدرب الذي علم غون وكيلوا أساسيات النين في حلبة السماء؟", a: "وينج", w: ["بيسكي", "كايت", "نيتيرو"], p: 200 },
-            { q: "ما هو اسم ملك نمل الكيميرا؟", a: "ميرويم", w: ["نيفيربيتو", "شاياپوف", "منتويوبي"], p: 200 },
-            { q: "ما هو اسم رئيس جمعية الصيادين الثاني عشر (العجوز)؟", a: "إسحاق نيتيرو", w: ["بارستون هيل", "تشيدل", "جين فريكس"], p: 200 },
-            { q: "ما هو صنف النين الخاص بكورابيكا عندما تتحول عيونه للون القرمزي؟", a: "التخصص (التوظيف)", w: ["التجسيد", "التعزيز", "التحويل"], p: 200 },
-            { q: "ما هو هدف ليوريو الأساسي من دخول امتحان الصيادين؟", a: "كسب المال ليصبح طبيباً", w: ["الانتقام لصديقه", "البحث عن والده", "أن يصبح أقوى مقاتل"], p: 200 },
-            { q: "ما هو اسم والد غون الذي يبحث عنه طوال الأنمي؟", a: "جين فريكس", w: ["سيلفا فريكس", "كايت", "دون فريكس"], p: 200 },
-            { q: "ما هي وجبة كيلوا الخفيفة المفضلة التي يصرف عليها الكثير من المال؟", a: "شوكولاتة روبوت (ChocoRobo-kun)", w: ["الرامين", "حلوى التفاح", "البسكويت المالح"], p: 200 },
-            { q: "ما هو السلاح المفضل الذي يستخدمه هيسوكا دائماً في قتالاته؟", a: "بطاقات اللعب (البلوت)", w: ["سكاكين صغيرة", "خيوط نين", "عصا سحرية"], p: 200 },
-            { q: "ما هو اسم العملة الرسمية المستخدمة في عالم هنتر x هنتر؟", a: "جيني (Jenny)", w: ["بيلي", "بير", "زينو"], p: 200 },
-            { q: "في أي يد يرتدي كورابيكا سلاح السلاسل الخاص به؟", a: "اليد اليمنى", w: ["اليد اليسرى", "كلتا اليدين", "حول عنقه"], p: 200 },
-            { q: "ما هو اسم الكلب العملاق الذي يحرس بوابة عائلة زولديك؟", a: "ميكي", w: ["زيكي", "توبي", "غارمي"], p: 200 },
+            { q: "ما هو سلاح غون فريكس الرئيسي في بداية الأنمي قبل تعلم النين؟", a: "صنارة صيد", w: ["سيف", "قوس وسهم", "مسدس"], p: 200, m: "https://i.pinimg.com/736x/8e/2f/64/8e2f647c5d013063f1f31f99c4d9a2a7.jpg" },
+            { q: "من هو الصديق الأول الذي التقى به غون في طريقه لامتحان الصيادين؟", a: "ليوريو", w: ["كيلوا", "كورابيكا", "هيسوكا"], p: 200, m: "https://i.pinimg.com/736x/60/a5/d8/60a5d89fb551a37c0eb669e4ce9be5dc.jpg" },
+            { q: "ما هو هدف كورابيكا الرئيسي في الحياة؟", a: "الانتقام لعشيرته واستعادة العيون القرمزية", w: ["أن يصبح أعظم صياد", "العثور على والده", "حكم عصابة العناكب"], p: 200, m: "https://i.pinimg.com/736x/43/40/ea/4340eab71b0cb7c8ab8f62f83197abf0.jpg" },
+            { q: "ما هو صنف النين الخاص بغون فريكس؟", a: "التعزيز", w: ["التحويل", "التجسيد", "التلاعب"], p: 200, m: "https://i.pinimg.com/736x/21/fb/6b/21fb6bd9f1ee991a0390f119e346d0a7.jpg" },
+            { q: "من هو قائد عصابة العناكب (غيني ريودان)؟", a: "كرولو لوسيلفر", w: ["هيسوكا", "إيلومي", "فيتان"], p: 200, m: "https://i.pinimg.com/736x/22/e5/22/22e5229dc1eb2e5d9685ca1e6c38a167.jpg" },
+            { q: "ما هو اسم اللعبة التي دخلها غون وكيلوا للبحث عن جين؟", a: "جريد آيلاند (Greed Island)", w: ["هانتر آيلاند", "نين وورلد", "دارك كونتيننت"], p: 200, m: "https://i.pinimg.com/736x/55/e8/62/55e8623d38622c1ccabdf8a9a2a72fc6.jpg" },
+            { q: "ما هو اسم عائلة كيلوا المشهورة بالاغتيال؟", a: "زولديك", w: ["فريكس", "كوروتا", "لوسيلفر"], p: 200, m: "https://i.pinimg.com/736x/95/9b/f6/959bf6a1c22bebb103fc915f0d2c0022.jpg" },
+            { q: "ما هو الرقم الذي يحمله هيسوكا في امتحان الصيادين الأول الذي ظهر فيه؟", a: "44", w: ["99", "405", "100"], p: 200, m: "https://i.pinimg.com/736x/9e/76/9a/9e769a7c36a89ab2fc2a12ff31409949.jpg" },
+            { q: "ما هي قدرة كيلوا الرئيسية في النين؟", a: "تحويل الهالة إلى كهرباء", w: ["التحكم في النار", "التخفي", "استنساخ نفسه"], p: 200, m: "https://i.pinimg.com/736x/cb/13/2d/cb132df02e6c1e0f0896eb9744c80eb3.jpg" },
+            { q: "من هو المدرب الذي علم غون وكيلوا أساسيات النين في حلبة السماء؟", a: "وينج", w: ["بيسكي", "كايت", "نيتيرو"], p: 200, m: "https://i.pinimg.com/736x/c5/45/b5/c545b594b29cba157c9632832560e487.jpg" },
+            { q: "ما هو اسم ملك نمل الكيميرا؟", a: "ميرويم", w: ["نيفيربيتو", "شاياپوف", "منتويوبي"], p: 200, m: "https://i.pinimg.com/736x/a2/e5/22/a2e5229dc1eb2e5d9685ca1e6c38a167.jpg" },
+            { q: "ما هو اسم رئيس جمعية الصيادين الثاني عشر (العجوز)؟", a: "إسحاق نيتيرو", w: ["بارستون هيل", "تشيدل", "جين فريكس"], p: 200, m: "https://i.pinimg.com/736x/77/9c/e6/779ce6f2db12a3d7a8e74eeb35c754d9.jpg" },
+            { q: "ما هو صنف النين الخاص بكورابيكا عندما تتحول عيونه للون القرمزي؟", a: "التخصص (التوظيف)", w: ["التجسيد", "التعزيز", "التحويل"], p: 200, m: "https://i.pinimg.com/736x/55/e8/62/55e8623d38622c1ccabdf8a9a2a72fc6.jpg" },
+            { q: "ما هو هدف ليوريو الأساسي من دخول امتحان الصيادين؟", a: "كسب المال ليصبح طبيباً", w: ["الانتقام لصديقه", "البحث عن والده", "أن يصبح أقوى مقاتل"], p: 200, m: "https://i.pinimg.com/736x/9e/76/9a/9e769a7c36a89ab2fc2a12ff31409949.jpg" },
+            { q: "ما هو اسم والد غون الذي يبحث عنه طوال الأنمي؟", a: "جين فريكس", w: ["سيلفا فريكس", "كايت", "دون فريكس"], p: 200, m: "https://i.pinimg.com/736x/a2/e5/22/a2e5229dc1eb2e5d9685ca1e6c38a167.jpg" },
+            { q: "ما هي وجبة كيلوا الخفيفة المفضلة التي يصرف عليها الكثير من المال؟", a: "شوكولاتة روبوت (ChocoRobo-kun)", w: ["الرامين", "حلوى التفاح", "البسكويت المالح"], p: 200, m: "https://i.pinimg.com/736x/cb/13/2d/cb132df02e6c1e0f0896eb9744c80eb3.jpg" },
+            { q: "ما هو السلاح المفضل الذي يستخدمه هيسوكا دائماً في قتالاته؟", a: "بطاقات اللعب (البلوت)", w: ["سكاكين صغيرة", "خيوط نين", "عصا سحرية"], p: 200, m: "https://i.pinimg.com/736x/9e/76/9a/9e769a7c36a89ab2fc2a12ff31409949.jpg" },
+            { q: "ما هو اسم العملة الرسمية المستخدمة في عالم هنتر x هنتر؟", a: "جيني (Jenny)", w: ["بيلي", "بير", "زينو"], p: 200, m: "https://i.pinimg.com/736x/55/e8/62/55e8623d38622c1ccabdf8a9a2a72fc6.jpg" },
+            { q: "في أي يد يرتدي كورابيكا سلاح السلاسل الخاص به؟", a: "اليد اليمنى", w: ["اليد اليسرى", "كلتا اليدين", "حول عنقه"], p: 200, m: "https://i.pinimg.com/736x/43/40/ea/4340eab71b0cb7c8ab8f62f83197abf0.jpg" },
+            { q: "ما هو اسم الكلب العملاق الذي يحرس بوابة عائلة زولديك؟", a: "ميكي", w: ["زيكي", "توبي", "غارمي"], p: 200, m: "https://i.pinimg.com/736x/95/9b/f6/959bf6a1c22bebb103fc915f0d2c0022.jpg" },
 
             // --- 400 نقطة ---
-            { q: "كم عدد أفراد عصابة العناكب (غيني ريودان) الأساسيين متضمنين القائد؟", a: "13", w: ["10", "12", "14"], p: 400 },
-            { q: "ما هو اسم حركة غون القاضية في النين؟", a: "جاجانكين (Jajanken)", w: ["غودسبييد", "بيغ بانغ إمباكت", "بانجي غام"], p: 400 },
-            { q: "من هو العضو في عصابة العناكب الذي يمتلك قدرة استنساخ الأشياء (Gallery Fake)؟", a: "كورتوبي", w: ["شالنارك", "باكونودا", "ماتشي"], p: 400 },
-            { q: "ما هو صنف النين الخاص بهيسوكا؟", a: "التحويل", w: ["التجسيد", "التلاعب", "التخصص"], p: 400 },
-            { q: "ما هو اسم الحارسة الملكية الأولى التي وُلدت لخدمة ملك نمل الكيميرا؟", a: "نيفيربيتو (Pitou)", w: ["بوف", "يوبي", "زازان"], p: 400 },
-            { q: "ما هي قدرة باكونودا من عصابة العناكب؟", a: "قراءة الأفكار باللمس ونقلها بالرصاص", w: ["التحكم في الجثث", "إنشاء خيوط غير مرئية", "امتصاص الهالة"], p: 400 },
-            { q: "ما هو اسم الفتاة العمياء التي لعبت 'الجونجي' مع ميرويم؟", a: "كوموجي", w: ["ألوكا", "ريتز", "ماتشي"], p: 400 },
-            { q: "ما هو اسم الكيان الغامض الذي يسكن داخل 'ألوكا' شقيقة كيلوا؟", a: "نانيكا", w: ["ماجيكا", "كالوتو", "إيلومي"], p: 400 },
-            { q: "من هو العضو الوحيد الذي نجح في امتحان الصيادين الذي شارك فيه كيلوا للمرة الثانية؟", a: "كيلوا نفسه", w: ["زوشي", "بوكل", "تونبا"], p: 400 },
-            { q: "ما اسم المرحلة الأولى من امتحان الصيادين التي أشرف عليها ساتوتز؟", a: "الماراثون (الركض الطويل)", w: ["الطبخ", "صيد الخنازير", "القتال الفردي"], p: 400 },
-            { q: "ما هو اسم المدينة التي تعتبر الموطن الأصلي لأغلب أعضاء عصابة العناكب؟", a: "مدينة النيزك (Meteor City)", w: ["مدينة يوركشين", "مدينة زابان", "مدينة بادوكيا"], p: 400 },
-            { q: "ما هو اسم قدرة النين الخاصة بالرئيس نيتيرو؟", a: "إله البوداساتفا ذو المئة نوع", w: ["تنين الحكمة", "بوذا الذهبي", "الضربة الصامتة"], p: 400 },
-            { q: "من هو الصياد المحترف الذي كان يدرب كايت في الماضي؟", a: "جين فريكس", w: ["نيتيرو", "بيسكي", "سيلفا زولديك"], p: 400 },
-            { q: "ما هو اسم قدرة فيتان المرعبة التي استخدمها ضد ملكة النمل (زازان)؟", a: "الشمس المشرقة (Rising Sun)", w: ["سيف الظلام", "عاصفة اللهب", "الغضب الأعمى"], p: 400 },
-            { q: "كم عدد الأبواب في 'بوابة الاختبار' (بوابة عائلة زولديك)؟", a: "7 أبواب", w: ["5 أبواب", "9 أبواب", "3 أبواب"], p: 400 },
-            { q: "ما هو هدف سينريتسو (Melody) الأساسي من رحلتها؟", a: "العثور على سوناتا الظلام وتدميرها", w: ["استعادة بصرها", "أن تصبح زعيمة مافيا", "العثور على أخيها"], p: 400 },
-            { q: "من هو مطور لعبة جريد آيلاند المسؤول عن نظام 'الانتقال' داخل اللعبة ويمثل حرف (R) في اسم اللعبة؟", a: "ريزور", w: ["جينثرو", "غوريين", "دوين"], p: 400 },
-            { q: "ما هو اسم قدرة النين التدميرية الخاصة بأوفوغين (Uvogin)؟", a: "تأثير الانفجار العظيم (Big Bang Impact)", w: ["النيزك الساقط", "القبضة الفولاذية", "زلزال الأرض"], p: 400 },
-            { q: "من هو الصبي الذي رافق غون وكيلوا في حلبة السماء لتعلم النين؟", a: "زوشي", w: ["بوكل", "غيدو", "كاسترو"], p: 400 },
-            { q: "أي من الحراس الملكيين للملك ميرويم يمتلك قدرة التحكم في خلايا جسده وتغيير شكله؟", a: "منتويوبي (Youpi)", w: ["نيفيربيتو", "شاياپوف", "زازان"], p: 400 },
+            { q: "كم عدد أفراد عصابة العناكب (غيني ريودان) الأساسيين متضمنين القائد؟", a: "13", w: ["10", "12", "14"], p: 400, m: "https://i.pinimg.com/736x/22/e5/22/22e5229dc1eb2e5d9685ca1e6c38a167.jpg" },
+            { q: "ما هو اسم حركة غون القاضية في النين؟", a: "جاجانكين (Jajanken)", w: ["غودسبييد", "بيغ بانغ إمباكت", "بانجي غام"], p: 400, m: "https://i.pinimg.com/736x/21/fb/6b/21fb6bd9f1ee991a0390f119e346d0a7.jpg" },
+            { q: "من هو العضو في عصابة العناكب الذي يمتلك قدرة استنساخ الأشياء (Gallery Fake)؟", a: "كورتوبي", w: ["شالنارك", "باكونودا", "ماتشي"], p: 400, m: "https://i.pinimg.com/736x/22/e5/22/22e5229dc1eb2e5d9685ca1e6c38a167.jpg" }, 
+            { q: "ما هو صنف النين الخاص بهيسوكا؟", a: "التحويل", w: ["التجسيد", "التلاعب", "التخصص"], p: 400, m: "https://i.pinimg.com/736x/9e/76/9a/9e769a7c36a89ab2fc2a12ff31409949.jpg" },
+            { q: "ما هو اسم الحارسة الملكية الأولى التي وُلدت لخدمة ملك نمل الكيميرا؟", a: "نيفيربيتو (Pitou)", w: ["بوف", "يوبي", "زازان"], p: 400, m: "https://i.pinimg.com/736x/a2/e5/22/a2e5229dc1eb2e5d9685ca1e6c38a167.jpg" },
+            { q: "ما هي قدرة باكونودا من عصابة العناكب؟", a: "قراءة الأفكار باللمس ونقلها بالرصاص", w: ["التحكم في الجثث", "إنشاء خيوط غير مرئية", "امتصاص الهالة"], p: 400, m: "https://i.pinimg.com/736x/22/e5/22/22e5229dc1eb2e5d9685ca1e6c38a167.jpg" },
+            { q: "ما هو اسم الفتاة العمياء التي لعبت 'الجونجي' مع ميرويم؟", a: "كوموجي", w: ["ألوكا", "ريتز", "ماتشي"], p: 400, m: "https://i.pinimg.com/736x/a2/e5/22/a2e5229dc1eb2e5d9685ca1e6c38a167.jpg" },
+            { q: "ما هو اسم الكيان الغامض الذي يسكن داخل 'ألوكا' شقيقة كيلوا؟", a: "نانيكا", w: ["ماجيكا", "كالوتو", "إيلومي"], p: 400, m: "https://i.pinimg.com/736x/95/9b/f6/959bf6a1c22bebb103fc915f0d2c0022.jpg" },
+            { q: "من هو العضو الوحيد الذي نجح في امتحان الصيادين الذي شارك فيه كيلوا للمرة الثانية؟", a: "كيلوا نفسه", w: ["زوشي", "بوكل", "تونبا"], p: 400, m: "https://i.pinimg.com/736x/cb/13/2d/cb132df02e6c1e0f0896eb9744c80eb3.jpg" },
+            { q: "ما اسم المرحلة الأولى من امتحان الصيادين التي أشرف عليها ساتوتز؟", a: "الماراثون (الركض الطويل)", w: ["الطبخ", "صيد الخنازير", "القتال الفردي"], p: 400, m: "https://i.pinimg.com/736x/60/a5/d8/60a5d89fb551a37c0eb669e4ce9be5dc.jpg" },
+            { q: "ما هو اسم المدينة التي تعتبر الموطن الأصلي لأغلب أعضاء عصابة العناكب؟", a: "مدينة النيزك (Meteor City)", w: ["مدينة يوركشين", "مدينة زابان", "مدينة بادوكيا"], p: 400, m: "https://i.pinimg.com/736x/22/e5/22/22e5229dc1eb2e5d9685ca1e6c38a167.jpg" },
+            { q: "ما هو اسم قدرة النين الخاصة بالرئيس نيتيرو؟", a: "إله البوداساتفا ذو المئة نوع", w: ["تنين الحكمة", "بوذا الذهبي", "الضربة الصامتة"], p: 400, m: "https://i.pinimg.com/736x/77/9c/e6/779ce6f2db12a3d7a8e74eeb35c754d9.jpg" },
+            { q: "من هو الصياد المحترف الذي كان يدرب كايت في الماضي؟", a: "جين فريكس", w: ["نيتيرو", "بيسكي", "سيلفا زولديك"], p: 400, m: "https://i.pinimg.com/736x/8e/2f/64/8e2f647c5d013063f1f31f99c4d9a2a7.jpg" },
+            { q: "ما هو اسم قدرة فيتان المرعبة التي استخدمها ضد ملكة النمل (زازان)؟", a: "الشمس المشرقة (Rising Sun)", w: ["سيف الظلام", "عاصفة اللهب", "الغضب الأعمى"], p: 400, m: "https://i.pinimg.com/736x/22/e5/22/22e5229dc1eb2e5d9685ca1e6c38a167.jpg" },
+            { q: "كم عدد الأبواب في 'بوابة الاختبار' (بوابة عائلة زولديك)؟", a: "7 أبواب", w: ["5 أبواب", "9 أبواب", "3 أبواب"], p: 400, m: "https://i.pinimg.com/736x/95/9b/f6/959bf6a1c22bebb103fc915f0d2c0022.jpg" },
+            { q: "ما هو هدف سينريتسو (Melody) الأساسي من رحلتها؟", a: "العثور على سوناتا الظلام وتدميرها", w: ["استعادة بصرها", "أن تصبح زعيمة مافيا", "العثور على أخيها"], p: 400, m: "https://i.pinimg.com/736x/43/40/ea/4340eab71b0cb7c8ab8f62f83197abf0.jpg" },
+            { q: "من هو مطور لعبة جريد آيلاند المسؤول عن نظام 'الانتقال' داخل اللعبة ويمثل حرف (R) في اسم اللعبة؟", a: "ريزور", w: ["جينثرو", "غوريين", "دوين"], p: 400, m: "https://i.pinimg.com/736x/55/e8/62/55e8623d38622c1ccabdf8a9a2a72fc6.jpg" },
+            { q: "ما هو اسم قدرة النين التدميرية الخاصة بأوفوغين (Uvogin)؟", a: "تأثير الانفجار العظيم (Big Bang Impact)", w: ["النيزك الساقط", "القبضة الفولاذية", "زلزال الأرض"], p: 400, m: "https://i.pinimg.com/736x/22/e5/22/22e5229dc1eb2e5d9685ca1e6c38a167.jpg" },
+            { q: "من هو الصبي الذي رافق غون وكيلوا في حلبة السماء لتعلم النين؟", a: "زوشي", w: ["بوكل", "غيدو", "كاسترو"], p: 400, m: "https://i.pinimg.com/736x/c5/45/b5/c545b594b29cba157c9632832560e487.jpg" },
+            { q: "أي من الحراس الملكيين للملك ميرويم يمتلك قدرة التحكم في خلايا جسده وتغيير شكله؟", a: "منتويوبي (Youpi)", w: ["نيفيربيتو", "شاياپوف", "زازان"], p: 400, m: "https://i.pinimg.com/736x/a2/e5/22/a2e5229dc1eb2e5d9685ca1e6c38a167.jpg" },
 
             // --- 600 نقطة ---
-            { q: "في أرك حلبة السماء، من هو المقاتل الذي يستخدم 'النحلات/البلابل' كأسلحة تدور بالنين؟", a: "غيدو (Gido)", w: ["ساداسو", "ريبيلت", "زوشي"], p: 600 },
-            { q: "ما هو اسم القارة الغامضة والمظلمة التي تقع خارج خريطة العالم المعروف؟", a: "القارة المظلمة (Dark Continent)", w: ["قارة ميتيور", "قارة كاكان", "قارة يوركشين"], p: 600 },
-            { q: "ما هو اسم البطاقة رقم 000 التي يحصل عليها الفائز في لعبة جريد آيلاند؟", a: "نعمة الحاكم (Ruler's Blessing)", w: ["نفس رئيس الملائكة", "سيف الحقيقة", "حجر الألكسندريت"], p: 600 },
-            { q: "من هو العضو في 'الزودياك' (الأبراج) الذي يحمل لقب 'الخنزير'؟", a: "جين فريكس", w: ["بارستون هيل", "كانزاي", "ميزارمستوم"], p: 600 },
-            { q: "ما هو اسم القدرة الخاصة بـ 'ناكل' (Knuckle) التي تقرض الخصم هالة وتزيد بالفائدة؟", a: "إفلاس الفصل السابع (Hakoware)", w: ["اليد المجنونة", "الضربة القاضية", "الصمت المميت"], p: 600 },
-            { q: "في أي مدينة يقام المزاد العلني الأكبر الذي استهدفته عصابة العناكب؟", a: "مدينة يوركشين", w: ["مدينة زابان", "مدينة بادوكيا", "مدينة كوكورو"], p: 600 },
-            { q: "ما هو اسم السلسلة التي استخدمها كورابيكا لاحتجاز وتقييد زعيم العناكب 'كرولو'؟", a: "سلسلة السجن (Chain Jail)", w: ["سلسلة الحكم", "سلسلة الشفاء", "سلسلة التتبع"], p: 600 },
-            { q: "ما هو اسم السلاح/القدرة الذي يستدعيه 'كايت' بأرقام عشوائية من 1 إلى 9؟", a: "ماكينة القمار المجنونة (Crazy Slots)", w: ["الجوكر المميت", "الروليت المرعب", "حاصد الأرواح"], p: 600 },
-            { q: "إلى أي فصيلة حيوانية ينتمي 'إيكالغو' (Ikalgo) صديق كيلوا في أرك نمل الكيميرا؟", a: "أخطبوط", w: ["حبار", "ذبابة", "نملة"], p: 600 },
-            { q: "ما هو اسم اللص المفجر (The Bomber) الذي كان يرهب اللاعبين في جريد آيلاند؟", a: "جينثرو", w: ["سابو", "بوبو", "أبينغاني"], p: 600 },
-            { q: "ما هو اسم القنبلة المرعبة والسامة التي استخدمها نيتيرو ضد ميرويم؟", a: "قنبلة زهرة الرجل الفقير (Poor Man's Rose)", w: ["قنبلة القيامة", "دمعة الشيطان", "انفجار البوداساتفا"], p: 600 },
-            { q: "ما هو الرقم الموشوم على ظهر نوبوناغا، عضو عصابة العناكب؟", a: "1", w: ["4", "7", "11"], p: 600 },
-            { q: "من هو والد سيلفا زولديك (جد كيلوا)؟", a: "زينو زولديك", w: ["مها زولديك", "إيلومي زولديك", "كيكيو زولديك"], p: 600 },
-            { q: "ما هو اسم معلم كورابيكا الذي علمه أساسيات النين؟", a: "إيزونافي", w: ["وينج", "بيسكي", "نوبوناغا"], p: 600 },
-            { q: "في أي طابق من حلبة السماء يُسمح للمقاتلين باستخدام الأسلحة؟", a: "الطابق 200", w: ["الطابق 100", "الطابق 150", "الطابق 250"], p: 600 },
-            { q: "ما هو اسم الكائن (دب الثعلب) الذي أنقذه غون في جزيرة الحوت وأصبح صديقه في بداية القصة؟", a: "كون (Kon)", w: ["بون", "دون", "زون"], p: 600 },
-            { q: "من هي المنظمة الإجرامية التي تقود عائلات المافيا في مزاد يوركشين؟", a: "الوصايا العشر (The Ten Dons)", w: ["وحوش الظل", "عناكب الظلام", "نقابة القتلة"], p: 600 },
-            { q: "ما هي القدرة الخاصة التي يمتلكها العضو 'شالنارك' من عصابة العناكب؟", a: "التحكم بالأشخاص عبر هاتف ذكي", w: ["استنساخ الأشياء", "قراءة الأفكار", "تحويل الهالة لنار"], p: 600 },
-            { q: "في لعبة جريد آيلاند، كم عدد البطاقات المحددة (المقيدة) التي يجب جمعها للفوز باللعبة؟", a: "100 بطاقة", w: ["50 بطاقة", "99 بطاقة", "10 بطاقات"], p: 600 },
-            { q: "من هو العضو في الزودياك (الأبراج) الذي يمثل برج 'الكلب' وهو أقرب المساعدين لنيتيرو؟", a: "تشيدل يوركشاير", w: ["بارستون هيل", "كانزاي", "بوتاباي"], p: 600 }
+            { q: "في أرك حلبة السماء، من هو المقاتل الذي يستخدم 'النحلات/البلابل' كأسلحة تدور بالنين؟", a: "غيدو (Gido)", w: ["ساداسو", "ريبيلت", "زوشي"], p: 600, m: "https://i.pinimg.com/736x/c5/45/b5/c545b594b29cba157c9632832560e487.jpg" },
+            { q: "ما هو اسم القارة الغامضة والمظلمة التي تقع خارج خريطة العالم المعروف؟", a: "القارة المظلمة (Dark Continent)", w: ["قارة ميتيور", "قارة كاكان", "قارة يوركشين"], p: 600, m: "https://i.pinimg.com/736x/a2/e5/22/a2e5229dc1eb2e5d9685ca1e6c38a167.jpg" },
+            { q: "ما هو اسم البطاقة رقم 000 التي يحصل عليها الفائز في لعبة جريد آيلاند؟", a: "نعمة الحاكم (Ruler's Blessing)", w: ["نفس رئيس الملائكة", "سيف الحقيقة", "حجر الألكسندريت"], p: 600, m: "https://i.pinimg.com/736x/55/e8/62/55e8623d38622c1ccabdf8a9a2a72fc6.jpg" },
+            { q: "من هو العضو في 'الزودياك' (الأبراج) الذي يحمل لقب 'الخنزير'؟", a: "جين فريكس", w: ["بارستون هيل", "كانزاي", "ميزارمستوم"], p: 600, m: "https://i.pinimg.com/736x/77/9c/e6/779ce6f2db12a3d7a8e74eeb35c754d9.jpg" },
+            { q: "ما هو اسم القدرة الخاصة بـ 'ناكل' (Knuckle) التي تقرض الخصم هالة وتزيد بالفائدة؟", a: "إفلاس الفصل السابع (Hakoware)", w: ["اليد المجنونة", "الضربة القاضية", "الصمت المميت"], p: 600, m: "https://i.pinimg.com/736x/a2/e5/22/a2e5229dc1eb2e5d9685ca1e6c38a167.jpg" },
+            { q: "في أي مدينة يقام المزاد العلني الأكبر الذي استهدفته عصابة العناكب؟", a: "مدينة يوركشين", w: ["مدينة زابان", "مدينة بادوكيا", "مدينة كوكورو"], p: 600, m: "https://i.pinimg.com/736x/22/e5/22/22e5229dc1eb2e5d9685ca1e6c38a167.jpg" },
+            { q: "ما هو اسم السلسلة التي استخدمها كورابيكا لاحتجاز وتقييد زعيم العناكب 'كرولو'؟", a: "سلسلة السجن (Chain Jail)", w: ["سلسلة الحكم", "سلسلة الشفاء", "سلسلة التتبع"], p: 600, m: "https://i.pinimg.com/736x/43/40/ea/4340eab71b0cb7c8ab8f62f83197abf0.jpg" },
+            { q: "ما هو اسم السلاح/القدرة الذي يستدعيه 'كايت' بأرقام عشوائية من 1 إلى 9؟", a: "ماكينة القمار المجنونة (Crazy Slots)", w: ["الجوكر المميت", "الروليت المرعب", "حاصد الأرواح"], p: 600, m: "https://i.pinimg.com/736x/a2/e5/22/a2e5229dc1eb2e5d9685ca1e6c38a167.jpg" },
+            { q: "إلى أي فصيلة حيوانية ينتمي 'إيكالغو' (Ikalgo) صديق كيلوا في أرك نمل الكيميرا؟", a: "أخطبوط", w: ["حبار", "ذبابة", "نملة"], p: 600, m: "https://i.pinimg.com/736x/cb/13/2d/cb132df02e6c1e0f0896eb9744c80eb3.jpg" },
+            { q: "ما هو اسم اللص المفجر (The Bomber) الذي كان يرهب اللاعبين في جريد آيلاند؟", a: "جينثرو", w: ["سابو", "بوبو", "أبينغاني"], p: 600, m: "https://i.pinimg.com/736x/55/e8/62/55e8623d38622c1ccabdf8a9a2a72fc6.jpg" },
+            { q: "ما هو اسم القنبلة المرعبة والسامة التي استخدمها نيتيرو ضد ميرويم؟", a: "قنبلة زهرة الرجل الفقير (Poor Man's Rose)", w: ["قنبلة القيامة", "دمعة الشيطان", "انفجار البوداساتفا"], p: 600, m: "https://i.pinimg.com/736x/77/9c/e6/779ce6f2db12a3d7a8e74eeb35c754d9.jpg" },
+            { q: "ما هو الرقم الموشوم على ظهر نوبوناغا، عضو عصابة العناكب؟", a: "1", w: ["4", "7", "11"], p: 600, m: "https://i.pinimg.com/736x/22/e5/22/22e5229dc1eb2e5d9685ca1e6c38a167.jpg" },
+            { q: "من هو والد سيلفا زولديك (جد كيلوا)؟", a: "زينو زولديك", w: ["مها زولديك", "إيلومي زولديك", "كيكيو زولديك"], p: 600, m: "https://i.pinimg.com/736x/95/9b/f6/959bf6a1c22bebb103fc915f0d2c0022.jpg" },
+            { q: "ما هو اسم معلم كورابيكا الذي علمه أساسيات النين؟", a: "إيزونافي", w: ["وينج", "بيسكي", "نوبوناغا"], p: 600, m: "https://i.pinimg.com/736x/43/40/ea/4340eab71b0cb7c8ab8f62f83197abf0.jpg" },
+            { q: "في أي طابق من حلبة السماء يُسمح للمقاتلين باستخدام الأسلحة؟", a: "الطابق 200", w: ["الطابق 100", "الطابق 150", "الطابق 250"], p: 600, m: "https://i.pinimg.com/736x/c5/45/b5/c545b594b29cba157c9632832560e487.jpg" },
+            { q: "ما هو اسم الكائن (دب الثعلب) الذي أنقذه غون في جزيرة الحوت وأصبح صديقه في بداية القصة؟", a: "كون (Kon)", w: ["بون", "دون", "زون"], p: 600, m: "https://i.pinimg.com/736x/8e/2f/64/8e2f647c5d013063f1f31f99c4d9a2a7.jpg" },
+            { q: "من هي المنظمة الإجرامية التي تقود عائلات المافيا في مزاد يوركشين؟", a: "الوصايا العشر (The Ten Dons)", w: ["وحوش الظل", "عناكب الظلام", "نقابة القتلة"], p: 600, m: "https://i.pinimg.com/736x/43/40/ea/4340eab71b0cb7c8ab8f62f83197abf0.jpg" }, 
+            { q: "ما هي القدرة الخاصة التي يمتلكها العضو 'شالنارك' من عصابة العناكب؟", a: "التحكم بالأشخاص عبر هاتف ذكي", w: ["استنساخ الأشياء", "قراءة الأفكار", "تحويل الهالة لنار"], p: 600, m: "https://i.pinimg.com/736x/22/e5/22/22e5229dc1eb2e5d9685ca1e6c38a167.jpg" },
+            { q: "في لعبة جريد آيلاند، كم عدد البطاقات المحددة (المقيدة) التي يجب جمعها للفوز باللعبة؟", a: "100 بطاقة", w: ["50 بطاقة", "99 بطاقة", "10 بطاقات"], p: 600, m: "https://i.pinimg.com/736x/55/e8/62/55e8623d38622c1ccabdf8a9a2a72fc6.jpg" },
+            { q: "من هو العضو في الزودياك (الأبراج) الذي يمثل برج 'الكلب' وهو أقرب المساعدين لنيتيرو؟", a: "تشيدل يوركشاير", w: ["بارستون هيل", "كانزاي", "بوتاباي"], p: 600, m: "https://i.pinimg.com/736x/77/9c/e6/779ce6f2db12a3d7a8e74eeb35c754d9.jpg" }
         ];
 
         let count = 0;
@@ -1040,15 +1065,15 @@
                     question: item.q,
                     correctAnswer: item.a,
                     wrongAnswers: item.w,
-                    mediaUrl: "",
-                    mediaType: "",
+                    mediaUrl: item.m, 
+                    mediaType: "image", 
                     timestamp: serverTimestamp(),
-                    isHidden: false // لضمان عدم إخفاء السؤال عند الرفع
+                    isHidden: false 
                 });
                 count++;
             }
-            alert(`✅ تم رفع ${count} سؤال بنجاح لفئة "${categoryName}"!`);
-            window.loadAdminList(); // لتحديث القائمة
+            alert(`✅ تم رفع ${count} سؤال مع الصور بنجاح لفئة "${categoryName}"!`);
+            window.loadAdminList(); 
         } catch (error) {
             console.error("حدث خطأ أثناء الرفع:", error);
             alert("❌ حدث خطأ أثناء الرفع، راجع الـ Console.");
