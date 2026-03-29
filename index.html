@@ -325,11 +325,15 @@
 </div>
 
 <div id="view-game" class="container hidden fade-in">
-    
     <div id="step-select-category">
-        <h2 style="text-align: center;">اختر فئة التحدي 🎯</h2>
-        <div class="categories-grid" id="pro-categories-grid">
-            </div>
+        <h2 style="text-align: center;">اختر من 3 إلى 6 فئات للتحدي 🎯</h2>
+        <p id="selection-counter" style="text-align: center; color: var(--text-muted);">تم اختيار (0) فئات</p>
+        <div class="categories-grid" id="pro-categories-grid"></div>
+        <div style="text-align: center;">
+            <button id="btn-confirm-categories" class="btn-main btn-secondary btn-next-step" onclick="window.proceedToSettings()">
+                متابعة لإعدادات الفرق ➡️
+            </button>
+        </div>
     </div>
 
     <div id="step-game-settings" class="hidden">
@@ -338,15 +342,12 @@
             <h2 id="selected-cat-title">تجهيز الجولة</h2>
             <input type="text" id="team1-name-input" placeholder="اسم الفريق الأول">
             <input type="text" id="team2-name-input" placeholder="اسم الفريق الثاني">
-            
             <div style="margin: 15px 0; background: var(--bg-color); padding: 15px; border-radius: 12px; border: 1px dashed var(--border-color); text-align: right;">
-                <p style="font-weight: bold; margin-bottom: 10px;">⚙️ خصائص الجولة:</p>
-                <label style="display: block; cursor: pointer; margin-bottom: 8px;">
+                <label style="display: block; cursor: pointer;">
                     <input type="checkbox" id="hide-scores-checkbox"> إخفاء النقاط أثناء اللعب 🕵️‍♂️
                 </label>
-                </div>
-            
-            <button class="btn-main btn-primary" onclick="window.finalizeSetupAndPlay()">ابدأ التحدي الآن 🚀</button>
+            </div>
+            <button class="btn-main btn-primary" onclick="window.finalizeSetupAndPlay()">ابدأ اللعب 🚀</button>
         </div>
     </div>
 
