@@ -670,6 +670,41 @@ window.switchTab = (tabId) => {
     };
 
     window.delQ = async (id) => { if(confirm("هل أنت متأكد من حذف هذا السؤال؟")) { await deleteDoc(doc(db, "live_questions", id)); window.loadAdminList(); } };
+    let allLoadedCategories = []; // لتخزين الفئات محلياً لسرعة البحث
+
+window.loadCategoriesForAdmin = async () => {
+    const datalist = document.getElementById("categories-list");
+    const tagsDiv = document.getElementById("admin-cats-tags");
+    
+    // جلب الفئات مرتبة أبجدياً لسهولة الوصول
+    const snap = await getDocs(query(collection(db, "categories"), orderBy("name", "asc")));
+    allLoadedCategories = snap.docs.map(d => ({id: d.id, ...d.data()}));
+
+    // تحديث الـ Datalist للبحث
+    datalist.innerHTML = allLoadedCategories.map(c => `<option value="${c.name}">`).join('');
+
+    // عرض التاغات
+    window.renderCategoryTags(allLoadedCategories);
+};
+
+// دالة الفلترة أثناء الكتابة في شريط البحث
+window.filterCategories = (term) => {
+    const filtered = allLoadedCategories.filter(c => c.name.includes(term));
+    window.renderCategoryTags(filtered);
+};
+
+window.renderCategoryTags = (cats) => {
+    const tagsDiv = document.getElementById("admin-cats-tags");
+    tagsDiv.innerHTML = cats.map(c => `
+        <span style="background: var(--card-bg); padding: 4px 10px; border-radius: 15px; border: 1px solid var(--border-color); font-size: 0.85em; display: flex; align-items: center; gap: 5px;">
+            ${c.name}
+            <b onclick="window.delCat('${c.id}')" style="color:var(--danger); cursor:pointer;">×</b>
+        </span>
+    `).join('');
+};
+
+// تعديل بسيط في دالة حفظ السؤال لتقرأ من الـ Input الجديد
+// const catInput = document.getElementById("admin-q-cat-input").value.trim();
 </script>
 </body>
 </html>
