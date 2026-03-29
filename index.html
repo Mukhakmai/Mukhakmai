@@ -130,6 +130,11 @@
         .preview-img-container img { width: 100%; height: 100%; object-fit: cover; }
         .preview-content { padding: 15px; flex-grow: 1; display: flex; flex-direction: column; text-align: right; }
         .preview-actions { display: flex; gap: 5px; justify-content: flex-end; padding: 10px 15px; background: rgba(0,0,0,0.02); border-top: 1px dashed var(--border-color); }
+
+        /* تنسيقات نافذة التعديل المنبثقة (Modal) */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 3000; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+        .modal-content { background: var(--card-bg); padding: 25px; border-radius: 15px; width: 90%; max-width: 500px; box-shadow: var(--card-shadow); border: 2px solid var(--primary); position: relative; }
+        .modal-close { position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 1.5em; cursor: pointer; color: var(--danger); }
     </style>
 
     <script>
@@ -308,12 +313,48 @@
     <div class="preview-header">
         <h2 id="preview-title" style="margin: 0; color: var(--primary);">معاينة الفئة</h2>
         <div style="display: flex; gap: 10px;">
-            <button class="btn-main" style="width: auto; padding: 8px 15px; margin: 0; background: #3498db;" onclick="window.refreshCategoryPreview()">🔄 تحديث</button>
+            <button class="btn-main" style="width: auto; padding: 8px 15px; margin: 0; background: #3498db;" onclick="window.refreshCategoryPreview()">🔄 تحديث المعاينة</button>
             <button class="btn-main" style="width: auto; padding: 8px 15px; margin: 0; background: var(--secondary);" onclick="window.closeCategoryPreview()">⬅️ رجوع للإدارة</button>
         </div>
     </div>
     <div id="preview-questions-grid" class="preview-grid">
         </div>
+</div>
+
+<div id="edit-modal" class="modal-overlay hidden">
+    <div class="modal-content">
+        <button class="modal-close" onclick="document.getElementById('edit-modal').classList.add('hidden')">✖</button>
+        <h3 style="color: var(--primary); margin-top: 0;">✏️ تعديل السؤال</h3>
+        
+        <input type="hidden" id="edit-q-id">
+        <input type="hidden" id="edit-q-cat">
+        
+        <label>النقاط:</label>
+        <select id="edit-q-pts">
+            <option value="200">200</option>
+            <option value="400">400</option>
+            <option value="600">600</option>
+        </select>
+        
+        <label>نص السؤال:</label>
+        <textarea id="edit-q-text" rows="3"></textarea>
+        
+        <label>الإجابة الصحيحة:</label>
+        <input type="text" id="edit-q-correct">
+        
+        <label>الإجابات الخاطئة (افصل بينها بفاصلة |):</label>
+        <input type="text" id="edit-q-wrongs" placeholder="مثال: خيار 1 | خيار 2 | خيار 3">
+        
+        <hr style="border-color: var(--border-color); margin: 15px 0;">
+        
+        <label style="color: var(--secondary); font-weight: bold;">🖼️ صورة السؤال الحالية:</label>
+        <img id="edit-q-img-preview" src="" style="width: 100px; height: auto; display: none; border-radius: 8px; margin: 10px 0;">
+        
+        <label>رفع صورة جديدة (من جهازك):</label>
+        <input type="file" id="edit-q-file" accept="image/*">
+        
+        <button class="btn-main btn-success" style="background: var(--success);" id="btn-save-edit" onclick="window.saveEditedQuestion()">💾 حفظ التعديلات</button>
+    </div>
 </div>
 
 
@@ -327,6 +368,7 @@
         <input type="text" id="admin-cat-search" placeholder="🔍 ابحث عن فئة..." oninput="window.filterCategories(this.value)" style="border-color: var(--primary);">
         <div id="admin-cats-tags" style="margin-top: 15px; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; max-height: 200px; overflow-y: auto; padding: 10px; border: 1px solid var(--border-color); border-radius: 10px;"></div>
     </div>
+    
     <div class="auth-box" style="border: 2px solid var(--secondary);">
         <h2 style="color: var(--secondary);">❓ إضافة سؤال جديد</h2>
         <input list="categories-list" id="admin-q-cat-input" placeholder="اكتب اسم الفئة هنا...">
@@ -374,7 +416,6 @@
 
     const adminEmail = "ziad95005@gmail.com"; 
 
-    // ====== المتغيرات الأساسية ======
     let allQuestions = [], playedIds = [], selectedCategoriesList = [], gameQuestions = [];
     let currentQuestionIndex = 0;
     let teamScores = { team1: 0, team2: 0 };
@@ -384,11 +425,10 @@
     let adminCategorizedQs = {}; 
     let currentPreviewCategory = null; 
 
-    // ====== إعدادات الخصائص (Power-ups) ======
     const AVAILABLE_POWERUPS = [
         { id: 'change', name: '🔄 تغيير السؤال', desc: 'سؤال عشوائي جديد' },
         { id: 'double', name: '✌️ دبل نقاط', desc: 'دبل النقاط لو جاوبت صح' },
-        { id: 'choices', name: '  4 خيارات', desc: 'إظهار الخيارات لتسهيل الحل' },
+        { id: 'choices', name: '🔠 4 خيارات', desc: 'إظهار الخيارات لتسهيل الحل' },
         { id: 'call', name: '📱 اتصال بصديق', desc: '30 ثانية للمساعدة' },
         { id: 'block', name: '🚫 بلوك للخصم', desc: 'يمنع الخصم من سرقة السؤال' },
         { id: 'search', name: '🌐 بحث بالإنترنت', desc: '15 ثانية لشخص واحد للبحث' }
@@ -400,7 +440,6 @@
     let activeGameModifiers = { double: false, block: false }; 
     let timerInterval = null;
 
-    // رسم واجهة اختيار الخصائص
     window.renderPowerupSelection = () => {
         const renderGrid = (teamPrefix) => {
             const grid = document.getElementById(`${teamPrefix}-powerups-grid`);
@@ -419,7 +458,6 @@
     window.handlePowerupToggle = (team, checkbox) => {
         const selectedArr = team === 't1' ? team1SelectedPowerups : team2SelectedPowerups;
         const label = document.getElementById(`label-${team}-${checkbox.value}`);
-        
         if (checkbox.checked) {
             if (selectedArr.length >= 3) {
                 checkbox.checked = false;
@@ -435,7 +473,6 @@
         }
     };
 
-    // ====== التحقق وجلب البيانات ======
     window.subscribeToPackage = async (type) => { 
         if(!auth.currentUser) {
             alert("لازم تسجل دخولك أولاً عشان تشترك! 👤");
@@ -449,9 +486,7 @@
             window.switchTab('auth');
             window.showProfileTab('subs');
             document.getElementById("subs-list").innerHTML = `<div style="padding:15px; background:var(--bg-color); border:1px solid #27ae60; border-radius:10px;"><b>باقة مخك معي المميزة ✅</b><p>الحالة: نشط</p><button class="btn-main btn-secondary" onclick="window.switchTab('home')">العب الآن 🚀</button></div>`;
-        } catch(e) {
-            alert("حدث خطأ، تأكد من اتصالك بالإنترنت.");
-        }
+        } catch(e) { alert("حدث خطأ، تأكد من اتصالك بالإنترنت."); }
     };
     window.checkSubscriptionAndPlay = () => {
         if(!auth.currentUser) { alert("سجل دخولك أولاً!"); window.switchTab('auth'); return; }
@@ -516,7 +551,7 @@
             const card = document.createElement("div"); card.className = `category-card-pro ${cat.isHidden ? 'cat-hidden' : ''}`;
             card.innerHTML = `${chals > 0 ? `<div class="games-counter">${chals} جولة</div>` : ''}
                 ${auth.currentUser && auth.currentUser.email === adminEmail ? `<div class="admin-edit-btn" onclick="event.stopPropagation(); window.manageCategory('${id}', '${cat.name}')">✏️</div>` : ''}
-                <img src="${cat.imageUrl || 'https://cdn-icons-png.flaticon.com/512/3407/3407024.png'}" class="category-icon" onerror="this.src='default.png'">
+                <img src="${cat.imageUrl || 'https://cdn-icons-png.flaticon.com/512/3407/3407024.png'}" class="category-icon" onerror="this.src='default.png'" referrerpolicy="no-referrer">
                 <h3 style="margin:0;">${cat.name}</h3>`;
             card.onclick = () => window.toggleCategorySelection(cat.name, card);
             grid.appendChild(card);
@@ -524,7 +559,6 @@
         window.renderPowerupSelection(); 
     };
 
-    // ====== إعداد الجولة وبدء اللعب ======
     window.proceedToSettings = () => {
         document.getElementById("step-select-category").classList.add("hidden");
         document.getElementById("step-game-settings").classList.remove("hidden");
@@ -604,7 +638,7 @@
 
     window.renderMedia = (q) => {
         if(!q.mediaUrl) return "";
-        if(q.mediaType === 'image') return `<img src="${q.mediaUrl}" style="width:100%; border-radius:10px; margin:15px 0;">`;
+        if(q.mediaType === 'image') return `<img src="${q.mediaUrl}" style="width:100%; border-radius:10px; margin:15px 0;" referrerpolicy="no-referrer">`;
         if(q.mediaType === 'audio') return `<audio controls src="${q.mediaUrl}" style="width:100%; margin:15px 0;"></audio>`;
         if(q.mediaType === 'video') return `<video controls src="${q.mediaUrl}" style="width:100%; border-radius:10px; margin:15px 0;"></video>`;
         return "";
@@ -824,7 +858,6 @@
     // ====== تحديث قائمة الأسئلة ومعاينتها ======
     // ==========================================
     
-    // زر التحديث 
     window.refreshCategoryPreview = async () => {
         if (!currentPreviewCategory) return;
         const snap = await getDocs(query(collection(db, "live_questions"), orderBy("timestamp", "desc")));
@@ -878,7 +911,7 @@
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <span style="font-weight: bold; font-size: 0.9em; width: 60%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${q.question}</span>
                             <div style="display: flex; gap: 5px;">
-                                <button onclick="window.editQ('${q.id}')" style="background: #3498db; color: white; border: none; padding: 3px 8px; border-radius: 3px; cursor: pointer; font-size: 0.8em;">✏️</button>
+                                <button onclick="window.openEditModal('${q.id}')" style="background: #3498db; color: white; border: none; padding: 3px 8px; border-radius: 3px; cursor: pointer; font-size: 0.8em;">✏️</button>
                                 <button onclick="window.toggleHideQ('${q.id}', ${isHidden})" style="background: #95a5a6; color: white; border: none; padding: 3px 8px; border-radius: 3px; cursor: pointer; font-size: 0.8em;">${isHidden ? '👁️' : '🙈'}</button>
                                 <button onclick="window.delQ('${q.id}')" style="background: var(--danger); color: white; border: none; padding: 3px 8px; border-radius: 3px; cursor: pointer; font-size: 0.8em;">🗑️</button>
                             </div>
@@ -908,12 +941,11 @@
             let mediaContent = '<div style="color:var(--text-muted); font-size:0.8em;">لا توجد صورة</div>';
             
             if (q.mediaUrl && q.mediaUrl.trim() !== "") {
-                if (q.mediaType === 'image') mediaContent = `<img src="${q.mediaUrl}" alt="صورة السؤال" style="max-height: 100%; max-width: 100%;">`;
+                if (q.mediaType === 'image') mediaContent = `<img src="${q.mediaUrl}" alt="صورة السؤال" style="max-height: 100%; max-width: 100%;" referrerpolicy="no-referrer">`;
                 else if (q.mediaType === 'video') mediaContent = `<video src="${q.mediaUrl}" style="width:100%; height:100%; object-fit:cover;"></video>`;
                 else mediaContent = `<div style="color:var(--primary); font-size:0.8em;">صوت مرفق 🎵</div>`;
             }
 
-            // إظهار الإجابات الخاطئة
             let wrongAnswersHtml = 'لا توجد خيارات خاطئة';
             if (q.wrongAnswers && q.wrongAnswers.length > 0 && q.wrongAnswers[0] !== "") {
                 wrongAnswersHtml = q.wrongAnswers.join(' | ');
@@ -937,9 +969,9 @@
                         </div>
                     </div>
                     <div class="preview-actions">
-                        <button onclick="window.editQ('${q.id}', '${catName}')" class="btn-main" style="margin:0; padding: 5px; font-size: 0.8em; background: #3498db; width: 33%;">تعديل</button>
+                        <button onclick="window.openEditModal('${q.id}')" class="btn-main" style="margin:0; padding: 5px; font-size: 0.8em; background: #3498db; width: 33%;">تعديل ✏️</button>
                         <button onclick="window.toggleHideQ('${q.id}', ${isHidden}, '${catName}')" class="btn-main" style="margin:0; padding: 5px; font-size: 0.8em; background: #95a5a6; width: 33%;">${isHidden ? 'إظهار' : 'إخفاء'}</button>
-                        <button onclick="window.delQ('${q.id}', '${catName}')" class="btn-main" style="margin:0; padding: 5px; font-size: 0.8em; background: var(--danger); width: 33%;">حذف</button>
+                        <button onclick="window.delQ('${q.id}', '${catName}')" class="btn-main" style="margin:0; padding: 5px; font-size: 0.8em; background: var(--danger); width: 33%;">حذف 🗑️</button>
                     </div>
                 </div>
             `;
@@ -975,40 +1007,92 @@
         } catch (e) { alert("حدث خطأ أثناء تعديل حالة السؤال."); }
     };
 
-    window.editQ = async (id, currentPreviewCat = null) => {
+    // ==========================================
+    // ====== نافذة التعديل الجديدة (Modal) ======
+    // ==========================================
+    window.openEditModal = async (id) => {
         const qRef = doc(db, "live_questions", id);
         const qSnap = await getDoc(qRef);
         if (!qSnap.exists()) return;
         const qData = qSnap.data();
 
-        const action = prompt(`تعديل السؤال:\n1. نص السؤال\n2. الإجابة الصحيحة\n3. النقاط\n4. رابط الصورة\n(اكتب الرقم):`);
+        document.getElementById("edit-q-id").value = id;
+        document.getElementById("edit-q-cat").value = qData.category;
+        document.getElementById("edit-q-pts").value = qData.points;
+        document.getElementById("edit-q-text").value = qData.question;
+        document.getElementById("edit-q-correct").value = qData.correctAnswer;
         
-        let updateData = null;
-        if (action === "1") {
-            const newText = prompt("نص السؤال الجديد:", qData.question);
-            if (newText && newText !== qData.question) updateData = { question: newText };
-        } else if (action === "2") {
-            const newAns = prompt("الإجابة الصحيحة الجديدة:", qData.correctAnswer);
-            if (newAns && newAns !== qData.correctAnswer) updateData = { correctAnswer: newAns };
-        } else if (action === "3") {
-            const newPts = prompt("النقاط الجديدة (مثال: 200, 400):", qData.points);
-            if (newPts && !isNaN(newPts)) updateData = { points: parseInt(newPts) };
-        } else if (action === "4") {
-            const newUrl = prompt("رابط الصورة الجديد (اتركه فارغاً للحذف):", qData.mediaUrl || "");
-            updateData = { mediaUrl: newUrl, mediaType: newUrl ? "image" : "" };
+        let wrongsText = "";
+        if (qData.wrongAnswers && qData.wrongAnswers.length > 0 && qData.wrongAnswers[0] !== "") {
+            wrongsText = qData.wrongAnswers.join(" | ");
         }
+        document.getElementById("edit-q-wrongs").value = wrongsText;
 
-        if (updateData) {
+        const imgPreview = document.getElementById("edit-q-img-preview");
+        if (qData.mediaUrl && qData.mediaType === "image") {
+            imgPreview.src = qData.mediaUrl;
+            imgPreview.style.display = "block";
+        } else {
+            imgPreview.style.display = "none";
+            imgPreview.src = "";
+        }
+        
+        // تفريغ حقل الملف
+        document.getElementById("edit-q-file").value = "";
+
+        document.getElementById("edit-modal").classList.remove("hidden");
+    };
+
+    window.saveEditedQuestion = async () => {
+        const btn = document.getElementById("btn-save-edit");
+        btn.disabled = true;
+        btn.innerText = "جاري الحفظ... ⏳";
+
+        const id = document.getElementById("edit-q-id").value;
+        const cat = document.getElementById("edit-q-cat").value;
+        const qRef = doc(db, "live_questions", id);
+        
+        const newPts = parseInt(document.getElementById("edit-q-pts").value);
+        const newText = document.getElementById("edit-q-text").value.trim();
+        const newCorrect = document.getElementById("edit-q-correct").value.trim();
+        const newWrongs = document.getElementById("edit-q-wrongs").value.split("|").map(s => s.trim()).filter(s => s !== "");
+        const file = document.getElementById("edit-q-file").files[0];
+
+        let updateData = {
+            points: newPts,
+            question: newText,
+            correctAnswer: newCorrect,
+            wrongAnswers: newWrongs.length > 0 ? newWrongs : [""]
+        };
+
+        try {
+            if (file) {
+                // رفع الصورة الجديدة إلى Storage
+                const refM = ref(storage, `media/${Date.now()}_${file.name}`);
+                await uploadBytes(refM, file);
+                const url = await getDownloadURL(refM);
+                updateData.mediaUrl = url;
+                updateData.mediaType = file.type.split('/')[0];
+            }
+
             await updateDoc(qRef, updateData);
-            if(currentPreviewCat) {
-                let qToUpdate = adminCategorizedQs[currentPreviewCat].find(q => q.id === id);
-                if(qToUpdate) Object.assign(qToUpdate, updateData);
-                window.openCategoryPreview(currentPreviewCat);
-            } else { window.loadAdminList(); }
+            document.getElementById("edit-modal").classList.add("hidden");
+            
+            if(currentPreviewCategory === cat) {
+                window.refreshCategoryPreview(); // تحديث شاشة المعاينة إذا كانت مفتوحة
+            } else {
+                window.loadAdminList();
+            }
+            alert("تم حفظ التعديلات بنجاح! ✅");
+        } catch (error) {
+            console.error(error);
+            alert("❌ حدث خطأ أثناء الحفظ.");
+        } finally {
+            btn.disabled = false;
+            btn.innerText = "💾 حفظ التعديلات";
         }
     };
 
-    // دالة مسح الأسئلة القديمة
     window.deleteAllHunterQuestions = async () => {
         if(!confirm("تحذير! سيتم حذف جميع الأسئلة المتعلقة بـ Hunter x Hunter. هل أنت متأكد؟")) return;
         
@@ -1026,7 +1110,6 @@
         window.loadAdminList();
     };
 
-    // --- سكربت رفع الأسئلة دفعة واحدة بدون روابط مؤقتة ---
     window.uploadBulkQuestions = async () => {
         const categoryName = "Hunter x Hunter"; 
         const btn = document.getElementById("btn-bulk-upload");
@@ -1108,7 +1191,6 @@
         try {
             for (const item of questionsData) {
                 const safeUrl = item.m ? item.m.trim() : "";
-                
                 await addDoc(collection(db, "live_questions"), {
                     category: categoryName,
                     points: item.p,
