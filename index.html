@@ -320,8 +320,8 @@
         
         <hr style="border-color: var(--border-color); margin: 20px 0;">
         <h3 style="color: var(--primary);">🚀 أدوات سريعة (للمطور)</h3>
-        <button id="btn-bulk-upload" class="btn-main" style="background: #27ae60;" onclick="window.uploadBulkQuestions()">رفع 60 سؤال (هنتر x هنتر) دفعة واحدة 🚀</button>
-        <p style="font-size: 0.8em; color: var(--danger);">ملاحظة: تأكد من إضافة فئة باسم "هنتر x هنتر" قبل الضغط على الزر.</p>
+        <button id="btn-bulk-upload" class="btn-main" style="background: #27ae60;" onclick="window.uploadBulkQuestions()">رفع 60 سؤال (Hunter x Hunter) دفعة واحدة 🚀</button>
+        <p style="font-size: 0.8em; color: var(--danger);">ملاحظة: تأكد من إضافة فئة باسم "Hunter x Hunter" قبل الضغط على الزر.</p>
 
     </div>
     <div class="auth-box"><h3>📋 قائمة الأسئلة الحالية</h3><div id="admin-qs-list"></div></div>
@@ -865,7 +865,7 @@
 
     // --- سكربت رفع الأسئلة دفعة واحدة ---
     window.uploadBulkQuestions = async () => {
-        const categoryName = "هنتر x هنتر"; // تأكد من إنشاء هذه الفئة مسبقاً في لوحة الإدارة
+        const categoryName = "Hunter x Hunter"; // تم التعديل هنا ليتطابق مع موقعك بالضبط
         const btn = document.getElementById("btn-bulk-upload");
         
         if (!confirm(`هل أنت متأكد من رفع 60 سؤال لفئة: ${categoryName}؟`)) return;
@@ -963,7 +963,7 @@
             alert("❌ حدث خطأ أثناء الرفع، راجع الـ Console.");
         } finally {
             btn.disabled = false;
-            btn.innerText = "رفع 60 سؤال (هنتر x هنتر) 🚀";
+            btn.innerText = "رفع 60 سؤال (Hunter x Hunter) 🚀";
         }
     };
 </script>
