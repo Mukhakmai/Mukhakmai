@@ -133,7 +133,7 @@
 
         /* تنسيقات نافذة التعديل المنبثقة (Modal) */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 3000; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
-        .modal-content { background: var(--card-bg); padding: 25px; border-radius: 15px; width: 90%; max-width: 500px; box-shadow: var(--card-shadow); border: 2px solid var(--primary); position: relative; }
+        .modal-content { background: var(--card-bg); padding: 25px; border-radius: 15px; width: 90%; max-width: 500px; box-shadow: var(--card-shadow); border: 2px solid var(--primary); position: relative; max-height: 90vh; overflow-y: auto; }
         .modal-close { position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 1.5em; cursor: pointer; color: var(--danger); }
     </style>
 
@@ -339,19 +339,19 @@
         <label>نص السؤال:</label>
         <textarea id="edit-q-text" rows="3"></textarea>
         
-        <label>الإجابة الصحيحة:</label>
+        <label>الإجابة الصحيحة ✅:</label>
         <input type="text" id="edit-q-correct">
         
-        <label>الإجابات الخاطئة (افصل بينها بفاصلة |):</label>
+        <label>الإجابات الخاطئة ❌ (افصل بينها بفاصلة |):</label>
         <input type="text" id="edit-q-wrongs" placeholder="مثال: خيار 1 | خيار 2 | خيار 3">
         
         <hr style="border-color: var(--border-color); margin: 15px 0;">
         
         <label style="color: var(--secondary); font-weight: bold;">🖼️ صورة السؤال الحالية:</label>
-        <img id="edit-q-img-preview" src="" style="width: 100px; height: auto; display: none; border-radius: 8px; margin: 10px 0;">
+        <img id="edit-q-img-preview" src="" style="width: 100px; height: auto; display: none; border-radius: 8px; margin: 10px 0;" referrerpolicy="no-referrer">
         
         <label>رفع صورة جديدة (من جهازك):</label>
-        <input type="file" id="edit-q-file" accept="image/*">
+        <input type="file" id="edit-q-file" accept="image/*,.jfif,.jpg,.png,.jpeg">
         
         <button class="btn-main btn-success" style="background: var(--success);" id="btn-save-edit" onclick="window.saveEditedQuestion()">💾 حفظ التعديلات</button>
     </div>
@@ -379,7 +379,7 @@
         <input type="text" id="admin-q-w1" placeholder="خيار خاطئ 1 ❌">
         <input type="text" id="admin-q-w2" placeholder="خيار خاطئ 2 ❌">
         <input type="text" id="admin-q-w3" placeholder="خيار خاطئ 3 ❌">
-        <input type="file" id="admin-q-media" accept="image/*,audio/*,video/*">
+        <input type="file" id="admin-q-media" accept="image/*,.jfif,.jpg,.png,.jpeg,audio/*,video/*">
         <button id="btn-save-admin" class="btn-main btn-secondary" onclick="window.saveAdminQ()">حفظ ورفع السؤال ☁️</button>
         
         <hr style="border-color: var(--border-color); margin: 20px 0;">
@@ -858,18 +858,6 @@
     // ====== تحديث قائمة الأسئلة ومعاينتها ======
     // ==========================================
     
-    window.refreshCategoryPreview = async () => {
-        if (!currentPreviewCategory) return;
-        const snap = await getDocs(query(collection(db, "live_questions"), orderBy("timestamp", "desc")));
-        allQuestions = snap.docs.map(d => ({id: d.id, ...d.data()}));
-        adminCategorizedQs = {};
-        allQuestions.forEach(q => {
-            if (!adminCategorizedQs[q.category]) adminCategorizedQs[q.category] = [];
-            adminCategorizedQs[q.category].push(q);
-        });
-        window.openCategoryPreview(currentPreviewCategory);
-    };
-
     window.loadAdminList = async () => {
         const list = document.getElementById("admin-qs-list");
         if(!list) return;
@@ -922,6 +910,18 @@
             html += `</div></div>`;
         }
         if (Object.keys(adminCategorizedQs).length === 0) { list.innerHTML = "<p>لا توجد أسئلة حالياً.</p>"; } else { list.innerHTML = html; }
+    };
+
+    window.refreshCategoryPreview = async () => {
+        if (!currentPreviewCategory) return;
+        const snap = await getDocs(query(collection(db, "live_questions"), orderBy("timestamp", "desc")));
+        allQuestions = snap.docs.map(d => ({id: d.id, ...d.data()}));
+        adminCategorizedQs = {};
+        allQuestions.forEach(q => {
+            if (!adminCategorizedQs[q.category]) adminCategorizedQs[q.category] = [];
+            adminCategorizedQs[q.category].push(q);
+        });
+        window.openCategoryPreview(currentPreviewCategory);
     };
 
     window.openCategoryPreview = (catName) => {
@@ -990,8 +990,7 @@
         if(confirm("متأكد من حذف هذا السؤال؟ لا يمكن التراجع!")) { 
             await deleteDoc(doc(db, "live_questions", id)); 
             if(currentPreviewCat) {
-                adminCategorizedQs[currentPreviewCat] = adminCategorizedQs[currentPreviewCat].filter(q => q.id !== id);
-                window.openCategoryPreview(currentPreviewCat);
+                window.refreshCategoryPreview();
             } else { window.loadAdminList(); }
         } 
     };
@@ -1000,9 +999,7 @@
         try {
             await updateDoc(doc(db, "live_questions", id), { isHidden: !currentState });
             if(currentPreviewCat) {
-                let qToUpdate = adminCategorizedQs[currentPreviewCat].find(q => q.id === id);
-                if(qToUpdate) qToUpdate.isHidden = !currentState;
-                window.openCategoryPreview(currentPreviewCat);
+                window.refreshCategoryPreview();
             } else { window.loadAdminList(); }
         } catch (e) { alert("حدث خطأ أثناء تعديل حالة السؤال."); }
     };
@@ -1037,9 +1034,7 @@
             imgPreview.src = "";
         }
         
-        // تفريغ حقل الملف
         document.getElementById("edit-q-file").value = "";
-
         document.getElementById("edit-modal").classList.remove("hidden");
     };
 
@@ -1067,7 +1062,6 @@
 
         try {
             if (file) {
-                // رفع الصورة الجديدة إلى Storage
                 const refM = ref(storage, `media/${Date.now()}_${file.name}`);
                 await uploadBytes(refM, file);
                 const url = await getDownloadURL(refM);
@@ -1079,7 +1073,7 @@
             document.getElementById("edit-modal").classList.add("hidden");
             
             if(currentPreviewCategory === cat) {
-                window.refreshCategoryPreview(); // تحديث شاشة المعاينة إذا كانت مفتوحة
+                window.refreshCategoryPreview(); 
             } else {
                 window.loadAdminList();
             }
