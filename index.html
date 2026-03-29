@@ -9,6 +9,67 @@
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     
     <style>
+        /* تصميم بطاقة الفئة المطور */
+.category-card-pro {
+    position: relative;
+    background: var(--card-bg);
+    border-radius: 20px;
+    padding: 20px;
+    text-align: center;
+    transition: 0.3s;
+    border: 2px solid var(--border-color);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.category-card-pro:hover { transform: translateY(-5px); border-color: var(--primary); }
+
+/* أيقونة الفئة */
+.category-icon {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    border-radius: 15px;
+}
+
+/* عداد الألعاب المتبقية (يسار المربع) */
+.games-counter {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: var(--secondary);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 8px;
+    font-size: 0.75em;
+    font-weight: bold;
+}
+
+/* زر تعديل الأدمن (القلم) */
+.admin-edit-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    font-size: 0.9em;
+}
+
+.admin-edit-btn:hover { background: var(--primary); color: white; }
+
+/* الفئات المخفية */
+.cat-hidden { opacity: 0.5; filter: grayscale(1); }
         /* === إعدادات الثيمات (المتغيرات) === */
         :root { 
             --primary: #8e44ad; --secondary: #f39c12; --success: #27ae60; --danger: #e74c3c; 
@@ -220,28 +281,33 @@
 </div>
 
 <div id="view-game" class="container hidden fade-in">
-    <div id="setup-names" class="auth-box">
-        <h2>تجهيز الجولة ✏️</h2>
-        <input type="text" id="team1-name-input" placeholder="اسم الفريق الأول">
-        <input type="text" id="team2-name-input" placeholder="اسم الفريق الثاني">
-        <div style="margin: 15px 0; background: var(--bg-color); padding: 10px; border-radius: 10px; border: 1px dashed var(--border-color);">
-            <label style="cursor: pointer; font-weight: bold;"><input type="checkbox" id="hide-scores-checkbox" style="width: auto; margin-left:10px;"> إخفاء النقاط أثناء اللعب 🕵️‍♂️</label>
-        </div>
-        <button class="btn-main btn-primary" onclick="window.startPickingPhase()">حفظ والبدء بالاختيار</button>
+    
+    <div id="step-select-category">
+        <h2 style="text-align: center;">اختر فئة التحدي 🎯</h2>
+        <div class="categories-grid" id="pro-categories-grid">
+            </div>
     </div>
 
-    <div id="category-selection-screen" class="hidden">
-        <h2 id="picking-status" style="text-align: center; color: var(--primary);">دور الفريق 1 يختار (باقي 6)</h2>
-        <div class="categories-grid" id="game-categories-grid"></div>
+    <div id="step-game-settings" class="hidden">
+        <div class="auth-box">
+            <button onclick="window.goBackToCategories()" style="float: right; background:none; border:none; cursor:pointer;">➡️ رجوع</button>
+            <h2 id="selected-cat-title">تجهيز الجولة</h2>
+            <input type="text" id="team1-name-input" placeholder="اسم الفريق الأول">
+            <input type="text" id="team2-name-input" placeholder="اسم الفريق الثاني">
+            
+            <div style="margin: 15px 0; background: var(--bg-color); padding: 15px; border-radius: 12px; border: 1px dashed var(--border-color); text-align: right;">
+                <p style="font-weight: bold; margin-bottom: 10px;">⚙️ خصائص الجولة:</p>
+                <label style="display: block; cursor: pointer; margin-bottom: 8px;">
+                    <input type="checkbox" id="hide-scores-checkbox"> إخفاء النقاط أثناء اللعب 🕵️‍♂️
+                </label>
+                </div>
+            
+            <button class="btn-main btn-primary" onclick="window.finalizeSetupAndPlay()">ابدأ التحدي الآن 🚀</button>
+        </div>
     </div>
 
     <div id="game-play-screen" class="hidden">
-        <div class="score-display">
-            <div id="card-t1" class="score-box" style="border-color: #3498db;"><div id="name1-display"></div><div id="score1-display" style="font-size:2em; font-weight:900;">0</div></div>
-            <div id="card-t2" class="score-box" style="border-color: #e74c3c;"><div id="name2-display"></div><div id="score2-display" style="font-size:2em; font-weight:900;">0</div></div>
         </div>
-        <div id="active-question-area" class="auth-box" style="border-top: 5px solid var(--primary);"></div>
-    </div>
 </div>
 
 <div id="view-answer-screen" class="container hidden fade-in">
@@ -705,6 +771,80 @@ window.renderCategoryTags = (cats) => {
 
 // تعديل بسيط في دالة حفظ السؤال لتقرأ من الـ Input الجديد
 // const catInput = document.getElementById("admin-q-cat-input").value.trim();
+    let selectedCategoryId = null;
+
+// دالة العرض الجديدة للفئات
+window.renderGameCategories = async () => {
+    const grid = document.getElementById("pro-categories-grid");
+    grid.innerHTML = "جاري التحميل...";
+    
+    const snap = await getDocs(query(collection(db, "categories"), orderBy("name", "asc")));
+    grid.innerHTML = "";
+
+    snap.docs.forEach(d => {
+        const cat = d.data();
+        const id = d.id;
+        
+        // إذا كانت الفئة مخفية والمستخدم ليس أدمن، لا تظهرها
+        if(cat.isHidden && auth.currentUser.email !== adminEmail) return;
+
+        const remainingGames = allQuestions.filter(q => q.category === cat.name && !playedIds.includes(q.id)).length;
+        const totalChallenges = Math.floor(remainingGames / 6);
+
+        const card = document.createElement("div");
+        card.className = `category-card-pro ${cat.isHidden ? 'cat-hidden' : ''}`;
+        card.innerHTML = `
+            ${totalChallenges > 0 ? `<div class="games-counter">${totalChallenges} جولة</div>` : ''}
+            ${auth.currentUser.email === adminEmail ? `<div class="admin-edit-btn" onclick="event.stopPropagation(); window.manageCategory('${id}', '${cat.name}')">✏️</div>` : ''}
+            <img src="${cat.imageUrl || 'default-icon.png'}" class="category-icon" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3407/3407024.png'">
+            <h3 style="margin:0; font-size: 1.1em;">${cat.name}</h3>
+        `;
+        
+        card.onclick = () => window.selectCategoryForGame(cat.name);
+        grid.appendChild(card);
+    });
+};
+
+// مسار اختيار الفئة
+window.selectCategoryForGame = (catName) => {
+    selectedCategoryId = catName;
+    document.getElementById("selected-cat-title").innerText = `تحدي ${catName} 🔥`;
+    document.getElementById("step-select-category").classList.add("hidden");
+    document.getElementById("step-game-settings").classList.remove("hidden");
+};
+
+window.goBackToCategories = () => {
+    document.getElementById("step-select-category").classList.remove("hidden");
+    document.getElementById("step-game-settings").classList.add("hidden");
+};
+
+// وظائف الأدمن (القلم)
+window.manageCategory = async (id, currentName) => {
+    const action = prompt(`إدارة فئة (${currentName}):\n1. تعديل الاسم\n2. تغيير رابط الأيقونة\n3. إخفاء/إظهار\n4. حذف الفئة\n(اكتب الرقم):`);
+    
+    const catRef = doc(db, "categories", id);
+    if(action === "1") {
+        const newName = prompt("الاسم الجديد:", currentName);
+        if(newName) await updateDoc(catRef, { name: newName });
+    } else if(action === "2") {
+        const newUrl = prompt("رابط الصورة الجديد:");
+        if(newUrl) await updateDoc(catRef, { imageUrl: newUrl });
+    } else if(action === "3") {
+        const current = (await getDoc(catRef)).data().isHidden;
+        await updateDoc(catRef, { isHidden: !current });
+    } else if(action === "4") {
+        if(confirm("سيتم حذف الفئة نهائياً! هل أنت متأكد؟")) await deleteDoc(catRef);
+    }
+    window.renderGameCategories();
+};
+
+// تحديث زر "العب الآن"
+window.checkSubscriptionAndPlay = () => {
+    if(!auth.currentUser) { alert("سجل دخولك أولاً!"); window.switchTab('auth'); return; }
+    if(!isSubscribed) { alert("يجب الاشتراك للعب 💎"); window.switchTab('home'); return; }
+    window.switchTab('game');
+    window.renderGameCategories();
+};
 </script>
 </body>
 </html>
