@@ -114,6 +114,7 @@
         .btn-powerup { background: var(--card-bg); border: 2px solid var(--secondary); color: var(--text-main); font-family: 'Tajawal'; padding: 8px 15px; border-radius: 20px; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 5px; }
         .btn-powerup:hover { background: var(--secondary); color: white; transform: scale(1.05); }
         
+        /* مؤقت وعدّاد */
         .timer-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; backdrop-filter: blur(5px); }
         .timer-circle { width: 150px; height: 150px; border: 8px solid var(--secondary); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 4em; font-weight: bold; margin-bottom: 20px; text-shadow: 0 4px 10px rgba(0,0,0,0.5); }
         
@@ -121,7 +122,7 @@
 
         /* --- تنسيقات شاشة معاينة الفئة للإدارة --- */
         #view-category-preview { background: var(--bg-color); min-height: 100vh; padding-bottom: 50px; }
-        .preview-header { display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); padding: 15px 20px; border-radius: 15px; border: 2px solid var(--primary); margin-bottom: 20px; box-shadow: var(--card-shadow); }
+        .preview-header { display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); padding: 15px 20px; border-radius: 15px; border: 2px solid var(--primary); margin-bottom: 20px; box-shadow: var(--card-shadow); flex-wrap: wrap; gap: 10px;}
         .preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
         .preview-card { background: var(--card-bg); border-radius: 15px; overflow: hidden; border: 1px solid var(--border-color); box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: 0.3s; display: flex; flex-direction: column; }
         .preview-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-color: var(--primary); }
@@ -306,7 +307,10 @@
 <div id="view-category-preview" class="container hidden fade-in">
     <div class="preview-header">
         <h2 id="preview-title" style="margin: 0; color: var(--primary);">معاينة الفئة</h2>
-        <button class="btn-main" style="width: auto; padding: 8px 15px; margin: 0; background: var(--secondary);" onclick="window.closeCategoryPreview()">⬅️ رجوع للإدارة</button>
+        <div style="display: flex; gap: 10px;">
+            <button class="btn-main" style="width: auto; padding: 8px 15px; margin: 0; background: #3498db;" onclick="window.refreshCategoryPreview()">🔄 تحديث</button>
+            <button class="btn-main" style="width: auto; padding: 8px 15px; margin: 0; background: var(--secondary);" onclick="window.closeCategoryPreview()">⬅️ رجوع للإدارة</button>
+        </div>
     </div>
     <div id="preview-questions-grid" class="preview-grid">
         </div>
@@ -378,6 +382,7 @@
     let isSubscribed = false, hideScoresMode = false;
     let allLoadedCategories = [];
     let adminCategorizedQs = {}; 
+    let currentPreviewCategory = null; // لتخزين اسم الفئة المفتوحة حالياً في المعاينة
 
     // ====== إعدادات الخصائص (Power-ups) ======
     const AVAILABLE_POWERUPS = [
@@ -480,7 +485,6 @@
         if(hGrid) hGrid.innerHTML = [...new Set(allQuestions.map(q => q.category))].map(cat => `<div class="category-card"><h3 style="color:var(--text-main);">${cat}</h3></div>`).join('');
     }
 
-    // ====== نظام اختيار الفئات 3 إلى 6 ======
     window.toggleCategorySelection = (catName, element) => {
         const index = selectedCategoriesList.indexOf(catName);
         if (index > -1) { selectedCategoriesList.splice(index, 1); element.classList.remove('selected'); } 
@@ -512,7 +516,7 @@
             const card = document.createElement("div"); card.className = `category-card-pro ${cat.isHidden ? 'cat-hidden' : ''}`;
             card.innerHTML = `${chals > 0 ? `<div class="games-counter">${chals} جولة</div>` : ''}
                 ${auth.currentUser && auth.currentUser.email === adminEmail ? `<div class="admin-edit-btn" onclick="event.stopPropagation(); window.manageCategory('${id}', '${cat.name}')">✏️</div>` : ''}
-                <img src="${cat.imageUrl || 'https://cdn-icons-png.flaticon.com/512/3407/3407024.png'}" class="category-icon" onerror="this.src='default.png'">
+                <img src="${cat.imageUrl || 'https://cdn-icons-png.flaticon.com/512/3407/3407024.png'}" class="category-icon" onerror="this.src='default.png'" referrerpolicy="no-referrer">
                 <h3 style="margin:0;">${cat.name}</h3>`;
             card.onclick = () => window.toggleCategorySelection(cat.name, card);
             grid.appendChild(card);
@@ -567,7 +571,7 @@
         document.getElementById("score2-display").innerText = hideScoresMode ? "??" : teamScores.team2;
 
         let choicesHTML = "";
-        if(q.wrongAnswers && q.wrongAnswers[0] !== "") {
+        if(q.wrongAnswers && q.wrongAnswers.length > 0 && q.wrongAnswers[0] !== "") {
             let all = [q.correctAnswer, ...q.wrongAnswers].sort(() => Math.random() - 0.5);
             choicesHTML = `<div class="choices-grid hidden" id="dynamic-choices-grid">${all.map(c => `<div class="choice-btn">${c}</div>`).join('')}</div>`;
         } else {
@@ -600,7 +604,8 @@
 
     window.renderMedia = (q) => {
         if(!q.mediaUrl) return "";
-        if(q.mediaType === 'image') return `<img src="${q.mediaUrl}" style="width:100%; border-radius:10px; margin:15px 0;">`;
+        // إضافة referrerpolicy لتجنب حجب الصور
+        if(q.mediaType === 'image') return `<img src="${q.mediaUrl}" style="width:100%; border-radius:10px; margin:15px 0;" referrerpolicy="no-referrer">`;
         if(q.mediaType === 'audio') return `<audio controls src="${q.mediaUrl}" style="width:100%; margin:15px 0;"></audio>`;
         if(q.mediaType === 'video') return `<video controls src="${q.mediaUrl}" style="width:100%; border-radius:10px; margin:15px 0;"></video>`;
         return "";
@@ -633,7 +638,6 @@
         if (pId === 'choices') document.getElementById('dynamic-choices-grid').classList.remove('hidden');
     };
 
-    // نظام المؤقتات
     window.openTimerModal = (title, seconds) => {
         document.getElementById("timer-modal").classList.remove("hidden");
         document.getElementById("timer-title").innerText = title;
@@ -663,7 +667,6 @@
         document.getElementById("timer-modal").classList.add("hidden");
     };
 
-    // ====== شاشة الإجابة والنتيجة ======
     window.goToAnswerScreen = () => {
         const q = gameQuestions[currentQuestionIndex];
         document.getElementById("game-play-screen").classList.add("hidden");
@@ -713,7 +716,6 @@
         document.getElementById("res-t1-score").innerText = teamScores.team1;
         document.getElementById("res-t2-score").innerText = teamScores.team2;
     };
-
 
     // ==========================================
     // ====== دوال الإدارة (Admin Panel) ========
@@ -876,7 +878,15 @@
         if (Object.keys(adminCategorizedQs).length === 0) { list.innerHTML = "<p>لا توجد أسئلة حالياً.</p>"; } else { list.innerHTML = html; }
     };
 
+    // --- تحديث وظيفة إعادة التحميل في شاشة المعاينة ---
+    window.refreshCategoryPreview = async () => {
+        if (!currentPreviewCategory) return;
+        await window.loadAdminList(); // يجلب أحدث البيانات من السيرفر
+        window.openCategoryPreview(currentPreviewCategory); // يعيد رسم الشاشة بالبيانات الجديدة
+    };
+
     window.openCategoryPreview = (catName) => {
+        currentPreviewCategory = catName; // تحديث المتغير لمعرفة الفئة المفتوحة حالياً
         document.getElementById("view-admin").classList.add("hidden");
         document.getElementById("view-category-preview").classList.remove("hidden");
         document.getElementById("preview-title").innerText = `معاينة: ${catName}`;
@@ -892,9 +902,16 @@
             let mediaContent = '<div style="color:var(--text-muted); font-size:0.8em;">لا توجد صورة</div>';
             
             if (q.mediaUrl) {
-                if (q.mediaType === 'image') mediaContent = `<img src="${q.mediaUrl}" alt="صورة السؤال" style="max-height: 100%; max-width: 100%;">`;
+                // إضافة referrerpolicy لتفادي الحظر
+                if (q.mediaType === 'image') mediaContent = `<img src="${q.mediaUrl}" alt="صورة السؤال" style="max-height: 100%; max-width: 100%;" referrerpolicy="no-referrer">`;
                 else if (q.mediaType === 'video') mediaContent = `<video src="${q.mediaUrl}" style="width:100%; height:100%; object-fit:cover;"></video>`;
                 else mediaContent = `<div style="color:var(--primary); font-size:0.8em;">صوت مرفق 🎵</div>`;
+            }
+
+            // إضافة الإجابات الخاطئة للظهور في المعاينة
+            let wrongAnswersHtml = 'لا توجد خيارات خاطئة';
+            if (q.wrongAnswers && q.wrongAnswers.length > 0 && q.wrongAnswers[0] !== "") {
+                wrongAnswersHtml = q.wrongAnswers.join(' | ');
             }
 
             html += `
@@ -908,7 +925,11 @@
                             ${isHidden ? '<span style="color:var(--danger); font-size:0.8em; font-weight:bold;">مخفي 🙈</span>' : ''}
                         </div>
                         <h4 style="margin: 0 0 10px 0; color: var(--text-main); line-height: 1.4;">${q.question}</h4>
-                        <div style="font-size: 0.9em; color: var(--success); font-weight: bold; margin-top: auto;">✅ ${q.correctAnswer}</div>
+                        
+                        <div style="margin-top: auto; padding-top: 10px; border-top: 1px solid var(--border-color);">
+                            <div style="font-size: 0.85em; color: var(--success); font-weight: bold; margin-bottom: 5px;">✅ ${q.correctAnswer}</div>
+                            <div style="font-size: 0.75em; color: var(--danger);">❌ ${wrongAnswersHtml}</div>
+                        </div>
                     </div>
                     <div class="preview-actions">
                         <button onclick="window.editQ('${q.id}', '${catName}')" class="btn-main" style="margin:0; padding: 5px; font-size: 0.8em; background: #3498db; width: 33%;">تعديل</button>
@@ -922,6 +943,7 @@
     };
 
     window.closeCategoryPreview = () => {
+        currentPreviewCategory = null;
         document.getElementById("view-category-preview").classList.add("hidden");
         document.getElementById("view-admin").classList.remove("hidden");
         window.loadAdminList(); 
@@ -981,7 +1003,7 @@
         }
     };
 
-    // دالة حذف جميع أسئلة هنتر
+    // دالة حذف جميع أسئلة هنتر القديمة
     window.deleteAllHunterQuestions = async () => {
         if(!confirm("تحذير! سيتم حذف جميع الأسئلة المتعلقة بـ Hunter x Hunter. هل أنت متأكد؟")) return;
         
