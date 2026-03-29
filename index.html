@@ -350,8 +350,8 @@
         <label style="color: var(--secondary); font-weight: bold;">🖼️ صورة السؤال الحالية:</label>
         <img id="edit-q-img-preview" src="" style="width: 100px; height: auto; display: none; border-radius: 8px; margin: 10px 0;" referrerpolicy="no-referrer">
         
-        <label>رفع صورة جديدة (من جهازك):</label>
-        <input type="file" id="edit-q-file" accept="image/*,.jfif,.jpg,.png,.jpeg">
+        <label>رابط الصورة المباشر (مثل Postimages):</label>
+        <input type="text" id="edit-q-url" placeholder="مثال: https://i.postimg.cc/xxx/image.jpg">
         
         <button class="btn-main btn-success" style="background: var(--success);" id="btn-save-edit" onclick="window.saveEditedQuestion()">💾 حفظ التعديلات</button>
     </div>
@@ -379,7 +379,9 @@
         <input type="text" id="admin-q-w1" placeholder="خيار خاطئ 1 ❌">
         <input type="text" id="admin-q-w2" placeholder="خيار خاطئ 2 ❌">
         <input type="text" id="admin-q-w3" placeholder="خيار خاطئ 3 ❌">
-        <input type="file" id="admin-q-media" accept="image/*,.jfif,.jpg,.png,.jpeg,audio/*,video/*">
+        
+        <input type="text" id="admin-q-media-url" placeholder="رابط الصورة المباشر (اختياري) 🔗">
+        
         <button id="btn-save-admin" class="btn-main btn-secondary" onclick="window.saveAdminQ()">حفظ ورفع السؤال ☁️</button>
         
         <hr style="border-color: var(--border-color); margin: 20px 0;">
@@ -412,7 +414,7 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
-    const storage = getStorage(app);
+    const storage = getStorage(app); // ابقيت المتغير للضرورة لكن لن نستخدمه في الرفع
 
     const adminEmail = "ziad95005@gmail.com"; 
 
@@ -819,45 +821,60 @@
         }
     };
 
+    // التعديل هنا: إزالة الرفع لفايربيس واستخدام النص للرابط المباشر
     window.saveAdminQ = async () => {
         const btn = document.getElementById("btn-save-admin");
         const catInput = document.getElementById("admin-q-cat-input").value.trim(); 
         const correctAns = document.getElementById("admin-q-ans").value.trim();
+        const mediaUrlInput = document.getElementById("admin-q-media-url").value.trim();
         
         if(!catInput || !correctAns) { alert("أكمل البيانات الأساسية (الفئة والإجابة)!"); return; }
 
         btn.disabled = true; btn.innerText = "جاري الرفع... ⏳";
-        const f = document.getElementById("admin-q-media").files[0];
-        let url = "", type = "";
-        if(f) {
-            const refM = ref(storage, `media/${Date.now()}_${f.name}`);
-            await uploadBytes(refM, f);
-            url = await getDownloadURL(refM);
-            type = f.type.split('/')[0];
+        
+        try {
+            await addDoc(collection(db, "live_questions"), {
+                category: catInput,
+                points: parseInt(document.getElementById("admin-q-pts").value),
+                question: document.getElementById("admin-q-txt").value,
+                correctAnswer: correctAns,
+                wrongAnswers: [document.getElementById("admin-q-w1").value, document.getElementById("admin-q-w2").value, document.getElementById("admin-q-w3").value],
+                mediaUrl: mediaUrlInput, 
+                mediaType: mediaUrlInput ? "image" : "", 
+                timestamp: serverTimestamp(),
+                isHidden: false
+            });
+            
+            alert("تم رفع السؤال بنجاح! ✅"); 
+            document.getElementById("admin-q-txt").value = ""; document.getElementById("admin-q-ans").value = "";
+            document.getElementById("admin-q-w1").value = ""; document.getElementById("admin-q-w2").value = ""; document.getElementById("admin-q-w3").value = "";
+            document.getElementById("admin-q-media-url").value = "";
+            
+            window.loadAdminList();
+        } catch (error) {
+            console.error("خطأ في الرفع:", error);
+            alert("❌ حدث خطأ أثناء الرفع!");
+        } finally {
+            btn.disabled = false; btn.innerText = "حفظ ورفع السؤال ☁️";
         }
-        await addDoc(collection(db, "live_questions"), {
-            category: catInput,
-            points: parseInt(document.getElementById("admin-q-pts").value),
-            question: document.getElementById("admin-q-txt").value,
-            correctAnswer: correctAns,
-            wrongAnswers: [document.getElementById("admin-q-w1").value, document.getElementById("admin-q-w2").value, document.getElementById("admin-q-w3").value],
-            mediaUrl: url, mediaType: type, timestamp: serverTimestamp(),
-            isHidden: false
-        });
-        
-        alert("تم رفع السؤال بنجاح! ✅"); 
-        document.getElementById("admin-q-txt").value = ""; document.getElementById("admin-q-ans").value = "";
-        document.getElementById("admin-q-w1").value = ""; document.getElementById("admin-q-w2").value = ""; document.getElementById("admin-q-w3").value = "";
-        if(f) document.getElementById("admin-q-media").value = "";
-        
-        window.loadAdminList();
-        btn.disabled = false; btn.innerText = "حفظ ورفع السؤال ☁️";
     };
 
     // ==========================================
     // ====== تحديث قائمة الأسئلة ومعاينتها ======
     // ==========================================
     
+    window.refreshCategoryPreview = async () => {
+        if (!currentPreviewCategory) return;
+        const snap = await getDocs(query(collection(db, "live_questions"), orderBy("timestamp", "desc")));
+        allQuestions = snap.docs.map(d => ({id: d.id, ...d.data()}));
+        adminCategorizedQs = {};
+        allQuestions.forEach(q => {
+            if (!adminCategorizedQs[q.category]) adminCategorizedQs[q.category] = [];
+            adminCategorizedQs[q.category].push(q);
+        });
+        window.openCategoryPreview(currentPreviewCategory);
+    };
+
     window.loadAdminList = async () => {
         const list = document.getElementById("admin-qs-list");
         if(!list) return;
@@ -910,18 +927,6 @@
             html += `</div></div>`;
         }
         if (Object.keys(adminCategorizedQs).length === 0) { list.innerHTML = "<p>لا توجد أسئلة حالياً.</p>"; } else { list.innerHTML = html; }
-    };
-
-    window.refreshCategoryPreview = async () => {
-        if (!currentPreviewCategory) return;
-        const snap = await getDocs(query(collection(db, "live_questions"), orderBy("timestamp", "desc")));
-        allQuestions = snap.docs.map(d => ({id: d.id, ...d.data()}));
-        adminCategorizedQs = {};
-        allQuestions.forEach(q => {
-            if (!adminCategorizedQs[q.category]) adminCategorizedQs[q.category] = [];
-            adminCategorizedQs[q.category].push(q);
-        });
-        window.openCategoryPreview(currentPreviewCategory);
     };
 
     window.openCategoryPreview = (catName) => {
@@ -990,7 +995,8 @@
         if(confirm("متأكد من حذف هذا السؤال؟ لا يمكن التراجع!")) { 
             await deleteDoc(doc(db, "live_questions", id)); 
             if(currentPreviewCat) {
-                window.refreshCategoryPreview();
+                adminCategorizedQs[currentPreviewCat] = adminCategorizedQs[currentPreviewCat].filter(q => q.id !== id);
+                window.openCategoryPreview(currentPreviewCat);
             } else { window.loadAdminList(); }
         } 
     };
@@ -999,14 +1005,14 @@
         try {
             await updateDoc(doc(db, "live_questions", id), { isHidden: !currentState });
             if(currentPreviewCat) {
-                window.refreshCategoryPreview();
+                let qToUpdate = adminCategorizedQs[currentPreviewCat].find(q => q.id === id);
+                if(qToUpdate) qToUpdate.isHidden = !currentState;
+                window.openCategoryPreview(currentPreviewCat);
             } else { window.loadAdminList(); }
         } catch (e) { alert("حدث خطأ أثناء تعديل حالة السؤال."); }
     };
 
-    // ==========================================
-    // ====== نافذة التعديل الجديدة (Modal) ======
-    // ==========================================
+    // التعديل هنا: استخدام النص للرابط في دالة التعديل
     window.openEditModal = async (id) => {
         const qRef = doc(db, "live_questions", id);
         const qSnap = await getDoc(qRef);
@@ -1034,7 +1040,7 @@
             imgPreview.src = "";
         }
         
-        document.getElementById("edit-q-file").value = "";
+        document.getElementById("edit-q-url").value = qData.mediaUrl || "";
         document.getElementById("edit-modal").classList.remove("hidden");
     };
 
@@ -1051,36 +1057,30 @@
         const newText = document.getElementById("edit-q-text").value.trim();
         const newCorrect = document.getElementById("edit-q-correct").value.trim();
         const newWrongs = document.getElementById("edit-q-wrongs").value.split("|").map(s => s.trim()).filter(s => s !== "");
-        const file = document.getElementById("edit-q-file").files[0];
+        const newUrl = document.getElementById("edit-q-url").value.trim();
 
         let updateData = {
             points: newPts,
             question: newText,
             correctAnswer: newCorrect,
-            wrongAnswers: newWrongs.length > 0 ? newWrongs : [""]
+            wrongAnswers: newWrongs.length > 0 ? newWrongs : [""],
+            mediaUrl: newUrl,
+            mediaType: newUrl ? "image" : ""
         };
 
         try {
-            if (file) {
-                const refM = ref(storage, `media/${Date.now()}_${file.name}`);
-                await uploadBytes(refM, file);
-                const url = await getDownloadURL(refM);
-                updateData.mediaUrl = url;
-                updateData.mediaType = file.type.split('/')[0];
-            }
-
             await updateDoc(qRef, updateData);
             document.getElementById("edit-modal").classList.add("hidden");
             
             if(currentPreviewCategory === cat) {
-                window.refreshCategoryPreview(); 
+                await window.refreshCategoryPreview();
             } else {
                 window.loadAdminList();
             }
             alert("تم حفظ التعديلات بنجاح! ✅");
         } catch (error) {
-            console.error(error);
-            alert("❌ حدث خطأ أثناء الحفظ.");
+            console.error("Firestore Error:", error);
+            alert("❌ حدث خطأ أثناء الحفظ!");
         } finally {
             btn.disabled = false;
             btn.innerText = "💾 حفظ التعديلات";
@@ -1104,6 +1104,7 @@
         window.loadAdminList();
     };
 
+    // --- سكربت رفع الأسئلة دفعة واحدة (بدون روابط مؤقتة) ---
     window.uploadBulkQuestions = async () => {
         const categoryName = "Hunter x Hunter"; 
         const btn = document.getElementById("btn-bulk-upload");
@@ -1181,7 +1182,6 @@
             { q: "من هو العضو في الزودياك (الأبراج) الذي يمثل برج 'الكلب' وهو أقرب المساعدين لنيتيرو؟", a: "تشيدل يوركشاير", w: ["بارستون هيل", "كانزاي", "بوتاباي"], p: 600, m: "" }
         ];
 
-        let count = 0;
         try {
             for (const item of questionsData) {
                 const safeUrl = item.m ? item.m.trim() : "";
@@ -1196,9 +1196,8 @@
                     timestamp: serverTimestamp(),
                     isHidden: false 
                 });
-                count++;
             }
-            alert(`✅ تم رفع ${count} سؤال بنجاح لفئة "${categoryName}"!`);
+            alert(`✅ تم رفع الأسئلة بنجاح لفئة "${categoryName}"!`);
             window.loadAdminList(); 
         } catch (error) {
             console.error("حدث خطأ أثناء الرفع:", error);
