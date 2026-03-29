@@ -272,21 +272,25 @@
 
 <div id="view-admin" class="container hidden fade-in">
     <div class="auth-box" style="border: 2px solid var(--primary); margin-bottom: 20px;">
-        <h2 style="color: var(--primary);">📁 إضافة فئة جديدة</h2>
-        <div style="display: flex; gap: 10px;">
-            <input type="text" id="admin-new-cat-name" placeholder="اسم الفئة (مثلاً: كورة، جغرافيا)">
-            <button class="btn-main btn-primary" style="margin-top:0; width: auto; padding: 10px 25px;" onclick="window.saveNewCategory()">إضافة الفئة +</button>
+        <h2 style="color: var(--primary);">📁 إدارة الفئات (103+)</h2>
+        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+            <input type="text" id="admin-new-cat-name" placeholder="اسم الفئة الجديدة...">
+            <button class="btn-main btn-primary" style="margin-top:0; width: auto; padding: 10px 20px;" onclick="window.saveNewCategory()">إضافة +</button>
         </div>
-        <div id="admin-cats-tags" style="margin-top: 15px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
+        
+        <input type="text" id="admin-cat-search" placeholder="🔍 ابحث عن فئة من الـ 103 المضافة..." oninput="window.filterCategories(this.value)" style="border-color: var(--primary);">
+        
+        <div id="admin-cats-tags" style="margin-top: 15px; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; max-height: 200px; overflow-y: auto; padding: 10px; border: 1px solid var(--border-color); border-radius: 10px;">
             </div>
     </div>
 
     <div class="auth-box" style="border: 2px solid var(--secondary);">
         <h2 style="color: var(--secondary);">❓ إضافة سؤال جديد</h2>
-        <label style="display: block; text-align: right; font-weight: bold; margin-bottom: 5px;">اختر الفئة:</label>
-        <select id="admin-q-cat-select">
-            <option value="">-- اختر الفئة أولاً --</option>
-        </select>
+        <label style="display: block; text-align: right; font-weight: bold;">اختر الفئة (اكتب للبحث):</label>
+        
+        <input list="categories-list" id="admin-q-cat-input" placeholder="اكتب اسم الفئة هنا...">
+        <datalist id="categories-list">
+            </datalist>
         
         <select id="admin-q-pts">
             <option value="200">200 نقطة</option>
@@ -301,7 +305,7 @@
         <input type="file" id="admin-q-media" accept="image/*,audio/*,video/*">
         <button id="btn-save-admin" class="btn-main btn-secondary" onclick="window.saveAdminQ()">حفظ ورفع السؤال ☁️</button>
     </div>
-
+</div>
     <div class="auth-box"><h3>📋 قائمة الأسئلة الحالية</h3><div id="admin-qs-list"></div></div>
 </div>
 
