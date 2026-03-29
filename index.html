@@ -404,7 +404,23 @@
     };
 
     // ====== التحقق وجلب البيانات ======
-    window.subscribeToPackage = async (type) => { /*...*/ };
+    window.subscribeToPackage = async (type) => { 
+        if(!auth.currentUser) {
+            alert("لازم تسجل دخولك أولاً عشان تشترك! 👤");
+            window.switchTab('auth');
+            return;
+        }
+        try {
+            await updateDoc(doc(db, "users", auth.currentUser.uid), { isSubscribed: true });
+            isSubscribed = true;
+            alert("تم تفعيل اشتراكك بنجاح! شكراً لثقتك 🥳💎");
+            window.switchTab('auth');
+            window.showProfileTab('subs');
+            document.getElementById("subs-list").innerHTML = `<div style="padding:15px; background:var(--bg-color); border:1px solid #27ae60; border-radius:10px;"><b>باقة مخك معي المميزة ✅</b><p>الحالة: نشط</p><button class="btn-main btn-secondary" onclick="window.switchTab('home')">العب الآن 🚀</button></div>`;
+        } catch(e) {
+            alert("حدث خطأ، تأكد من اتصالك بالإنترنت.");
+        }
+    };
     window.checkSubscriptionAndPlay = () => {
         if(!auth.currentUser) { alert("سجل دخولك أولاً!"); window.switchTab('auth'); return; }
         if(!isSubscribed) { alert("يجب الاشتراك للعب 💎"); window.switchTab('home'); return; }
@@ -420,6 +436,10 @@
             const data = (await getDoc(doc(db, "users", user.uid))).data();
             isSubscribed = data?.isSubscribed || false; playedIds = data?.playedQuestions || [];
             if(user.email === adminEmail) { document.getElementById("tab-admin").classList.remove("hidden"); isSubscribed = true; }
+            
+            const div = document.getElementById("subs-list");
+            if(isSubscribed) div.innerHTML = `<div style="padding:15px; background:var(--bg-color); border:1px solid #27ae60; border-radius:10px;"><b>باقة مخك معي المميزة ✅</b><p>الحالة: نشط</p><button class="btn-main btn-secondary" onclick="window.switchTab('home')">العب الآن 🚀</button></div>`;
+            else div.innerHTML = `<p>لا يوجد اشتراكات نشطة حالياً. <br><br> <button class="btn-main btn-primary" onclick="window.switchTab('home')">اشترك الآن</button></p>`;
         } else {
             document.getElementById("logged-out-view").classList.remove("hidden");
             document.getElementById("logged-in-view").classList.add("hidden");
@@ -458,11 +478,13 @@
         grid.innerHTML = "";
         snap.docs.forEach(d => {
             const cat = d.data();
+            const id = d.id;
             if(cat.isHidden && (!auth.currentUser || auth.currentUser.email !== adminEmail)) return;
             const remaining = allQuestions.filter(q => q.category === cat.name && !playedIds.includes(q.id)).length;
             const chals = Math.floor(remaining / 6);
             const card = document.createElement("div"); card.className = `category-card-pro ${cat.isHidden ? 'cat-hidden' : ''}`;
             card.innerHTML = `${chals > 0 ? `<div class="games-counter">${chals} جولة</div>` : ''}
+                ${auth.currentUser && auth.currentUser.email === adminEmail ? `<div class="admin-edit-btn" onclick="event.stopPropagation(); window.manageCategory('${id}', '${cat.name}')">✏️</div>` : ''}
                 <img src="${cat.imageUrl || 'https://cdn-icons-png.flaticon.com/512/3407/3407024.png'}" class="category-icon" onerror="this.src='default.png'">
                 <h3 style="margin:0;">${cat.name}</h3>`;
             card.onclick = () => window.toggleCategorySelection(cat.name, card);
@@ -546,9 +568,17 @@
             <p style="color:var(--primary); font-weight:bold;">سؤال لـ: ${turnName} (${q.points} نقطة) - الفئة: ${q.category}</p>
             <h2 style="font-size:1.8em">${q.question}</h2>
             ${choicesHTML}
-            ${q.mediaUrl ? `<img src="${q.mediaUrl}" style="width:100%; border-radius:10px; margin:15px 0;">` : ''}
+            ${window.renderMedia(q)}
             <button class="btn-main btn-secondary" style="margin-top:20px;" onclick="window.goToAnswerScreen()">كشف الإجابة 👁️</button>
         `;
+    };
+
+    window.renderMedia = (q) => {
+        if(!q.mediaUrl) return "";
+        if(q.mediaType === 'image') return `<img src="${q.mediaUrl}" style="width:100%; border-radius:10px; margin:15px 0;">`;
+        if(q.mediaType === 'audio') return `<audio controls src="${q.mediaUrl}" style="width:100%; margin:15px 0;"></audio>`;
+        if(q.mediaType === 'video') return `<video controls src="${q.mediaUrl}" style="width:100%; border-radius:10px; margin:15px 0;"></video>`;
+        return "";
     };
 
     // ====== تنفيذ الخصائص (Power-ups Logic) ======
@@ -608,7 +638,6 @@
             if (s <= 0) {
                 clearInterval(timerInterval);
                 document.getElementById("timer-instruction").innerText = "انتهى الوقت! ⏰";
-                // يمكن إضافة صوت تنبيه هنا
             }
         }, 1000);
     };
@@ -624,6 +653,7 @@
         document.getElementById("game-play-screen").classList.add("hidden");
         document.getElementById("view-answer-screen").classList.remove("hidden");
         document.getElementById("final-answer-text").innerText = q.correctAnswer;
+        document.getElementById("answer-media-content").innerHTML = window.renderMedia(q);
         
         let t1Btn = document.getElementById("btn-give-t1");
         let t2Btn = document.getElementById("btn-give-t2");
@@ -649,11 +679,9 @@
 
         // تطبيق خاصية الدبل
         if (activeGameModifiers.double) {
-            // الدبل للفريق اللي فعل الخاصية (وهو صاحب الدور حالياً) في حال جاوب صح.
             if ((isTeam1Turn && win === 'team1') || (!isTeam1Turn && win === 'team2')) {
                 earnedPoints *= 2; 
             }
-            // إذا الفريق الثاني (اللي ما عنده دبل) سرق الإجابة، بياخذ النقاط الطبيعية (بدون دبل).
         }
 
         if(win === 'team1') teamScores.team1 += earnedPoints;
@@ -680,13 +708,155 @@
         document.getElementById("res-t2-score").innerText = teamScores.team2;
     };
 
-    // الإدارة والتسجيل والوظائف الأخرى بقيت كما هي ...
-    window.handleSignup = async () => { /*...*/ };
-    window.handleLogin = async () => { /*...*/ };
+
+    // ==========================================
+    // ====== دوال الإدارة (Admin Panel) ========
+    // ==========================================
+
+    window.handleSignup = async () => {
+        const e = document.getElementById("signup-email").value.trim();
+        const p = document.getElementById("signup-password").value.trim();
+        try {
+            const res = await createUserWithEmailAndPassword(auth, e, p);
+            await setDoc(doc(db, "users", res.user.uid), { email: e, isSubscribed: false, playedQuestions: [], createdAt: serverTimestamp() });
+            alert("تم التسجيل بنجاح! ⚡");
+            window.switchTab('home');
+        } catch(e) { document.getElementById("auth-error").innerText = "فشل التسجيل. تأكد من البيانات."; }
+    };
+
+    window.handleLogin = async () => {
+        const e = document.getElementById("login-email").value.trim();
+        const p = document.getElementById("login-password").value.trim();
+        try { 
+            await signInWithEmailAndPassword(auth, e, p); 
+            alert("أهلاً بك 👋"); 
+            window.switchTab('home');
+        } catch(e) { document.getElementById("auth-error").innerText = "خطأ في الإيميل أو كلمة المرور!"; }
+    };
+
     window.handleLogout = () => { signOut(auth); location.reload(); };
-    window.saveNewCategory = async () => { /*...*/ };
-    window.saveAdminQ = async () => { /*...*/ };
-    window.delQ = async (id) => { /*...*/ };
+
+    // إضافة فئة جديدة
+    window.saveNewCategory = async () => {
+        const name = document.getElementById("admin-new-cat-name").value.trim();
+        if (!name) { alert("اكتب اسم الفئة أولاً!"); return; }
+        try {
+            await addDoc(collection(db, "categories"), { name: name, createdAt: serverTimestamp(), isHidden: false });
+            document.getElementById("admin-new-cat-name").value = "";
+            alert("تمت إضافة الفئة بنجاح! 🎉");
+            window.loadCategoriesForAdmin(); 
+        } catch (e) { console.error("خطأ:", e); }
+    };
+
+    // تحميل وعرض الفئات للإدارة
+    window.loadCategoriesForAdmin = async () => {
+        const datalist = document.getElementById("categories-list");
+        const snap = await getDocs(query(collection(db, "categories"), orderBy("name", "asc")));
+        allLoadedCategories = snap.docs.map(d => ({id: d.id, ...d.data()}));
+        
+        datalist.innerHTML = allLoadedCategories.map(c => `<option value="${c.name}">`).join('');
+        window.renderCategoryTags(allLoadedCategories);
+        window.loadAdminList();
+    };
+
+    // فلترة وعرض تاغات الفئات
+    window.filterCategories = (term) => {
+        const filtered = allLoadedCategories.filter(c => c.name.includes(term));
+        window.renderCategoryTags(filtered);
+    };
+
+    window.renderCategoryTags = (cats) => {
+        const tagsDiv = document.getElementById("admin-cats-tags");
+        tagsDiv.innerHTML = cats.map(c => `
+            <span style="background: var(--card-bg); padding: 4px 10px; border-radius: 15px; border: 1px solid var(--border-color); font-size: 0.85em; display: flex; align-items: center; gap: 5px;">
+                ${c.name}
+                <b onclick="window.delCat('${c.id}')" style="color:var(--danger); cursor:pointer;">×</b>
+            </span>
+        `).join('');
+    };
+
+    // حذف فئة
+    window.delCat = async (id) => {
+        if (confirm("هل تريد حذف هذه الفئة؟")) {
+            await deleteDoc(doc(db, "categories", id));
+            window.loadCategoriesForAdmin();
+        }
+    };
+
+    // إدارة الفئة من البطاقة (تعديل اسم، أيقونة، إخفاء، حذف)
+    window.manageCategory = async (id, currentName) => {
+        const action = prompt(`إدارة فئة (${currentName}):\n1. تعديل الاسم\n2. تغيير رابط الأيقونة\n3. إخفاء/إظهار\n4. حذف الفئة\n(اكتب الرقم):`);
+        const catRef = doc(db, "categories", id);
+        if(action === "1") {
+            const newName = prompt("الاسم الجديد:", currentName);
+            if(newName) await updateDoc(catRef, { name: newName });
+        } else if(action === "2") {
+            const newUrl = prompt("رابط الصورة الجديد:");
+            if(newUrl) await updateDoc(catRef, { imageUrl: newUrl });
+        } else if(action === "3") {
+            const current = (await getDoc(catRef)).data().isHidden;
+            await updateDoc(catRef, { isHidden: !current });
+        } else if(action === "4") {
+            if(confirm("سيتم حذف الفئة نهائياً! هل أنت متأكد؟")) await deleteDoc(catRef);
+        }
+        window.renderGameCategories();
+    };
+
+    // حفظ سؤال جديد
+    window.saveAdminQ = async () => {
+        const btn = document.getElementById("btn-save-admin");
+        const catInput = document.getElementById("admin-q-cat-input").value.trim(); 
+        const correctAns = document.getElementById("admin-q-ans").value.trim();
+        
+        if(!catInput || !correctAns) { alert("أكمل البيانات الأساسية (الفئة والإجابة)!"); return; }
+
+        btn.disabled = true; btn.innerText = "جاري الرفع... ⏳";
+        const f = document.getElementById("admin-q-media").files[0];
+        let url = "", type = "";
+        if(f) {
+            const refM = ref(storage, `media/${Date.now()}_${f.name}`);
+            await uploadBytes(refM, f);
+            url = await getDownloadURL(refM);
+            type = f.type.split('/')[0];
+        }
+        await addDoc(collection(db, "live_questions"), {
+            category: catInput,
+            points: parseInt(document.getElementById("admin-q-pts").value),
+            question: document.getElementById("admin-q-txt").value,
+            correctAnswer: correctAns,
+            wrongAnswers: [document.getElementById("admin-q-w1").value, document.getElementById("admin-q-w2").value, document.getElementById("admin-q-w3").value],
+            mediaUrl: url, mediaType: type, timestamp: serverTimestamp()
+        });
+        
+        alert("تم رفع السؤال بنجاح! ✅"); 
+        
+        document.getElementById("admin-q-txt").value = "";
+        document.getElementById("admin-q-ans").value = "";
+        document.getElementById("admin-q-w1").value = "";
+        document.getElementById("admin-q-w2").value = "";
+        document.getElementById("admin-q-w3").value = "";
+        if(f) document.getElementById("admin-q-media").value = "";
+        
+        window.loadAdminList();
+        btn.disabled = false; btn.innerText = "حفظ ورفع السؤال ☁️";
+    };
+
+    // تحميل وعرض الأسئلة الحالية
+    window.loadAdminList = async () => {
+        const list = document.getElementById("admin-qs-list");
+        if(!list) return;
+        const snap = await getDocs(query(collection(db, "live_questions"), orderBy("timestamp", "desc")));
+        list.innerHTML = snap.docs.map(d => `<div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid var(--border-color);"><span>${d.data().question} (${d.data().category})</span><button onclick="window.delQ('${d.id}')" style="color:var(--danger); border:none; background:none; cursor:pointer; font-weight:bold;">حذف</button></div>`).join('');
+    };
+
+    // حذف سؤال
+    window.delQ = async (id) => { 
+        if(confirm("متأكد من حذف هذا السؤال؟")) { 
+            await deleteDoc(doc(db, "live_questions", id)); 
+            window.loadAdminList(); 
+        } 
+    };
+
 </script>
 </body>
 </html>
