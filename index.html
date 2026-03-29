@@ -515,9 +515,10 @@
         
         for (let i = 0; i < 6; i++) {
             let catName = selectedCategoriesList[i % selectedCategoriesList.length];
-            let q = allQuestions.find(x => x.category === catName && x.points === pointsToPick[i] && !playedIds.includes(x.id) && !gameQuestions.includes(x)) ||
-                    allQuestions.find(x => x.category === catName && !playedIds.includes(x.id) && !gameQuestions.includes(x)) ||
-                    allQuestions.find(x => x.category === catName && !gameQuestions.includes(x));
+            // تم إضافة شرط !x.isHidden لكي لا يتم سحب الأسئلة المخفية أثناء اللعب
+            let q = allQuestions.find(x => x.category === catName && !x.isHidden && x.points === pointsToPick[i] && !playedIds.includes(x.id) && !gameQuestions.includes(x)) ||
+                    allQuestions.find(x => x.category === catName && !x.isHidden && !playedIds.includes(x.id) && !gameQuestions.includes(x)) ||
+                    allQuestions.find(x => x.category === catName && !x.isHidden && !gameQuestions.includes(x));
             if(q) {
                 gameQuestions.push(q);
                 if(!playedIds.includes(q.id)) { playedIds.push(q.id); await updateDoc(doc(db, "users", auth.currentUser.uid), { playedQuestions: playedIds }); }
@@ -847,20 +848,109 @@
         btn.disabled = false; btn.innerText = "حفظ ورفع السؤال ☁️";
     };
 
-    // تحميل وعرض الأسئلة الحالية
+    // ==========================================
+    // ====== تحديث قائمة الأسئلة (الأكورديون) ======
+    // ==========================================
     window.loadAdminList = async () => {
         const list = document.getElementById("admin-qs-list");
         if(!list) return;
+        
+        list.innerHTML = "<p>جاري تحميل الأسئلة... ⏳</p>";
+        
         const snap = await getDocs(query(collection(db, "live_questions"), orderBy("timestamp", "desc")));
-        list.innerHTML = snap.docs.map(d => `<div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid var(--border-color);"><span>${d.data().question} (${d.data().category})</span><button onclick="window.delQ('${d.id}')" style="color:var(--danger); border:none; background:none; cursor:pointer; font-weight:bold;">حذف</button></div>`).join('');
+        allQuestions = snap.docs.map(d => ({id: d.id, ...d.data()}));
+        
+        // تجميع الأسئلة حسب الفئة
+        const categorizedQs = {};
+        allQuestions.forEach(q => {
+            if (!categorizedQs[q.category]) categorizedQs[q.category] = [];
+            categorizedQs[q.category].push(q);
+        });
+
+        let html = '';
+        for (const [catName, qs] of Object.entries(categorizedQs)) {
+            const safeId = catName.replace(/[^a-zA-Z0-9_]/g, '-'); // معرف آمن للـ HTML
+            html += `
+                <div style="background: var(--bg-color); border: 2px solid var(--primary); border-radius: 10px; margin-bottom: 10px; overflow: hidden;">
+                    <div style="padding: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: rgba(142, 68, 173, 0.1);" onclick="document.getElementById('cat-qs-${safeId}').classList.toggle('hidden')">
+                        <h4 style="margin: 0; color: var(--text-main);">${catName}</h4>
+                        <span style="background: var(--primary); color: white; padding: 3px 10px; border-radius: 15px; font-size: 0.8em; font-weight: bold;">${qs.length} سؤال</span>
+                    </div>
+                    <div id="cat-qs-${safeId}" class="hidden" style="padding: 10px; border-top: 1px solid var(--border-color);">
+            `;
+
+            qs.forEach(q => {
+                const isHidden = q.isHidden ? true : false;
+                html += `
+                    <div style="background: var(--card-bg); padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid var(--border-color); text-align: right; opacity: ${isHidden ? '0.5' : '1'};">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                            <span style="font-weight: bold; color: var(--text-main); width: 70%;">${q.question}</span>
+                            <span style="color: var(--secondary); font-weight: bold; font-size: 0.9em;">[${q.points} نقطة]</span>
+                        </div>
+                        <div style="font-size: 0.85em; color: var(--success); margin-bottom: 10px;">✅ ${q.correctAnswer}</div>
+                        <div style="display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap;">
+                            <button onclick="window.editQ('${q.id}')" style="background: #3498db; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-family: 'Tajawal'; font-size: 0.9em;">✏️ تعديل</button>
+                            <button onclick="window.toggleHideQ('${q.id}', ${isHidden})" style="background: #95a5a6; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-family: 'Tajawal'; font-size: 0.9em;">👁️ ${isHidden ? 'إظهار' : 'إخفاء'}</button>
+                            <button onclick="window.delQ('${q.id}')" style="background: var(--danger); color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-family: 'Tajawal'; font-size: 0.9em;">🗑️ حذف</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `</div></div>`;
+        }
+
+        if (Object.keys(categorizedQs).length === 0) {
+            list.innerHTML = "<p>لا توجد أسئلة حالياً.</p>";
+        } else {
+            list.innerHTML = html;
+        }
     };
 
     // حذف سؤال
     window.delQ = async (id) => { 
-        if(confirm("متأكد من حذف هذا السؤال؟")) { 
+        if(confirm("متأكد من حذف هذا السؤال؟ لا يمكن التراجع!")) { 
             await deleteDoc(doc(db, "live_questions", id)); 
             window.loadAdminList(); 
         } 
+    };
+
+    // إخفاء / إظهار سؤال
+    window.toggleHideQ = async (id, currentState) => {
+        try {
+            await updateDoc(doc(db, "live_questions", id), { isHidden: !currentState });
+            window.loadAdminList();
+        } catch (e) { alert("حدث خطأ أثناء تعديل حالة السؤال."); }
+    };
+
+    // تعديل سؤال
+    window.editQ = async (id) => {
+        const qRef = doc(db, "live_questions", id);
+        const qSnap = await getDoc(qRef);
+        if (!qSnap.exists()) return;
+        const qData = qSnap.data();
+
+        const action = prompt(`ما الذي تريد تعديله في هذا السؤال؟\n1. نص السؤال\n2. الإجابة الصحيحة\n3. النقاط\n(اكتب الرقم 1 أو 2 أو 3):`);
+        
+        if (action === "1") {
+            const newText = prompt("نص السؤال الجديد:", qData.question);
+            if (newText && newText !== qData.question) {
+                await updateDoc(qRef, { question: newText });
+                window.loadAdminList();
+            }
+        } else if (action === "2") {
+            const newAns = prompt("الإجابة الصحيحة الجديدة:", qData.correctAnswer);
+            if (newAns && newAns !== qData.correctAnswer) {
+                await updateDoc(qRef, { correctAnswer: newAns });
+                window.loadAdminList();
+            }
+        } else if (action === "3") {
+            const newPts = prompt("النقاط الجديدة (مثال: 200, 400, 600):", qData.points);
+            if (newPts && !isNaN(newPts)) {
+                await updateDoc(qRef, { points: parseInt(newPts) });
+                window.loadAdminList();
+            }
+        }
     };
 
     // --- سكربت رفع الأسئلة دفعة واحدة ---
@@ -952,7 +1042,8 @@
                     wrongAnswers: item.w,
                     mediaUrl: "",
                     mediaType: "",
-                    timestamp: serverTimestamp()
+                    timestamp: serverTimestamp(),
+                    isHidden: false // لضمان عدم إخفاء السؤال عند الرفع
                 });
                 count++;
             }
