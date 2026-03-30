@@ -15,31 +15,33 @@
             --border-color: #e2e8f0; --nav-bg: #ffffff;
         }
 
-        /* منع مشاكل العرض في سفاري وقوقل جوال */
+        /* منع التمدد وضبط الهوامش */
         html, body { width: 100%; overflow-x: hidden; margin: 0; padding: 0; -webkit-text-size-adjust: 100%; box-sizing: border-box; }
-        body { font-family: 'Tajawal', sans-serif; background: var(--bg-color); color: var(--text-main); padding-top: 140px; /* مساحة كافية للهيدر في الجوال */ }
+        
+        /* التباعد الافتراضي للكمبيوتر */
+        body { font-family: 'Tajawal', sans-serif; background: var(--bg-color); color: var(--text-main); padding-top: 100px; transition: 0.3s; }
 
-        /* Navbar المطور - حل مشكلة التداخل */
+        /* Navbar ثابت ومنظم */
         .navbar { 
             background: var(--nav-bg); 
             box-shadow: 0 2px 15px rgba(0,0,0,0.1); 
             position: fixed; 
             top: 0; 
             width: 100%; 
-            z-index: 5000; 
+            z-index: 9999; 
             padding: 10px; 
             box-sizing: border-box; 
             display: flex; 
             flex-direction: column; 
             align-items: center; 
-            gap: 10px; 
+            gap: 12px; 
         }
         
-        .logo img { height: 40px; width: auto; }
+        .logo img { height: 45px; width: auto; }
         
         .nav-links { 
             display: flex; 
-            gap: 5px; 
+            gap: 8px; 
             width: 100%; 
             justify-content: center; 
             flex-wrap: wrap; 
@@ -51,13 +53,10 @@
             font-family: 'Tajawal'; 
             font-weight: 700; 
             cursor: pointer; 
-            padding: 8px 12px; 
-            border-radius: 10px; 
+            padding: 10px 15px; 
+            border-radius: 12px; 
             color: var(--text-main); 
-            font-size: 0.85em; 
-            flex: 1; 
-            max-width: 90px; 
-            text-align: center;
+            font-size: 0.9em; 
             transition: 0.3s;
         }
         
@@ -67,24 +66,37 @@
             background: linear-gradient(45deg, var(--secondary), #d35400); 
             color: white !important; 
             border-radius: 15px; 
-            width: 100%; 
-            max-width: 350px;
+            width: 90%; 
+            max-width: 400px;
             padding: 12px; 
             font-weight: 900; 
             border: none; 
             cursor: pointer; 
             text-align: center;
-            box-shadow: 0 4px 10px rgba(243, 156, 18, 0.3);
+            box-shadow: 0 4px 12px rgba(243, 156, 18, 0.3);
         }
 
-        /* شاشات الكمبيوتر */
+        /* تعديلات الجوال القوية لمتصفحات سفاري وقوقل */
+        @media (max-width: 600px) {
+            body { 
+                padding-top: 220px !important; /* دفع المحتوى للأسفل أكثر لمنع التداخل */
+            }
+            .navbar { 
+                padding: 15px 10px;
+            }
+            .nav-btn {
+                font-size: 0.8em;
+                padding: 8px 12px;
+            }
+        }
+
+        /* شاشات الكمبيوتر والتابلت */
         @media (min-width: 768px) {
-            body { padding-top: 90px; }
-            .navbar { flex-direction: row; padding: 10px 40px; height: 80px; justify-content: space-between; }
+            body { padding-top: 100px; }
+            .navbar { flex-direction: row; padding: 10px 50px; height: 80px; justify-content: space-between; }
             .logo { width: auto; }
             .nav-links { width: auto; gap: 15px; }
             .btn-play-nav { width: auto; padding: 10px 30px; }
-            .nav-btn { max-width: none; flex: none; padding: 10px 20px; }
         }
 
         .container { width: 100%; max-width: 800px; margin: 0 auto; padding: 15px; box-sizing: border-box; }
@@ -94,59 +106,30 @@
             background: var(--card-bg); 
             padding: 25px; 
             border-radius: 25px; 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05); 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05); 
             border: 1px solid var(--border-color); 
             text-align: center; 
             margin-bottom: 20px; 
             width: 100%;
             box-sizing: border-box;
-        }
-        
-        /* تحسين شبكة الفئات للجوال */
-        .categories-grid { 
-            display: grid; 
-            grid-template-columns: repeat(2, 1fr); 
-            gap: 12px; 
-            margin-top: 10px; 
-        }
-        
-        .category-card { 
-            background: var(--card-bg); 
-            padding: 25px 10px; 
-            border-radius: 20px; 
-            border: 2px solid var(--border-color); 
-            text-align: center; 
-            cursor: pointer; 
-            transition: 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            animation: fadeIn 0.5s ease;
         }
 
-        /* تحسين شاشة حسابي المكتومة في الصورة */
-        .profile-data-card {
-            background: #f1f5f9;
-            border-radius: 15px;
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* تحسين شكل بطاقة الحساب المقطوعة في الصورة */
+        .profile-card-content {
+            background: #f8fafc;
+            border: 1px solid #edf2f7;
+            border-radius: 18px;
             padding: 20px;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             text-align: right;
         }
-        .profile-data-card p { margin: 10px 0; font-size: 1.1em; }
 
-        input, select, textarea { 
-            width: 100%; 
-            padding: 14px; 
-            margin: 8px 0; 
-            border: 2px solid #e2e8f0; 
-            border-radius: 12px; 
-            font-family: 'Tajawal'; 
-            font-size: 16px; /* مهم جداً لمنع زووم سفاري */
-            box-sizing: border-box; 
-        }
-        
         .btn-main { 
             width: 100%; 
-            padding: 15px; 
+            padding: 16px; 
             font-weight: 900; 
             border: none; 
             border-radius: 15px; 
@@ -155,21 +138,39 @@
             margin-top: 10px; 
             font-family: 'Tajawal';
             font-size: 1.1em;
+            transition: 0.2s;
+        }
+        .btn-main:active { transform: scale(0.98); }
+
+        .categories-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        @media (min-width: 600px) { .categories-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); } }
+        
+        .category-card { 
+            background: var(--card-bg); 
+            padding: 25px 10px; 
+            border-radius: 20px; 
+            border: 2px solid var(--border-color); 
+            text-align: center; 
+            cursor: pointer;
+            font-weight: bold;
         }
 
-        /* المعاينة */
-        .preview-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
-        @media (min-width: 600px) { .preview-grid { grid-template-columns: 1fr 1fr; } }
+        .q-number-badge { position: absolute; top: 10px; left: 10px; background: var(--primary); color: white; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.8em; z-index: 10; border: 2px solid white; }
     </style>
 
     <script>
         window.switchTab = (tabId) => {
-            document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            const containers = document.querySelectorAll('.container');
+            containers.forEach(c => c.classList.add('hidden'));
+            
+            const btns = document.querySelectorAll('.nav-btn');
+            btns.forEach(b => b.classList.remove('active'));
+
             const target = document.getElementById(`view-${tabId}`);
             if(target) {
                 target.classList.remove('hidden');
                 localStorage.setItem('activeTab', tabId);
+                window.scrollTo(0,0); // العودة لأعلى الصفحة عند التبديل
             }
             const activeBtn = document.getElementById(`tab-${tabId}`);
             if(activeBtn) activeBtn.classList.add('active');
@@ -212,8 +213,8 @@
     </div>
     
     <div class="auth-box hidden" id="logged-in-view">
-        <div class="profile-data-card">
-            <p><b>البريد:</b> <span id="u-email"></span></p>
+        <div class="profile-card-content">
+            <p><b>البريد:</b> <span id="u-email" style="word-break: break-all;"></span></p>
             <p><b>الاشتراك:</b> <span id="u-sub-status">...</span></p>
         </div>
         <button class="btn-main" style="background:var(--danger)" onclick="window.handleLogout()">تسجيل الخروج 🚪</button>
@@ -226,18 +227,11 @@
         <div class="categories-grid" id="pro-categories-grid"></div>
         <button id="btn-confirm-categories" class="btn-main hidden" style="background:var(--secondary)" onclick="window.proceedToSettings()">متابعة للفرق ➡️</button>
     </div>
-    <div id="step-game-settings" class="hidden">
-        <div class="auth-box">
-            <input type="text" id="team1-name-input" placeholder="اسم الفريق 1">
-            <input type="text" id="team2-name-input" placeholder="اسم الفريق 2">
-            <button class="btn-main" style="background:var(--primary)" onclick="window.finalizeSetupAndPlay()">ابدأ 🚀</button>
-        </div>
-    </div>
 </div>
 
 <div id="view-admin" class="container hidden fade-in">
     <div class="auth-box">
-        <h4>📁 الفئات والرفع</h4>
+        <h4>📁 الإدارة والرفع</h4>
         <input type="text" id="bulk-cat-name" placeholder="اسم الفئة">
         <textarea id="bulk-data" rows="4" placeholder='الصق كود الأسئلة هنا...'></textarea>
         <button class="btn-main" style="background:#27ae60;" onclick="window.processBulkUpload()">رفع الأسئلة ✅</button>
@@ -295,6 +289,7 @@
             window.switchTab('auth');
         }
         fetchData();
+        if(window.loadCategoriesForAdmin) window.loadCategoriesForAdmin();
     });
 
     async function fetchData() {
@@ -328,7 +323,7 @@
             for(const q of qs) {
                 await addDoc(collection(db, "live_questions"), {
                     category: cat, points: q.p || 200, question: q.q, correctAnswer: q.a,
-                    wrongAnswers: q.w || [], mediaUrl: q.m || "", mediaType: q.m ? "image" : "", timestamp: serverTimestamp()
+                    wrongAnswers: q.w || [], mediaUrl: q.m || "", mediaType: q.m ? "image" : "", isHidden: false, timestamp: serverTimestamp()
                 });
             }
             alert("تم الرفع ✅"); location.reload();
@@ -397,6 +392,16 @@
     window.proceedToSettings = () => {
         document.getElementById("step-select-category").classList.add("hidden");
         document.getElementById("step-game-settings").classList.remove("hidden");
+    };
+
+    window.loadCategoriesForAdmin = async () => {
+        const snap = await getDocs(query(collection(db, "categories"), orderBy("name", "asc")));
+        const categories = snap.docs.map(d => ({id: d.id, name: d.data().name}));
+        const tags = document.getElementById("admin-cats-tags");
+        if(tags) tags.innerHTML = categories.map(c => `<span style="background:#eee; padding:4px 10px; border-radius:15px; font-size:0.8em; border:1px solid #ccc;">${c.name} <b onclick="window.delCat('${c.id}')" style="color:red; cursor:pointer;">×</b></span>`).join('');
+        const dl = document.getElementById("cats-autocomplete");
+        if(dl) dl.innerHTML = categories.map(c => `<option value="${c.name}">`).join('');
+        window.loadAdminList();
     };
 </script>
 </body>
