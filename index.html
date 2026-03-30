@@ -70,13 +70,13 @@
         .menu-item { padding: 10px 20px; cursor: pointer; font-weight: bold; color: var(--text-muted); transition: 0.3s; }
         .menu-item.active { color: var(--primary); border-bottom: 3px solid var(--primary); }
 
+        .categories-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; margin-top: 20px; }
         .category-card { position: relative; background: var(--card-bg); backdrop-filter: var(--glass-filter); padding: 25px 10px; border-radius: 15px; border: 2px solid var(--border-color); box-shadow: var(--card-shadow); transition: transform 0.3s, box-shadow 0.3s; text-align: center; cursor: pointer; }
         .category-card:hover { transform: translateY(-7px); box-shadow: 0 15px 35px rgba(0,0,0,0.15); border-color: var(--primary); }
         
         .score-display { display: flex; justify-content: space-around; margin-bottom: 20px; gap: 15px; }
         .score-box { background: var(--card-bg); padding: 15px; border-radius: 15px; width: 45%; text-align: center; box-shadow: var(--card-shadow); border: 2px solid transparent; }
         
-        /* --- شاشة معاينة الفئة للإدارة --- */
         #view-category-preview { background: var(--bg-color); min-height: 100vh; padding-bottom: 50px; }
         .preview-header { display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); padding: 15px 20px; border-radius: 15px; border: 2px solid var(--primary); margin-bottom: 20px; box-shadow: var(--card-shadow); flex-wrap: wrap; gap: 10px;}
         .preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
@@ -87,10 +87,8 @@
         .preview-content { padding: 15px; flex-grow: 1; display: flex; flex-direction: column; text-align: right; }
         .preview-actions { display: flex; gap: 5px; justify-content: flex-end; padding: 10px 15px; background: rgba(0,0,0,0.02); border-top: 1px dashed var(--border-color); }
         
-        /* علامة رقم السؤال */
         .q-number-badge { position: absolute; top: 10px; left: 10px; background: var(--primary); color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.9em; box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 5; }
 
-        /* نافذة التعديل المنبثقة (Modal) */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 3000; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
         .modal-content { background: var(--card-bg); padding: 25px; border-radius: 15px; width: 90%; max-width: 500px; box-shadow: var(--card-shadow); border: 2px solid var(--primary); position: relative; max-height: 90vh; overflow-y: auto; }
         .modal-close { position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 1.5em; cursor: pointer; color: var(--danger); }
@@ -102,12 +100,10 @@
         window.setTheme = (themeName) => { document.documentElement.setAttribute('data-theme', themeName); localStorage.setItem('savedTheme', themeName); };
         
         window.switchTab = (tabId) => {
-            // إغلاق المعاينة إذا كنا ننتقل لتبويب آخر
             if (tabId !== 'preview') {
                 document.getElementById('view-category-preview').classList.add('hidden');
                 localStorage.removeItem('currentPreviewCat');
             }
-            
             document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             
@@ -117,7 +113,6 @@
                 localStorage.setItem('activeTab', tabId); 
             }
             if(document.getElementById(`tab-${tabId}`)) document.getElementById(`tab-${tabId}`).classList.add('active');
-            if(tabId === 'admin' && window.loadCategoriesForAdmin) window.loadCategoriesForAdmin();
         };
         
         window.showProfileTab = (tab) => {
@@ -182,7 +177,10 @@
             <div class="menu-item" id="m-subs" onclick="window.showProfileTab('subs')">اشتراكاتي</div>
             <div class="menu-item" style="color:var(--danger)" onclick="window.handleLogout()">خروج</div>
         </div>
-        <div id="p-info" class="fade-in"><p><b>البريد:</b> <span id="u-email"></span></p></div>
+        <div id="p-info" class="fade-in">
+            <p><b>البريد:</b> <span id="u-email"></span></p>
+            <p><b>حالة الاشتراك:</b> <span id="u-sub-status">غير نشط</span></p>
+        </div>
         <div id="p-subs" class="hidden fade-in"><div id="subs-list"></div></div>
     </div>
 </div>
@@ -255,26 +253,13 @@
     </div>
     
     <div class="auth-box">
-        <h2 style="color: var(--secondary);">❓ إضافة سؤال جديد</h2>
-        <input type="text" id="admin-q-cat-input" list="cats-autocomplete" placeholder="اكتب اسم الفئة (اقتراحات ذكية)...">
-        <datalist id="cats-autocomplete"></datalist>
-
-        <select id="admin-q-pts"><option value="200">200 نقطة</option><option value="400">400 نقطة</option><option value="600">600 نقطة</option></select>
-        <textarea id="admin-q-txt" placeholder="نص السؤال..."></textarea>
-        <input type="text" id="admin-q-ans" placeholder="الإجابة الصحيحة ✅">
-        <input type="text" id="admin-q-w1" placeholder="خطأ 1">
-        <input type="text" id="admin-q-w2" placeholder="خطأ 2">
-        <input type="text" id="admin-q-w3" placeholder="خطأ 3">
-        <input type="text" id="admin-q-media-url" placeholder="رابط الصورة المباشر 🔗">
-        <button class="btn-main btn-secondary" onclick="window.saveAdminQ()">حفظ السؤال ☁️</button>
-
-        <hr style="border-color: var(--border-color); margin: 25px 0;">
-        <h3>🚀 الرفع السريع (Bulk)</h3>
+        <h2 style="color: var(--secondary);">🚀 أداة الرفع السريع</h2>
         <input type="text" id="bulk-cat-name" list="cats-autocomplete" placeholder="اسم الفئة للرفع">
-        <textarea id="bulk-data" rows="3" style="direction: ltr;" placeholder='[{"q":"سؤال","a":"صح","w":["خطأ"],"p":200,"m":""}]'></textarea>
+        <datalist id="cats-autocomplete"></datalist>
+        <textarea id="bulk-data" rows="5" style="direction: ltr;" placeholder='[{"q":"سؤال","a":"صح","w":["خطأ"],"p":200,"m":""}]'></textarea>
         <div style="display: flex; gap: 10px; margin-top: 10px;">
-            <button class="btn-main" style="background:#27ae60; margin:0;" onclick="window.processBulkUpload()">رفع ☁️</button>
-            <button class="btn-main" style="background:var(--danger); margin:0;" onclick="window.deleteCategoryQuestions()">حذف الفئة 🗑️</button>
+            <button class="btn-main" style="background: #27ae60; margin: 0;" onclick="window.processBulkUpload()">رفع الأسئلة ☁️</button>
+            <button class="btn-main" style="background: var(--danger); margin: 0;" onclick="window.deleteCategoryQuestions()">مسح أسئلة الفئة 🗑️</button>
         </div>
     </div>
     <div class="auth-box"><h3>📋 الفئات الحالية</h3><div id="admin-qs-list"></div></div>
@@ -302,15 +287,54 @@
 
     let allQuestions = [], playedIds = [], adminCategorizedQs = {}; 
     let currentPreviewCategory = localStorage.getItem('currentPreviewCat'); 
+    let isSubscribed = false;
 
+    // === دوال الحساب (تمت إعادتها) ===
+    window.handleSignup = async () => {
+        const e = document.getElementById("signup-email").value.trim();
+        const p = document.getElementById("signup-password").value.trim();
+        try {
+            const res = await createUserWithEmailAndPassword(auth, e, p);
+            await setDoc(doc(db, "users", res.user.uid), { email: e, isSubscribed: false, playedQuestions: [], createdAt: serverTimestamp() });
+            alert("تم التسجيل بنجاح! ⚡");
+            window.switchTab('home');
+        } catch(e) { document.getElementById("auth-error").innerText = "فشل التسجيل. تأكد من البيانات."; }
+    };
+
+    window.handleLogin = async () => {
+        const e = document.getElementById("login-email").value.trim();
+        const p = document.getElementById("login-password").value.trim();
+        try { 
+            await signInWithEmailAndPassword(auth, e, p); 
+            alert("أهلاً بك 👋"); 
+            window.switchTab('home');
+        } catch(e) { document.getElementById("auth-error").innerText = "خطأ في الإيميل أو كلمة المرور!"; }
+    };
+
+    window.handleLogout = () => { signOut(auth); localStorage.clear(); location.reload(); };
+
+    window.checkSubscriptionAndPlay = () => {
+        if(!auth.currentUser) { alert("سجل دخولك أولاً!"); window.switchTab('auth'); return; }
+        if(!isSubscribed) { alert("يجب الاشتراك للعب 💎 (بإمكانك تفعيل الاشتراك من الحساب)"); window.switchTab('auth'); return; }
+        window.switchTab('game');
+        window.renderGameCategories();
+    };
+
+    // === نظام المزامنة والبدء ===
     onAuthStateChanged(auth, async (user) => {
         if(user) {
             document.getElementById("logged-out-view").classList.add("hidden");
             document.getElementById("logged-in-view").classList.remove("hidden");
+            document.getElementById("u-email").innerText = user.email;
+            
             if(user.email === adminEmail) document.getElementById("tab-admin").classList.remove("hidden");
             
-            const data = (await getDoc(doc(db, "users", user.uid))).data();
-            playedIds = data?.playedQuestions || [];
+            const userDoc = await getDoc(doc(db, "users", user.uid));
+            const userData = userDoc.data();
+            playedIds = userData?.playedQuestions || [];
+            isSubscribed = userData?.isSubscribed || (user.email === adminEmail); // الأدمن مشترك تلقائياً
+            
+            document.getElementById("u-sub-status").innerText = isSubscribed ? "نشط ✅" : "غير نشط ❌";
 
             const lastTab = localStorage.getItem('activeTab') || 'home';
             if (currentPreviewCategory) {
@@ -319,9 +343,12 @@
                 window.switchTab(lastTab);
             }
         } else {
-            window.switchTab('auth');
+            document.getElementById("logged-out-view").classList.remove("hidden");
+            document.getElementById("logged-in-view").classList.add("hidden");
+            if (!localStorage.getItem('activeTab')) window.switchTab('home');
         }
         fetchData();
+        if(window.loadCategoriesForAdmin) window.loadCategoriesForAdmin();
     });
 
     async function fetchData() {
@@ -331,23 +358,14 @@
         if(hGrid) hGrid.innerHTML = [...new Set(allQuestions.map(q => q.category))].map(cat => `<div class="category-card"><h3>${cat}</h3></div>`).join('');
     }
 
-    // إدارة الفئات + الإكمال التلقائي
+    // إدارة الفئات
     window.loadCategoriesForAdmin = async () => {
         const snap = await getDocs(query(collection(db, "categories"), orderBy("name", "asc")));
         const categories = snap.docs.map(d => ({id: d.id, name: d.data().name}));
-        
-        // تحديث التاجات
         const tagsDiv = document.getElementById("admin-cats-tags");
-        tagsDiv.innerHTML = categories.map(c => `
-            <span style="background:var(--card-bg); padding:5px 10px; border-radius:15px; border:1px solid var(--border-color); font-size:0.8em;">
-                ${c.name} <b onclick="window.delCat('${c.id}')" style="color:var(--danger); cursor:pointer;">×</b>
-            </span>
-        `).join('');
-
-        // تحديث نظام الاقتراحات الذكي (Datalist)
+        if(tagsDiv) tagsDiv.innerHTML = categories.map(c => `<span style="background:var(--card-bg); padding:5px 10px; border-radius:15px; border:1px solid var(--border-color); font-size:0.8em;">${c.name} <b onclick="window.delCat('${c.id}')" style="color:var(--danger); cursor:pointer;">×</b></span>`).join('');
         const datalist = document.getElementById("cats-autocomplete");
-        datalist.innerHTML = categories.map(c => `<option value="${c.name}">`).join('');
-
+        if(datalist) datalist.innerHTML = categories.map(c => `<option value="${c.name}">`).join('');
         window.loadAdminList();
     };
 
@@ -369,7 +387,7 @@
             category: cat, points: parseInt(document.getElementById("admin-q-pts").value),
             question: document.getElementById("admin-q-txt").value, correctAnswer: ans,
             wrongAnswers: [document.getElementById("admin-q-w1").value, document.getElementById("admin-q-w2").value, document.getElementById("admin-q-w3").value],
-            mediaUrl: document.getElementById("admin-q-media-url").value, mediaType: "image", timestamp: serverTimestamp()
+            mediaUrl: document.getElementById("admin-q-media-url").value, mediaType: "image", timestamp: serverTimestamp(), isHidden: false
         });
         alert("تم الحفظ");
         window.loadAdminList();
@@ -386,7 +404,7 @@
                 wrongAnswers: item.w || [], mediaUrl: item.m || "", mediaType: item.m ? "image" : "", isHidden: false, timestamp: serverTimestamp()
             });
         }
-        alert("تم الرفع");
+        alert("تم الرفع!");
         window.loadAdminList();
     };
 
@@ -396,7 +414,7 @@
         if(!confirm(`حذف كل أسئلة ${catName}؟`)) return;
         const qSnap = await getDocs(collection(db, "live_questions"));
         qSnap.forEach(async (d) => { if(d.data().category === catName) await deleteDoc(doc(db, "live_questions", d.id)); });
-        alert("تم المسح");
+        alert("تم المسح!");
         window.loadAdminList();
     };
 
@@ -425,7 +443,6 @@
         document.getElementById("preview-title").innerText = `معاينة: ${catName}`;
         const grid = document.getElementById("preview-questions-grid");
         const qs = adminCategorizedQs[catName] || [];
-        
         grid.innerHTML = qs.map((q, i) => `
             <div class="preview-card" style="opacity:${q.isHidden ? '0.5' : '1'}">
                 <div class="q-number-badge">${i + 1}</div>
@@ -436,7 +453,6 @@
                     <b>[${q.points} نقطة]</b>
                     <p>${q.question}</p>
                     <div style="color:var(--success); font-weight:bold;">✅ ${q.correctAnswer}</div>
-                    <div style="color:var(--danger); font-size:0.8em;">❌ ${q.wrongAnswers?.join(' | ') || 'بدون خيارات'}</div>
                 </div>
                 <div class="preview-actions">
                     <button onclick="window.openEditModal('${q.id}')" style="background:#3498db; color:white; border:none; padding:5px; border-radius:5px; width:30%; cursor:pointer;">تعديل</button>
@@ -448,8 +464,7 @@
     };
 
     window.refreshCategoryPreview = async () => {
-        const snap = await getDocs(collection(db, "live_questions"));
-        allQuestions = snap.docs.map(d => ({id: d.id, ...d.data()}));
+        await fetchData();
         adminCategorizedQs = {};
         allQuestions.forEach(q => { if (!adminCategorizedQs[q.category]) adminCategorizedQs[q.category] = []; adminCategorizedQs[q.category].push(q); });
         window.openCategoryPreview(currentPreviewCategory);
@@ -480,7 +495,8 @@
             question: document.getElementById("edit-q-text").value,
             correctAnswer: document.getElementById("edit-q-correct").value,
             wrongAnswers: document.getElementById("edit-q-wrongs").value.split("|").map(s=>s.trim()),
-            mediaUrl: document.getElementById("edit-q-url").value
+            mediaUrl: document.getElementById("edit-q-url").value,
+            mediaType: document.getElementById("edit-q-url").value ? "image" : ""
         });
         document.getElementById("edit-modal").classList.add("hidden");
         window.refreshCategoryPreview();
@@ -488,6 +504,36 @@
 
     window.toggleHideQ = async (id, current, cat) => { await updateDoc(doc(db, "live_questions", id), { isHidden: !current }); window.refreshCategoryPreview(); };
     window.delQ = async (id, cat) => { if(confirm("حذف؟")) { await deleteDoc(doc(db, "live_questions", id)); window.refreshCategoryPreview(); } };
+
+    // ميزات اللعب (تأكيد التعريف)
+    window.renderGameCategories = async () => {
+        const grid = document.getElementById("pro-categories-grid");
+        grid.innerHTML = "جاري التحميل...";
+        const snap = await getDocs(query(collection(db, "categories"), orderBy("name", "asc")));
+        grid.innerHTML = "";
+        snap.docs.forEach(d => {
+            const cat = d.data();
+            const card = document.createElement("div"); 
+            card.className = "category-card";
+            card.innerHTML = `<h3>${cat.name}</h3>`;
+            card.onclick = () => window.toggleCategorySelection(cat.name, card);
+            grid.appendChild(card);
+        });
+    };
+    
+    // تعريف مصفوفة اختيار الفئات للعبة
+    let selectedCategoriesList = [];
+    window.toggleCategorySelection = (catName, element) => {
+        const idx = selectedCategoriesList.indexOf(catName);
+        if(idx > -1) { selectedCategoriesList.splice(idx, 1); element.style.borderColor = "var(--border-color)"; }
+        else { selectedCategoriesList.push(catName); element.style.borderColor = "var(--primary)"; }
+        document.getElementById("btn-confirm-categories").classList.toggle("hidden", selectedCategoriesList.length < 3);
+    };
+
+    window.proceedToSettings = () => {
+        document.getElementById("step-select-category").classList.add("hidden");
+        document.getElementById("step-game-settings").classList.remove("hidden");
+    };
 
 </script>
 </body>
