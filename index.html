@@ -15,7 +15,7 @@
       --accent:#FF7A1A;
       --accent-light:#FFA64D;
       --success:#22c55e;
-      --danger:#e74c3c;
+      --danger:#ef4444;
       --warning:#f59e0b;
 
       --bg-dark:#0f0a1a;
@@ -23,7 +23,7 @@
       --panel-2:#21113a;
       --card-bg:#ffffff;
       --text-main:#f8fafc;
-      --text-dark:#1f2937;
+      --text-dark:#111827;
       --muted:#cbd5e1;
       --border-color:#e5e7eb;
       --nav-bg:rgba(15,10,26,0.92);
@@ -53,8 +53,7 @@
 
     img,video{max-width:100%;display:block}
     audio{width:100%}
-
-    .hidden{display:none!important}
+    .hidden{display:none !important}
 
     .navbar{
       position:fixed;
@@ -73,17 +72,8 @@
       box-shadow:0 10px 30px rgba(0,0,0,0.25);
     }
 
-    .logo{
-      cursor:pointer;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-    }
-
-    .logo img{
-      height:40px;
-      width:auto;
-    }
+    .logo{cursor:pointer;display:flex;align-items:center;justify-content:center}
+    .logo img{height:40px;width:auto}
 
     .nav-links{
       width:100%;
@@ -93,16 +83,16 @@
       justify-content:center;
     }
 
-    .nav-btn,.btn-play-nav,.btn-main,.admin-btn,.tv-btn,.account-tab{
+    .nav-btn,.btn-play-nav,.btn-main,.admin-btn,.tv-btn,.account-tab,.preview-btn{
       border:none;
       border-radius:14px;
       font-family:'Tajawal',sans-serif;
       font-weight:900;
       cursor:pointer;
-      transition:transform .18s ease,opacity .18s ease,box-shadow .18s ease;
+      transition:transform .18s ease,opacity .18s ease,box-shadow .18s ease,background .18s ease;
     }
 
-    .nav-btn:hover,.btn-play-nav:hover,.btn-main:hover,.admin-btn:hover,.tv-btn:hover,.account-tab:hover{
+    .nav-btn:hover,.btn-play-nav:hover,.btn-main:hover,.admin-btn:hover,.tv-btn:hover,.account-tab:hover,.preview-btn:hover{
       transform:translateY(-2px);
     }
 
@@ -428,6 +418,13 @@
       font-weight:700;
     }
 
+    .preview-btn{
+      background:linear-gradient(135deg,#0ea5e9,#0284c7);
+      color:#fff;
+      padding:12px 18px;
+      min-height:46px;
+    }
+
     .modal-overlay{
       position:fixed;
       inset:0;
@@ -450,7 +447,6 @@
       padding:20px;
     }
 
-    /* ===== TV MODE ===== */
     .tv-shell{
       max-width:1400px;
       margin:0 auto;
@@ -760,7 +756,6 @@
       text-decoration:line-through;
     }
 
-    /* ===== animations ===== */
     @keyframes boardIn{
       from{opacity:0;transform:translateY(20px) scale(.985)}
       to{opacity:1;transform:translateY(0) scale(1)}
@@ -835,967 +830,196 @@
     @media (max-width:1100px){
       .tv-board-6,.tv-board-5,.tv-board-4,.tv-board-3{grid-template-columns:repeat(2,1fr)}
       .tv-topbar{grid-template-columns:1fr}
-      .answers-tv{grid-template-columns:1fr}
-      .result-picker{grid-template-columns:1fr}
+      .answers-tv{grid-template-columns
+                   const answerBox = document.getElementById("answer-box");
+  if (answerBox) answerBox.classList.add("hidden");
+
+  if (mcqBox) mcqBox.classList.add("hidden");
+
+  // عرض خيارات إذا كانت مفعلة
+  if (usedPowers.mcq) {
+    const choices = shuffleArray([
+      q.correctAnswer,
+      ...(q.wrongAnswers || [])
+    ]).slice(0, 4);
+
+    if (mcqBox) {
+      mcqBox.innerHTML = choices.map(c => `
+        <div class="mcq-option">${escapeHtml(c)}</div>
+      `).join("");
+      mcqBox.classList.remove("hidden");
     }
 
-    @media (max-width:1024px){
-      body{padding-top:150px}
-      .admin-grid{grid-template-columns:1fr}
-      .sticky-card{position:static;top:auto}
-      .admin-form-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-    }
+    usedPowers.mcq = false;
+    document.getElementById("power-mcq").disabled = true;
+  }
 
-    @media (max-width:640px){
-      body{padding-top:185px}
-      .container{padding:12px}
-      .auth-box,.admin-card,.admin-header-card{padding:14px;border-radius:18px}
-      .admin-form-grid,.admin-form-grid.two{grid-template-columns:1fr}
-      .admin-question-wrap{flex-direction:column}
-      .admin-question-actions{width:100%;min-width:0}
-      .admin-question-actions .admin-btn,
-      .admin-top-actions .admin-btn,
-      .admin-form-actions .admin-btn,
-      .preview-nav-actions .admin-btn{width:100%}
-      .admin-top-actions,.admin-form-actions,.preview-nav-actions{flex-direction:column;width:100%}
-      .modal-content{padding:16px;border-radius:20px}
-      .tv-question-cell{font-size:1.5rem;padding:20px 6px}
-      .timer-big{font-size:3rem}
-    }
-  </style>
-</head>
-<body>
+  startTimer(60);
 
-  <nav class="navbar">
-    <div class="logo" onclick="window.switchTab('home')">
-      <img src="logo-clean.png" alt="مخك معي">
+  animateQuestionStage();
+  playSound("open");
+
+  window.switchTab("game");
+};
+
+function startTimer(seconds) {
+  clearInterval(timer);
+  timeLeft = seconds;
+  setTimerValue(timeLeft);
+
+  timer = setInterval(() => {
+    timeLeft--;
+    setTimerValue(timeLeft);
+    playSound("tick");
+
+    if (timeLeft <= 0) {
+      clearInterval(timer);
+      playSound("timeup");
+
+      if (timeLeft === 0) {
+        // انتقال للخصم
+        setPhase("دور الخصم");
+        startTimer(30);
+      }
+    }
+  }, 1000);
+}
+
+window.revealAnswer = () => {
+  clearInterval(timer);
+
+  const box = document.getElementById("answer-box");
+  if (!box) return;
+
+  box.innerHTML = `
+    <div style="font-size:1.2rem;font-weight:bold;">
+      ${escapeHtml(currentQ.correctAnswer)}
     </div>
+  `;
+  box.classList.remove("hidden");
 
-    <div class="nav-links">
-      <button class="nav-btn" id="tab-home" onclick="window.switchTab('home')">الرئيسية</button>
-      <button class="nav-btn hidden" id="tab-admin" onclick="window.switchTab('admin')">الإدارة</button>
-      <button class="nav-btn" id="tab-auth" onclick="window.switchTab('auth')">حسابي</button>
-    </div>
-
-    <button class="btn-play-nav" onclick="window.checkSubscriptionAndPlay()">العب الآن 🚀</button>
-  </nav>
-
-  <!-- HOME -->
-  <div id="view-home" class="container fade-in">
-    <div class="categories-grid" id="home-categories-preview"></div>
-  </div>
-
-  <!-- AUTH -->
-  <div id="view-auth" class="container hidden fade-in">
-    <div class="account-shell">
-      <div class="auth-box" id="logged-out-view">
-        <div class="account-tabs">
-          <button class="account-tab active" id="auth-tab-login" onclick="window.toggleAuthMode('login')">تسجيل الدخول</button>
-          <button class="account-tab" id="auth-tab-register" onclick="window.toggleAuthMode('register')">حساب جديد</button>
-        </div>
-
-        <div id="auth-login-box">
-          <h3>تسجيل الدخول</h3>
-          <input type="email" id="login-email" placeholder="البريد الإلكتروني">
-          <input type="password" id="login-password" placeholder="كلمة المرور">
-          <button class="btn-main btn-primary" onclick="window.handleLogin()">دخول</button>
-          <button class="btn-main btn-gray" style="margin-top:8px" onclick="window.resetPassword()">نسيت كلمة المرور</button>
-        </div>
-
-        <div id="auth-register-box" class="hidden">
-          <h3>إنشاء حساب جديد</h3>
-          <input type="text" id="register-name" placeholder="الاسم">
-          <input type="email" id="register-email" placeholder="البريد الإلكتروني">
-          <input type="password" id="register-password" placeholder="كلمة المرور">
-          <input type="password" id="register-password-confirm" placeholder="تأكيد كلمة المرور">
-          <button class="btn-main btn-green" onclick="window.handleRegister()">إنشاء الحساب</button>
-        </div>
-      </div>
-
-      <div class="auth-box hidden" id="logged-in-view">
-        <h3>حسابي</h3>
-        <div class="account-info-card">
-          <p><b>الاسم:</b> <span id="u-name">—</span></p>
-          <p><b>البريد:</b> <span id="u-email" style="word-break:break-all;"></span></p>
-          <p><b>نوع الحساب:</b> <span id="u-role">مستخدم</span></p>
-          <p><b>الاشتراك:</b> <span id="u-sub-status">...</span></p>
-        </div>
-
-        <div class="account-actions">
-          <button class="btn-main" style="background:#0ea5e9" onclick="window.refreshMyAccount()">تحديث الحالة</button>
-          <button class="btn-main btn-danger" onclick="window.handleLogout()">تسجيل الخروج 🚪</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ADMIN -->
-  <div id="view-admin" class="container hidden fade-in">
-    <div class="admin-shell">
-      <div class="admin-header-card">
-        <div>
-          <h2 style="margin:0;">لوحة الإدارة</h2>
-          <p style="margin:8px 0 0;opacity:.85;">إدارة الفئات والأسئلة والوسائط والمعاينة</p>
-        </div>
-        <div class="admin-top-actions">
-          <button class="admin-btn primary" onclick="window.openAdminPreviewHome()">معاينة الفئات</button>
-          <button class="admin-btn orange" onclick="window.openGameSimulator()">محاكاة القيم</button>
-        </div>
-      </div>
-
-      <div class="admin-grid">
-        <div class="admin-main-col">
-          <div class="admin-card">
-            <h3>إضافة فئة جديدة</h3>
-            <div class="admin-form-row single">
-              <input type="text" id="new-category-name" placeholder="اسم الفئة">
-            </div>
-            <div class="admin-form-actions">
-              <button class="admin-btn primary" onclick="window.createCategoryQuestionStarter()">إنشاء الفئة</button>
-            </div>
-          </div>
-
-          <div class="admin-card">
-            <h3>إضافة سؤال جديد</h3>
-            <div class="admin-form-grid">
-              <select id="admin-category-select"></select>
-              <input type="number" id="admin-q-order" placeholder="ترتيب السؤال">
-              <select id="admin-q-points">
-                <option value="">اختر النقاط</option>
-                <option value="200">200</option>
-                <option value="400">400</option>
-                <option value="600">600</option>
-              </select>
-              <select id="admin-media-type">
-                <option value="">بدون وسائط</option>
-                <option value="image">صورة</option>
-                <option value="audio">صوت</option>
-                <option value="video">فيديو</option>
-              </select>
-            </div>
-
-            <div class="admin-form-row single">
-              <textarea id="admin-q-text" rows="4" placeholder="نص السؤال"></textarea>
-            </div>
-
-            <div class="admin-form-grid two">
-              <input type="text" id="admin-q-correct" placeholder="الإجابة الصحيحة">
-              <input type="text" id="admin-q-wrongs" placeholder="الإجابات الخاطئة | افصل بينهم بعلامة |">
-            </div>
-
-            <div class="admin-form-row single">
-              <input type="text" id="admin-media-url" placeholder="رابط الصورة أو الصوت أو الفيديو">
-            </div>
-
-            <div class="admin-form-actions">
-              <button class="admin-btn green" onclick="window.addSingleQuestion()">إضافة السؤال</button>
-            </div>
-          </div>
-
-          <div class="admin-card">
-            <h3>إدارة الاشتراكات</h3>
-            <div class="admin-form-grid two">
-              <input type="email" id="sub-user-email" placeholder="بريد المستخدم">
-              <select id="sub-user-state">
-                <option value="true">تفعيل الاشتراك</option>
-                <option value="false">إلغاء الاشتراك</option>
-              </select>
-            </div>
-            <div class="admin-form-actions">
-              <button class="admin-btn green" onclick="window.updateUserSubscriptionByEmail()">حفظ حالة الاشتراك</button>
-            </div>
-          </div>
-
-          <div class="admin-card hidden" id="admin-category-questions-box">
-            <div class="admin-section-head">
-              <h3 id="admin-current-category-title" style="margin:0;">أسئلة الفئة</h3>
-              <button class="admin-btn gray" onclick="document.getElementById('admin-category-questions-box').classList.add('hidden')">إغلاق</button>
-            </div>
-            <div id="admin-category-questions-list"></div>
-          </div>
-        </div>
-
-        <div class="admin-side-col">
-          <div class="admin-card sticky-card">
-            <div class="admin-section-head">
-              <h3 style="margin:0;">الفئات</h3>
-              <button class="admin-btn gray" onclick="window.reloadAdminData()">تحديث</button>
-            </div>
-            <input type="text" id="admin-category-search" placeholder="ابحث عن فئة..." oninput="window.filterAdminCategories()">
-            <div id="admin-categories-list" class="admin-categories-list">جاري التحميل...</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ADMIN PREVIEW HOME -->
-  <div id="view-admin-preview-home" class="container hidden fade-in">
-    <div class="admin-shell">
-      <div class="admin-header-card">
-        <div>
-          <h2 style="margin:0;">معاينة الفئات</h2>
-          <p style="margin:8px 0 0;opacity:.85;">اختر أي فئة لمراجعة الأسئلة كما ستظهر</p>
-        </div>
-        <div class="admin-top-actions">
-          <button class="admin-btn gray" onclick="window.switchTab('admin')">رجوع للإدارة</button>
-        </div>
-      </div>
-
-      <div id="admin-preview-categories" class="categories-grid"></div>
-    </div>
-  </div>
-
-  <!-- ADMIN PREVIEW CATEGORY -->
-  <div id="view-admin-preview-category" class="container hidden fade-in">
-    <div class="admin-shell">
-      <div class="admin-header-card">
-        <div>
-          <h2 id="admin-preview-category-title" style="margin:0;">اسم الفئة</h2>
-          <p style="margin:8px 0 0;opacity:.85;">مراجعة الأسئلة داخل الفئة</p>
-        </div>
-        <div class="admin-top-actions">
-          <button class="admin-btn gray" onclick="window.switchTab('admin-preview-home')">رجوع</button>
-        </div>
-      </div>
-
-      <div id="admin-preview-question-stage" class="admin-card"></div>
-
-      <div class="admin-card">
-        <div class="preview-nav-actions">
-          <button class="admin-btn gray" onclick="window.prevPreviewQuestion()">السابق</button>
-          <button class="admin-btn primary" onclick="window.nextPreviewQuestion()">التالي</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- SETUP -->
-  <div id="view-setup" class="container hidden fade-in">
-    <div class="auth-box">
-      <h2>🎮 إعداد اللعبة</h2>
-      <p>اختر من 3 إلى 6 فئات</p>
-      <div id="setup-categories" class="categories-grid"></div>
-      <div style="margin-top:16px">
-        <button class="btn-main btn-primary" onclick="window.goToTeams()">التالي</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- TEAMS -->
-  <div id="view-teams" class="container hidden fade-in">
-    <div class="auth-box">
-      <h2>👥 أسماء الفرق</h2>
-      <input id="teamA" placeholder="اسم الفريق الأول">
-      <input id="teamB" placeholder="اسم الفريق الثاني">
-      <button class="btn-main btn-primary" onclick="window.startBoard()">ابدأ اللعبة</button>
-    </div>
-  </div>
-
-  <!-- BOARD -->
-  <div id="view-board" class="container hidden fade-in">
-    <div class="tv-shell">
-      <div class="tv-topbar">
-        <div class="team-score-card">
-          <div class="team-name" id="teamA-name-tv">الفريق الأول</div>
-          <div class="team-score" id="scoreA-tv">0</div>
-          <div class="power-bar" id="powersA-tv"></div>
-        </div>
-
-        <div class="center-status">
-          <div class="round-label">لوحة اللعبة</div>
-          <div class="timer-big" id="board-center-timer">--</div>
-          <div class="phase-badge" id="phase-badge">اختر سؤال</div>
-        </div>
-
-        <div class="team-score-card">
-          <div class="team-name" id="teamB-name-tv">الفريق الثاني</div>
-          <div class="team-score" id="scoreB-tv">0</div>
-          <div class="power-bar" id="powersB-tv"></div>
-        </div>
-      </div>
-
-      <div id="board-grid" class="tv-board-columns"></div>
-    </div>
-  </div>
-
-  <!-- GAME -->
-  <div id="view-game" class="container hidden fade-in">
-    <div class="tv-shell">
-      <div class="tv-topbar">
-        <div class="team-score-card">
-          <div class="team-name" id="game-teamA-name">الفريق الأول</div>
-          <div class="team-score" id="game-scoreA">0</div>
-          <div class="team-powers" id="game-status-left">جاهز</div>
-        </div>
-
-        <div class="center-status">
-          <div class="round-label">السؤال الحالي</div>
-          <div class="timer-big" id="game-timer">60</div>
-          <div class="phase-badge" id="question-phase">دور الفريق الأساسي</div>
-        </div>
-
-        <div class="team-score-card">
-          <div class="team-name" id="game-teamB-name">الفريق الثاني</div>
-          <div class="team-score" id="game-scoreB">0</div>
-          <div class="team-powers" id="game-status-right">بانتظار الإجابة</div>
-        </div>
-      </div>
-
-      <div class="tv-question-stage">
-        <div class="question-hero">
-          <div class="question-meta">
-            <span class="meta-chip" id="game-category">الفئة</span>
-            <span class="meta-chip" id="game-points">200 نقطة</span>
-          </div>
-
-          <div class="question-text-tv" id="game-question">نص السؤال</div>
-
-          <img id="game-image" class="question-image-tv hidden" src="" alt="صورة السؤال">
-
-          <audio id="game-audio" class="hidden" controls style="margin-top:18px;max-width:700px;width:100%;"></audio>
-          <video id="game-video" class="hidden" controls style="margin-top:18px;max-width:760px;width:100%;border-radius:18px;"></video>
-
-          <div id="mcq-box" class="answers-tv hidden"></div>
-        </div>
-
-        <div class="auth-box" style="background:rgba(255,255,255,.98)">
-          <div class="control-deck">
-            <div class="control-row">
-              <button class="tv-btn tv-btn-blue" onclick="window.startMainTimer()">ابدأ السؤال</button>
-              <button class="tv-btn tv-btn-gold" onclick="window.startOpponentTimer()">دور الخصم</button>
-              <button class="tv-btn tv-btn-green" onclick="window.showAnswer()">إظهار الإجابة</button>
-              <button class="tv-btn tv-btn-purple" onclick="window.showResult()">تحديد الفائز</button>
-              <button class="tv-btn tv-btn-gray" onclick="window.backToBoard()">رجوع للوحة</button>
-            </div>
-
-            <div class="control-row">
-              <button class="tv-btn tv-btn-gold" id="power-double-a" onclick="window.useDouble('A')">دبل A</button>
-              <button class="tv-btn tv-btn-gold" id="power-double-b" onclick="window.useDouble('B')">دبل B</button>
-              <button class="tv-btn tv-btn-red" id="power-block-a" onclick="window.useBlock('A')">بلوك على B</button>
-              <button class="tv-btn tv-btn-red" id="power-block-b" onclick="window.useBlock('B')">بلوك على A</button>
-              <button class="tv-btn tv-btn-blue" id="power-call" onclick="window.useCall()">اتصال</button>
-              <button class="tv-btn tv-btn-blue" id="power-search" onclick="window.useSearch()">بحث</button>
-              <button class="tv-btn tv-btn-purple" id="power-mcq" onclick="window.useMCQ()">4 اختيارات</button>
-              <button class="tv-btn tv-btn-gray" id="power-skip" onclick="window.useSkip()">تغيير السؤال</button>
-            </div>
-
-            <div id="answer-box" class="auth-box hidden" style="margin-bottom:0"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- WINNER -->
-  <div id="view-winner" class="container hidden fade-in">
-    <div class="tv-shell winner-screen">
-      <div class="winner-card">
-        <div class="winner-title">الفائز</div>
-        <div class="winner-name" id="winner-name">الفريق الأول</div>
-        <div class="winner-score" id="winner-score">1200 نقطة</div>
-        <div style="margin-top:22px;">
-          <button class="tv-btn tv-btn-blue" onclick="window.switchTab('board')">رجوع للوحة</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- EDIT MODAL -->
-  <div id="edit-modal" class="modal-overlay hidden">
-    <div class="modal-content">
-      <h3 style="margin-top:0">✏️ تعديل السؤال</h3>
-
-      <input type="hidden" id="edit-q-id">
-
-      <div class="admin-form-grid">
-        <select id="edit-q-category"></select>
-        <input type="number" id="edit-q-order" placeholder="ترتيب السؤال">
-        <select id="edit-q-points">
-          <option value="">اختر النقاط</option>
-          <option value="200">200</option>
-          <option value="400">400</option>
-          <option value="600">600</option>
-        </select>
-        <select id="edit-q-media-type">
-          <option value="">بدون وسائط</option>
-          <option value="image">صورة</option>
-          <option value="audio">صوت</option>
-          <option value="video">فيديو</option>
-        </select>
-      </div>
-
-      <textarea id="edit-q-text" rows="4" placeholder="نص السؤال"></textarea>
-      <input type="text" id="edit-q-correct" placeholder="الإجابة الصحيحة">
-      <input type="text" id="edit-q-wrongs" placeholder="خطأ 1 | خطأ 2 | خطأ 3">
-      <input type="text" id="edit-q-url" placeholder="رابط الوسائط">
-
-      <label class="admin-check-row">
-        <input type="checkbox" id="edit-q-hidden">
-        <span>إخفاء السؤال</span>
-      </label>
-
-      <div class="admin-form-actions">
-        <button class="admin-btn green" onclick="window.saveEditedQuestion()">حفظ</button>
-        <button class="admin-btn gray" onclick="document.getElementById('edit-modal').classList.add('hidden')">إلغاء</button>
-      </div>
-    </div>
-  </div>
-
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import {
-      getAuth,
-      signInWithEmailAndPassword,
-      createUserWithEmailAndPassword,
-      onAuthStateChanged,
-      signOut,
-      sendPasswordResetEmail
-    } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-
-    import {
-      getFirestore,
-      collection,
-      addDoc,
-      getDocs,
-      deleteDoc,
-      doc,
-      getDoc,
-      setDoc,
-      updateDoc,
-      serverTimestamp,
-      query,
-      orderBy
-    } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyBRPly4tY1nUSIimYn5dvbKuO3ayn8p_4o",
-      authDomain: "mukhakmai.firebaseapp.com",
-      projectId: "mukhakmai",
-      storageBucket: "mukhakmai.firebasestorage.app",
-      messagingSenderId: "455973425276",
-      appId: "1:455973425276:web:5c8dd4954061ecae52b9f9"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-    const adminEmail = "ziad95005@gmail.com";
-
-    let allQuestions = [];
-    let isSubscribed = false;
-
-    let selectedCategories = [];
-    let teams = { A: "", B: "" };
-    let scores = { A: 0, B: 0 };
-
-    let usedPowers = {
-      doubleA: false,
-      doubleB: false,
-      blockA: false,
-      blockB: false,
-      call: false,
-      search: false,
-      mcq: false,
-      skip: false
-    };
-
-    let currentQ = null;
-    let currentCellBtn = null;
-    let timer = null;
-    let timeLeft = 60;
-    let doubleActive = null;
-    let blockedOpponent = null;
-    let gameState = { phase: "board" };
-
-    let previewCategoryQuestions = [];
-    let previewQuestionIndex = 0;
-
-    function isAdmin(user) {
-      return user?.email?.toLowerCase() === adminEmail.toLowerCase();
-    }
-
-    function escapeHtml(text = "") {
-      return String(text)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#39;");
-    }
-
-    function shuffleArray(arr) {
-      return [...arr].sort(() => Math.random() - 0.5);
-    }
-
-    /* ===== Web Audio SFX ===== */
-    const AudioCtx = window.AudioContext || window.webkitAudioContext;
-    let audioCtx = null;
-
-    function ensureAudioContext() {
-      if (!audioCtx) audioCtx = new AudioCtx();
-      if (audioCtx.state === "suspended") audioCtx.resume();
-      return audioCtx;
-    }
-
-    function playTone(freq = 440, duration = 0.12, type = "sine", gainValue = 0.03) {
-      const ctx = ensureAudioContext();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = type;
-      osc.frequency.value = freq;
-      gain.gain.value = gainValue;
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start();
-      osc.stop(ctx.currentTime + duration);
-    }
-
-    function playSound(name) {
-      try {
-        switch (name) {
-          case "tick":
-            playTone(900, 0.05, "square", 0.02);
-            break;
-          case "timeup":
-            playTone(240, 0.18, "sawtooth", 0.04);
-            setTimeout(() => playTone(180, 0.22, "sawtooth", 0.04), 120);
-            break;
-          case "open":
-            playTone(420, 0.08, "triangle", 0.03);
-            setTimeout(() => playTone(620, 0.12, "triangle", 0.03), 80);
-            break;
-          case "reveal":
-            playTone(520, 0.12, "sine", 0.03);
-            setTimeout(() => playTone(720, 0.15, "sine", 0.03), 100);
-            break;
-          case "correct":
-            playTone(700, 0.1, "triangle", 0.035);
-            setTimeout(() => playTone(920, 0.16, "triangle", 0.035), 100);
-            break;
-          case "wrong":
-            playTone(260, 0.16, "sawtooth", 0.04);
-            break;
-          case "winner":
-            playTone(520, 0.12, "triangle", 0.04);
-            setTimeout(() => playTone(720, 0.12, "triangle", 0.04), 130);
-            setTimeout(() => playTone(920, 0.2, "triangle", 0.04), 260);
-            break;
-          case "power":
-            playTone(840, 0.08, "square", 0.03);
-            setTimeout(() => playTone(1020, 0.1, "square", 0.03), 70);
-            break;
-        }
-      } catch (e) {}
-    }
-
-    /* ===== Navigation ===== */
-    window.switchTab = (tabId) => {
-      document.querySelectorAll('[id^="view-"]').forEach(c => c.classList.add('hidden'));
-      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-
-      const target = document.getElementById(`view-${tabId}`);
-      if (target) {
-        target.classList.remove('hidden');
-        localStorage.setItem('activeTab', tabId);
-
-        if (tabId === 'admin') {
-          populateCategorySelects();
-          window.loadAdminList();
-        }
-      }
-
-      const activeBtn = document.getElementById(`tab-${tabId}`);
-      if (activeBtn) activeBtn.classList.add('active');
-
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    };
-
-    /* ===== Auth ===== */
-    window.toggleAuthMode = (mode) => {
-      const loginBox = document.getElementById("auth-login-box");
-      const registerBox = document.getElementById("auth-register-box");
-      const loginTab = document.getElementById("auth-tab-login");
-      const registerTab = document.getElementById("auth-tab-register");
-
-      if (mode === "register") {
-        loginBox.classList.add("hidden");
-        registerBox.classList.remove("hidden");
-        loginTab.classList.remove("active");
-        registerTab.classList.add("active");
-      } else {
-        registerBox.classList.add("hidden");
-        loginBox.classList.remove("hidden");
-        registerTab.classList.remove("active");
-        loginTab.classList.add("active");
-      }
-    };
-
-    function getAuthErrorMessage(error) {
-      const code = error?.code || "";
-      switch (code) {
-        case "auth/email-already-in-use": return "هذا البريد مستخدم من قبل";
-        case "auth/invalid-email": return "البريد الإلكتروني غير صحيح";
-        case "auth/user-not-found": return "الحساب غير موجود";
-        case "auth/wrong-password":
-        case "auth/invalid-credential": return "البريد أو كلمة المرور غير صحيحة";
-        case "auth/weak-password": return "كلمة المرور ضعيفة";
-        case "auth/too-many-requests": return "محاولات كثيرة، جرّب لاحقًا";
-        default: return "حدث خطأ، حاول مرة أخرى";
-      }
-    }
-
-    window.handleRegister = async () => {
-      const name = document.getElementById("register-name").value.trim();
-      const email = document.getElementById("register-email").value.trim();
-      const password = document.getElementById("register-password").value;
-      const confirmPassword = document.getElementById("register-password-confirm").value;
-
-      if (!name || !email || !password || !confirmPassword) {
-        return alert("أكمل كل البيانات");
-      }
-      if (password.length < 6) return alert("كلمة المرور يجب أن تكون 6 أحرف على الأقل");
-      if (password !== confirmPassword) return alert("تأكيد كلمة المرور غير مطابق");
-
-      try {
-        const cred = await createUserWithEmailAndPassword(auth, email, password);
-
-        await setDoc(doc(db, "users", cred.user.uid), {
-          uid: cred.user.uid,
-          name,
-          email: cred.user.email,
-          isSubscribed: false,
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp()
-        });
-
-        alert("تم إنشاء الحساب بنجاح");
-        window.toggleAuthMode("login");
-      } catch (e) {
-        alert(getAuthErrorMessage(e));
-      }
-    };
-
-    window.handleLogin = async () => {
-      const email = document.getElementById("login-email").value.trim();
-      const password = document.getElementById("login-password").value;
-      if (!email || !password) return alert("أدخل البريد وكلمة المرور");
-
-      try {
-        ensureAudioContext();
-        await signInWithEmailAndPassword(auth, email, password);
-      } catch (e) {
-        alert(getAuthErrorMessage(e));
-      }
-    };
-
-    window.handleLogout = async () => {
-      try {
-        await signOut(auth);
-        localStorage.removeItem("activeTab");
-        window.switchTab("auth");
-      } catch (e) {
-        alert("تعذر تسجيل الخروج");
-      }
-    };
-
-    window.resetPassword = async () => {
-      const email = document.getElementById("login-email").value.trim();
-      if (!email) return alert("اكتب البريد الإلكتروني أولًا");
-
-      try {
-        await sendPasswordResetEmail(auth, email);
-        alert("تم إرسال رابط إعادة تعيين كلمة المرور");
-      } catch (e) {
-        alert(getAuthErrorMessage(e));
-      }
-    };
-
-    async function loadUserAccount(user) {
-      document.getElementById("u-email").innerText = user.email || "—";
-      document.getElementById("u-role").innerText = isAdmin(user) ? "أدمن" : "مستخدم";
-
-      let userName = "—";
-      let subscriptionState = false;
-
-      if (isAdmin(user)) {
-        userName = "Ziad";
-        subscriptionState = true;
-      } else {
-        const userRef = doc(db, "users", user.uid);
-        const userSnap = await getDoc(userRef);
-        if (userSnap.exists()) {
-          const data = userSnap.data();
-          userName = data.name || "—";
-          subscriptionState = !!data.isSubscribed;
-        }
-      }
-
-      isSubscribed = subscriptionState;
-      document.getElementById("u-name").innerText = userName;
-      document.getElementById("u-sub-status").innerText = subscriptionState ? "نشط ✅" : "غير نشط ❌";
-      document.getElementById("logged-in-view").classList.remove("hidden");
-      document.getElementById("logged-out-view").classList.add("hidden");
-    }
-
-    window.refreshMyAccount = async () => {
-      const user = auth.currentUser;
-      if (!user) return;
-      await loadUserAccount(user);
-    };
-
-    onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        if (isAdmin(user)) {
-          document.getElementById("tab-admin").classList.remove("hidden");
-          isSubscribed = true;
-        } else {
-          document.getElementById("tab-admin").classList.add("hidden");
-        }
-
-        await loadUserAccount(user);
-        const lastTab = localStorage.getItem("activeTab") || "home";
-        window.switchTab(lastTab);
-      } else {
-        document.getElementById("tab-admin").classList.add("hidden");
-        document.getElementById("logged-in-view").classList.add("hidden");
-        document.getElementById("logged-out-view").classList.remove("hidden");
-        isSubscribed = false;
-        window.switchTab("auth");
-      }
-
-      await fetchData();
-    });
-
-    /* ===== Data ===== */
-    function getUniqueCategories() {
-      return [...new Set(allQuestions.map(q => q.category).filter(Boolean))]
-        .sort((a, b) => a.localeCompare(b, 'ar'));
-    }
-
-    function populateCategorySelects() {
-      const categories = getUniqueCategories();
-      const selects = [
-        document.getElementById("admin-category-select"),
-        document.getElementById("edit-q-category")
-      ];
-
-      selects.forEach(select => {
-        if (!select) return;
-        select.innerHTML = categories.length
-          ? categories.map(cat => `<option value="${escapeHtml(cat)}">${escapeHtml(cat)}</option>`).join("")
-          : `<option value="">لا توجد فئات</option>`;
-      });
-    }
-
-    async function fetchData(refreshAdmin = true) {
-      const snap = await getDocs(collection(db, "live_questions"));
-      allQuestions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-      const visibleQuestions = allQuestions.filter(q => !q.isHidden);
-      const hGrid = document.getElementById("home-categories-preview");
-
-      if (hGrid) {
-        const grouped = {};
-        visibleQuestions.forEach(q => {
-          if (!grouped[q.category]) grouped[q.category] = [];
-          grouped[q.category].push(q);
-        });
-
-        const categoriesHtml = Object.entries(grouped)
-          .sort((a, b) => a[0].localeCompare(b[0], 'ar'))
-          .map(([cat, qs]) => {
-            const playCount = Math.floor(qs.length / 6);
-            const firstLetter = (cat || "?").trim().charAt(0);
-
-            return `
-              <div class="category-tile ${playCount === 0 ? 'disabled-cat' : ''}" onclick="${playCount > 0 ? `window.openCategoryPreview('${cat.replace(/'/g, "\\'")}')` : ''}">
-                <div class="category-box">
-                  <div class="play-count-badge ${playCount === 0 ? 'zero' : ''}">${playCount}</div>
-                  <div class="category-thumb">${escapeHtml(firstLetter)}</div>
-                </div>
-                <div class="category-name">${escapeHtml(cat)}</div>
-              </div>
-            `;
-          }).join("");
-
-        hGrid.innerHTML = categoriesHtml || `<div class="auth-box">لا توجد فئات متاحة الآن</div>`;
-      }
-
-      if (refreshAdmin && localStorage.getItem('activeTab') === 'admin') {
-        populateCategorySelects();
-        window.loadAdminList();
-      }
-    }
-
-    /* ===== Admin ===== */
-    window.reloadAdminData = async () => {
-      const snap = await getDocs(query(collection(db, "live_questions"), orderBy("category"), orderBy("order")));
-      allQuestions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      populateCategorySelects();
-      window.loadAdminList();
-      await fetchData(false);
-    };
-
-    window.createCategoryQuestionStarter = async () => {
-      const cat = document.getElementById("new-category-name").value.trim();
-      if (!cat) return alert("اكتب اسم الفئة");
-
-      const exists = allQuestions.some(q => q.category === cat);
-      if (exists) return alert("الفئة موجودة بالفعل");
-
-      await addDoc(collection(db, "live_questions"), {
-        category: cat,
-        order: 1,
-        points: 200,
-        question: "سؤال تجريبي - عدله أو احذفه",
-        correctAnswer: "إجابة",
-        wrongAnswers: [],
-        mediaUrl: "",
-        mediaType: "",
-        isHidden: true,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      });
-
-      document.getElementById("new-category-name").value = "";
-      alert("تم إنشاء الفئة");
-      await window.reloadAdminData();
-    };
-
-    window.addSingleQuestion = async () => {
-      const category = document.getElementById("admin-category-select").value;
-      const order = Number(document.getElementById("admin-q-order").value);
-      const points = Number(document.getElementById("admin-q-points").value);
-      const question = document.getElementById("admin-q-text").value.trim();
-      const correctAnswer = document.getElementById("admin-q-correct").value.trim();
-      const wrongAnswers = document.getElementById("admin-q-wrongs").value
-        .split("|")
-        .map(s => s.trim())
-        .filter(Boolean);
-      const mediaType = document.getElementById("admin-media-type").value;
-      const mediaUrl = document.getElementById("admin-media-url").value.trim();
-
-      if (!category || !order || !points || !question || !correctAnswer) {
-        return alert("أكمل البيانات المطلوبة");
-      }
-
-      await addDoc(collection(db, "live_questions"), {
-        category,
-        order,
-        points,
-        question,
-        correctAnswer,
-        wrongAnswers,
-        mediaType,
-        mediaUrl,
-        isHidden: false,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      });
-
-      document.getElementById("admin-q-order").value = "";
-      document.getElementById("admin-q-points").value = "";
-      document.getElementById("admin-q-text").value = "";
-      document.getElementById("admin-q-correct").value = "";
-      document.getElementById("admin-q-wrongs").value = "";
-      document.getElementById("admin-media-type").value = "";
-      document.getElementById("admin-media-url").value = "";
-
-      alert("تمت إضافة السؤال");
-      await window.reloadAdminData();
-    };
-
-    function renderMediaPreview(q) {
-      if (!q.mediaType || !q.mediaUrl) return "";
-
-      if (q.mediaType === "image") {
-        return `
-          <div class="admin-media-preview">
-            <img src="${q.mediaUrl}" alt="preview" onerror="this.style.display='none'">
-          </div>
-        `;
-      }
-
-      if (q.mediaType === "audio") {
-        return `
-          <div class="admin-media-preview">
-            <audio controls><source src="${q.mediaUrl}"></audio>
-          </div>
-        `;
-      }
-
-      if (q.mediaType === "video") {
-        return `
-          <div class="admin-media-preview">
-            <video controls><source src="${q.mediaUrl}"></video>
-          </div>
-        `;
-      }
-
-      return "";
-    }
-
-    window.loadAdminList = () => {
-      const list = document.getElementById("admin-categories-list");
-      if (!list) return;
-
-      const grouped = {};
-      allQuestions.forEach(q => {
-        if (!grouped[q.category]) grouped[q.category] = [];
-        grouped[q.category].push(q);
-      });
-
-      const cats = Object.keys(grouped).sort((a, b) => a.localeCompare(b, 'ar'));
-      if (!cats.length) {
-        list.innerHTML = "لا توجد فئات حالياً.";
-        return;
-      }
-
-      list.innerHTML = cats.map(cat => {
-        const visibleCount = grouped[cat].filter(q => !q.isHidden).length;
-        const hiddenCount = grouped[cat].filter(q => q.isHidden).length;
-        const total = grouped[cat].length;
-
-        return `
-          <div class="admin-category-card" data-category-name="${escapeHtml(cat)}">
-            <div class="admin-category-top">
-              <div>
-                <b>${escapeHtml(cat)}</b>
-                <div class="admin-category-meta">
-                  ظاهر: ${visibleCount} | مخفي: ${hiddenCount} | الكل: ${total}
-                </div>
-              </div>
-              <button class="admin-btn primary" onclick="window.openAdminCategory('${cat.replace(/'/g, "\\'")}')">فتح</button>
-            </div>
-          </div>
-        `;
-      }).join("");
-    };
-
-    window.filterAdminCategories = () => {
-      const q = (document.getElementById("admin-category-search")?.value || "").trim().toLowerCase();
-      document.querySelectorAll("[data-category-name]").forEach(card => {
-        const name = card.getAttribute("data-category-name").toLowerCase();
-        card.style.display = name.includes(q) ? "" : "none";
-      });
-    };
-
-    window.openAdminCategory = (catName) => {
-      const box = document.getElementById("admin-category-questions-box");
-      const title = document.getElementById("admin-current-category-title");
-      const list = document.getElementById("admin-category-questions-list");
-
-      title.innerText = `أسئلة فئة: ${catName}`;
-
-      const filtered = allQuestions
-        .filter(q => q.category === catName)
-        .sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
-
-      list.innerHTML = filtered.map((q, i) => `
-        <div class="admin-question-card">
-          <div class="admin-question-wrap">
-            <div class="admin-question-content">
-              <div class="admin-badge-line">
-                #${q.order || i + 1} — ${q.points} نقطة ${q.isHidden ? '— <span style="color:#e
+  animateAnswerBox();
+  playSound("reveal");
+};
+
+window.awardPoints = (team) => {
+  if (!currentQ) return;
+
+  let pts = Number(currentQ.points) || 0;
+
+  if (doubleActive === team) {
+    pts *= 2;
+    doubleActive = null;
+  }
+
+  if (team === "A") scores.A += pts;
+  if (team === "B") scores.B += pts;
+
+  updateTvHeader();
+  flashScore(team);
+  playSound("correct");
+
+  finishQuestion();
+};
+
+window.noAnswer = () => {
+  playSound("wrong");
+  finishQuestion();
+};
+
+function finishQuestion() {
+  if (currentCellBtn) {
+    currentCellBtn.classList.add("used");
+    currentCellBtn.disabled = true;
+  }
+
+  currentQ = null;
+  currentCellBtn = null;
+
+  if (isBoardFinished()) {
+    endGame();
+  } else {
+    window.switchTab("board");
+    setPhase("اختر سؤال");
+    setTimerValue("--");
+  }
+}
+
+function endGame() {
+  const winner =
+    scores.A > scores.B ? teams.A :
+    scores.B > scores.A ? teams.B :
+    "تعادل";
+
+  document.getElementById("winner-text").innerText = winner;
+
+  animateWinnerCard();
+  playSound("winner");
+
+  window.switchTab("winner");
+}
+
+/* ========= POWERS ========= */
+
+window.useDouble = (team) => {
+  if (team === "A" && usedPowers.doubleA) return;
+  if (team === "B" && usedPowers.doubleB) return;
+
+  if (team === "A") usedPowers.doubleA = true;
+  if (team === "B") usedPowers.doubleB = true;
+
+  doubleActive = team;
+
+  renderPowerBars();
+  playSound("power");
+};
+
+window.useBlock = (team) => {
+  if (team === "A" && usedPowers.blockA) return;
+  if (team === "B" && usedPowers.blockB) return;
+
+  if (team === "A") usedPowers.blockA = true;
+  if (team === "B") usedPowers.blockB = true;
+
+  blockedOpponent = team === "A" ? "B" : "A";
+
+  renderPowerBars();
+  playSound("power");
+};
+
+window.useCallFriend = () => {
+  if (usedPowers.call) return;
+
+  usedPowers.call = true;
+  document.getElementById("power-call").disabled = true;
+
+  alert("اتصال بصديق لمدة 30 ثانية");
+  playSound("power");
+};
+
+window.useSearch = () => {
+  if (usedPowers.search) return;
+
+  usedPowers.search = true;
+  document.getElementById("power-search").disabled = true;
+
+  alert("بحث مسموح لمدة 15 ثانية");
+  playSound("power");
+};
+
+window.useSkip = () => {
+  if (usedPowers.skip) return;
+
+  usedPowers.skip = true;
+  document.getElementById("power-skip").disabled = true;
+
+  const randomQ = shuffleArray(allQuestions)[0];
+  if (!randomQ) return;
+
+  currentQ = randomQ;
+  document.getElementById("game-question").innerText = randomQ.question;
+
+  renderQuestionMedia(randomQ);
+
+  playSound("power");
+}; 
