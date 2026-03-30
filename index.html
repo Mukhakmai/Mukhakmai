@@ -2724,17 +2724,15 @@
       const grid = document.getElementById("admin-preview-categories");
       if (!grid) return;
 
-      const grouped = {};
-      allQuestions
-        .filter(q => !q.isHidden)
-        .forEach(q => {
-          if (!grouped[q.category]) grouped[q.category] = [];
-          grouped[q.category].push(q);
-        });
+      const uniqueCats = getUniqueCategories();
 
-      const cats = Object.keys(grouped).sort((a, b) => a.localeCompare(b, "ar"));
+      if (!uniqueCats.length) {
+        grid.innerHTML = `<div class="auth-box" style="grid-column: 1 / -1; text-align: center;">لا توجد فئات حالياً.</div>`;
+        window.switchTab("admin-preview-home");
+        return;
+      }
 
-      grid.innerHTML = cats.map(cat => `
+      grid.innerHTML = uniqueCats.map(cat => `
         <div class="category-tile" onclick="window.switchTab('admin'); window.openAdminCategory('${cat.replace(/'/g, "\\'")}')">
           <div class="category-box">
             <div class="category-thumb">${escapeHtml((cat || "?").trim().charAt(0))}</div>
