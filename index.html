@@ -3,93 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>مخك معي؟ 🧠 | منصة التحدي الاحترافية</title>
+    <title>مخك معي؟ 🧠</title>
     
     <link rel="icon" href="favicon.png" type="image/png">
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
     
     <style>
-        /* === إعدادات الثيمات === */
         :root { 
             --primary: #8e44ad; --secondary: #f39c12; --success: #27ae60; --danger: #e74c3c; 
-            --bg-color: #f0f4f8; --card-bg: #ffffff; --text-main: #2c3e50; --text-muted: #7f8c8d; 
-            --border-color: #eee; --card-shadow: 0 10px 30px rgba(0,0,0,0.08);
-            --nav-bg: #ffffff;
+            --bg-color: #f8fafc; --card-bg: #ffffff; --text-main: #2c3e50; 
+            --border-color: #e2e8f0; --nav-bg: #ffffff;
         }
 
-        [data-theme="dark"] {
-            --bg-color: #0f172a; --card-bg: #1e293b; --text-main: #f8fafc; --text-muted: #94a3b8;
-            --border-color: #334155; --nav-bg: #1e293b;
+        /* منع التمدد العرضي للجوال */
+        html, body { width: 100%; overflow-x: hidden; margin: 0; padding: 0; -webkit-text-size-adjust: 100%; }
+        body { font-family: 'Tajawal', sans-serif; background: var(--bg-color); color: var(--text-main); padding-top: 80px; }
+
+        .navbar { background: var(--nav-bg); box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: fixed; top: 0; width: 100%; z-index: 2000; padding: 10px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .logo img { height: 40px; width: auto; }
+        .nav-links { display: flex; gap: 5px; width: 100%; justify-content: center; }
+        
+        .nav-btn { background: #f1f5f9; border: none; font-family: 'Tajawal'; font-weight: 700; cursor: pointer; padding: 6px 12px; border-radius: 8px; color: var(--text-main); font-size: 0.85em; flex: 1; max-width: 100px; text-align: center; }
+        .nav-btn.active { background: var(--primary); color: white; }
+        
+        .btn-play-nav { background: linear-gradient(45deg, var(--secondary), #d35400); color: white; border-radius: 20px; width: 90%; padding: 10px; font-weight: 900; border: none; cursor: pointer; animation: pulse 2s infinite; margin-top: 5px; }
+
+        @media (min-width: 768px) {
+            .navbar { flex-direction: row; padding: 5px 30px; height: 70px; justify-content: space-between; }
+            .logo { width: auto; }
+            .nav-links { width: auto; }
+            .btn-play-nav { width: auto; padding: 8px 25px; margin-top: 0; }
+            body { padding-top: 90px; }
         }
 
-        body { font-family: 'Tajawal', sans-serif; background: var(--bg-color); color: var(--text-main); margin: 0; padding-top: 80px; transition: background 0.4s ease; overflow-x: hidden; width: 100%; }
+        .container { width: 100%; max-width: 900px; margin: 0 auto; padding: 10px; box-sizing: border-box; }
+        .hidden { display: none !important; }
         
-        /* Navbar المطور للجوال والكمبيوتر */
-        .navbar { background: var(--nav-bg); box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: fixed; top: 0; width: 100%; min-height: 70px; display: flex; justify-content: space-between; align-items: center; z-index: 1000; padding: 5px 15px; box-sizing: border-box; }
+        .auth-box { background: var(--card-bg); padding: 20px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); border: 1px solid var(--border-color); text-align: center; margin-bottom: 15px; }
         
-        .logo img { height: 45px; width: auto; }
-        .nav-links { display: flex; gap: 5px; align-items: center; }
+        .categories-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 15px; }
+        @media (min-width: 600px) { .categories-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); } }
         
-        .nav-btn { background: none; border: none; font-family: 'Tajawal'; font-weight: 700; cursor: pointer; padding: 8px 10px; border-radius: 8px; color: var(--text-main); font-size: 0.85em; white-space: nowrap; }
-        .nav-btn.active { color: var(--primary); background: rgba(142, 68, 173, 0.1); }
-        
-        .btn-play-nav { background: linear-gradient(45deg, var(--secondary), #d35400); color: white !important; padding: 8px 15px; border-radius: 20px; animation: pulse 2s infinite; }
+        .category-card { background: var(--card-bg); padding: 15px 5px; border-radius: 15px; border: 2px solid var(--border-color); text-align: center; cursor: pointer; font-size: 0.9em; }
 
-        /* تعديلات الجوال (سفاري وقوقل) */
-        @media (max-width: 600px) {
-            body { padding-top: 120px; }
-            .navbar { flex-direction: column; padding: 8px; gap: 5px; height: auto; }
-            .logo { width: 100%; text-align: center; }
-            .nav-links { width: 100%; justify-content: space-evenly; }
-            .btn-play-nav { width: 95%; text-align: center; margin: 5px auto; display: block; }
-            .categories-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 10px !important; }
-            .container { padding: 10px; }
-            .auth-box { padding: 15px; }
-        }
+        /* شاشة المعاينة المحدثة */
+        .preview-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
+        @media (min-width: 600px) { .preview-grid { grid-template-columns: repeat(2, 1fr); } }
 
-        .container { max-width: 100%; width: 950px; margin: 0 auto; padding: 15px; box-sizing: border-box; }
-        .auth-box { background: var(--card-bg); padding: 25px; border-radius: 20px; box-shadow: var(--card-shadow); margin-bottom: 20px; border: 1px solid var(--border-color); }
+        .preview-card { background: var(--card-bg); border-radius: 15px; border: 1px solid var(--border-color); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 5px 15px rgba(0,0,0,0.03); }
+        .q-number-badge { position: absolute; top: 10px; left: 10px; background: var(--primary); color: white; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.8em; z-index: 10; border: 2px solid white; }
         
-        .categories-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; }
-        .category-card { background: var(--card-bg); padding: 20px 10px; border-radius: 15px; border: 2px solid var(--border-color); text-align: center; cursor: pointer; transition: 0.3s; }
-        
-        /* قائمة "حسابي" المنسقة لمنع التداخل */
-        .profile-menu { display: flex; flex-direction: row; justify-content: space-around; gap: 10px; margin-bottom: 20px; padding: 10px; background: rgba(0,0,0,0.02); border-radius: 10px; }
-        @media (max-width: 400px) { .profile-menu { flex-direction: column; align-items: center; } }
-
-        .score-display { display: flex; gap: 10px; margin-bottom: 15px; }
-        .score-box { flex: 1; background: var(--card-bg); padding: 10px; border-radius: 12px; text-align: center; border: 2px solid var(--primary); }
-
-        /* شاشة المعاينة والترقيم */
-        .preview-header { display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); padding: 12px; border-radius: 12px; border: 2px solid var(--primary); margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
-        .preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; }
-        .preview-card { background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border-color); position: relative; overflow: hidden; display: flex; flex-direction: column; }
-        .q-number-badge { position: absolute; top: 8px; left: 8px; background: var(--primary); color: white; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.85em; z-index: 10; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        
-        .preview-img-container { height: 160px; background: #f0f0f0; display: flex; justify-content: center; align-items: center; }
+        .preview-img-container { height: 140px; background: #f1f5f9; display: flex; justify-content: center; align-items: center; }
         .preview-img-container img { width: 100%; height: 100%; object-fit: cover; }
         
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 3000; display: flex; justify-content: center; align-items: center; padding: 10px; box-sizing: border-box; }
-        .modal-content { background: var(--card-bg); padding: 20px; border-radius: 20px; width: 100%; max-width: 450px; max-height: 85vh; overflow-y: auto; position: relative; }
-        
-        input, select, textarea { width: 100%; padding: 12px; margin: 6px 0; border: 2px solid var(--border-color); border-radius: 10px; font-family: 'Tajawal'; font-size: 1em; box-sizing: border-box; background: var(--bg-color); color: var(--text-main); }
-        .btn-main { width: 100%; padding: 14px; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; color: white; margin-top: 10px; font-family: 'Tajawal'; }
+        /* Modal Overlay Fix */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 5000; display: flex; justify-content: center; align-items: center; padding: 15px; box-sizing: border-box; }
+        .modal-content { background: var(--card-bg); padding: 20px; border-radius: 20px; width: 100%; max-width: 400px; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
+
+        input, select, textarea { width: 100%; padding: 12px; margin: 5px 0; border: 2px solid #e2e8f0; border-radius: 12px; font-family: 'Tajawal'; font-size: 16px; /* منع زووم سفاري التلقائي */ box-sizing: border-box; }
+        .btn-main { width: 100%; padding: 14px; font-weight: 900; border: none; border-radius: 12px; cursor: pointer; color: white; margin-top: 10px; font-family: 'Tajawal'; }
 
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
     </style>
 
     <script>
+        // دالة التنقل الصارمة لمنع التداخل
         window.switchTab = (tabId) => {
-            if (tabId !== 'preview') {
-                document.getElementById('view-category-preview').classList.add('hidden');
-                localStorage.removeItem('currentPreviewCat');
-            }
-            document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            const containers = document.querySelectorAll('.container');
+            containers.forEach(c => c.classList.add('hidden'));
+            
+            const btns = document.querySelectorAll('.nav-btn');
+            btns.forEach(b => b.classList.remove('active'));
+
             const target = document.getElementById(`view-${tabId}`);
-            if(target) { target.classList.remove('hidden'); localStorage.setItem('activeTab', tabId); }
-            const btn = document.getElementById(`tab-${tabId}`);
-            if(btn) btn.classList.add('active');
+            if(target) {
+                target.classList.remove('hidden');
+                localStorage.setItem('activeTab', tabId);
+            }
+            
+            const activeBtn = document.getElementById(`tab-${tabId}`);
+            if(activeBtn) activeBtn.classList.add('active');
         };
     </script>
 </head>
@@ -100,44 +93,40 @@
         <img src="logo-clean.png" alt="مخك معي">
     </div>
     <div class="nav-links">
-        <button class="nav-btn active" id="tab-home" onclick="window.switchTab('home')">الرئيسية</button>
-        <button class="nav-btn hidden" id="tab-admin" onclick="window.switchTab('admin')" style="color:var(--danger)">⚙️ الإدارة</button>
+        <button class="nav-btn" id="tab-home" onclick="window.switchTab('home')">الرئيسية</button>
+        <button class="nav-btn hidden" id="tab-admin" onclick="window.switchTab('admin')">الإدارة</button>
         <button class="nav-btn" id="tab-auth" onclick="window.switchTab('auth')">حسابي</button>
-        <button class="nav-btn btn-play-nav" onclick="window.checkSubscriptionAndPlay()">العب الآن 🚀</button>
     </div>
+    <button class="btn-play-nav" onclick="window.checkSubscriptionAndPlay()">العب الآن 🚀</button>
 </nav>
 
-<div id="view-home" class="container fade-in text-center">
-    <h1 style="color: var(--primary); font-size: 1.8em; margin-bottom: 10px;">مخك معي؟ 🔥</h1>
+<div id="view-home" class="container fade-in">
+    <h3 style="text-align: center; color: var(--primary);">تحديات الأنمي والمنوعات 🧠</h3>
     <div class="categories-grid" id="home-categories-preview"></div>
 </div>
 
 <div id="view-auth" class="container hidden fade-in">
     <div class="auth-box" id="logged-out-view">
-        <h3 id="auth-title">تسجيل الدخول 👋</h3>
+        <h3>تسجيل الدخول 👋</h3>
         <div id="login-form">
             <input type="email" id="login-email" placeholder="البريد الإلكتروني">
             <input type="password" id="login-password" placeholder="كلمة المرور">
-            <button class="btn-main btn-primary" onclick="window.handleLogin()">دخول</button>
+            <button class="btn-main" style="background:var(--primary)" onclick="window.handleLogin()">دخول</button>
             <p>ليس لديك حساب؟ <a href="#" onclick="window.toggleAuth(true)">سجل الآن</a></p>
         </div>
         <div id="signup-form" class="hidden">
             <input type="email" id="signup-email" placeholder="البريد الإلكتروني">
             <input type="password" id="signup-password" placeholder="كلمة المرور">
-            <button class="btn-main btn-secondary" onclick="window.handleSignup()">إنشاء الحساب</button>
+            <button class="btn-main" style="background:var(--secondary)" onclick="window.handleSignup()">إنشاء حساب</button>
             <p>لديك حساب؟ <a href="#" onclick="window.toggleAuth(false)">دخول</a></p>
         </div>
-        <p id="auth-error" style="color:red; font-size: 0.8em;"></p>
     </div>
     <div class="auth-box hidden" id="logged-in-view">
-        <div class="profile-menu">
-            <span onclick="window.showProfileTab('info')" style="cursor:pointer; font-weight:bold; color:var(--primary)">👤 معلوماتي</span>
-            <span onclick="window.handleLogout()" style="cursor:pointer; color:var(--danger); font-weight:bold">🚪 خروج</span>
-        </div>
-        <div id="p-info">
+        <div style="background:#f1f5f9; padding:15px; border-radius:15px; margin-bottom:15px;">
             <p><b>البريد:</b> <span id="u-email"></span></p>
-            <p><b>الاشتراك:</b> <span id="u-sub-status">...</span></p>
+            <p><b>الاشتراك:</b> <span id="u-sub-status" style="font-weight:bold">...</span></p>
         </div>
+        <button class="btn-main" style="background:var(--danger)" onclick="window.handleLogout()">تسجيل الخروج 🚪</button>
     </div>
 </div>
 
@@ -145,30 +134,23 @@
     <div id="step-select-category">
         <h3 style="text-align: center;">اختر الفئات للتحدي 🎯</h3>
         <div class="categories-grid" id="pro-categories-grid"></div>
-        <button id="btn-confirm-categories" class="btn-main btn-secondary hidden" onclick="window.proceedToSettings()">متابعة للفرق ➡️</button>
+        <button id="btn-confirm-categories" class="btn-main hidden" style="background:var(--secondary)" onclick="window.proceedToSettings()">متابعة للفرق ➡️</button>
     </div>
     <div id="step-game-settings" class="hidden">
         <div class="auth-box">
             <input type="text" id="team1-name-input" placeholder="اسم الفريق 1">
             <input type="text" id="team2-name-input" placeholder="اسم الفريق 2">
-            <button class="btn-main btn-primary" onclick="window.finalizeSetupAndPlay()">ابدأ اللعب 🚀</button>
+            <button class="btn-main" style="background:var(--primary)" onclick="window.finalizeSetupAndPlay()">ابدأ اللعب 🚀</button>
         </div>
-    </div>
-    <div id="game-play-screen" class="hidden">
-        <div class="score-display">
-            <div class="score-box"><b id="name1-display">1</b><br><span id="score1-display">0</span></div>
-            <div class="score-box"><b id="name2-display">2</b><br><span id="score2-display">0</span></div>
-        </div>
-        <div id="active-question-area" class="auth-box"></div>
     </div>
 </div>
 
-<div id="view-category-preview" class="container hidden fade-in">
+<div id="view-preview" class="container hidden fade-in">
     <div class="preview-header">
-        <h3 id="preview-title" style="margin: 0;">المعاينة</h3>
+        <b id="preview-title">...</b>
         <div style="display: flex; gap: 5px;">
-            <button class="nav-btn" style="background:#3498db; color:white; padding:5px 10px;" onclick="window.refreshCategoryPreview()">🔄 تحديث</button>
-            <button class="nav-btn" style="background:#95a5a6; color:white; padding:5px 10px;" onclick="window.closeCategoryPreview()">⬅️ رجوع</button>
+            <button class="nav-btn" style="background:#3498db; color:white;" onclick="window.refreshCategoryPreview()">🔄 تحديث</button>
+            <button class="nav-btn" style="background:#95a5a6; color:white;" onclick="window.switchTab('admin')">⬅️ رجوع</button>
         </div>
     </div>
     <div id="preview-questions-grid" class="preview-grid"></div>
@@ -179,31 +161,30 @@
         <h3>✏️ تعديل السؤال</h3>
         <input type="hidden" id="edit-q-id">
         <select id="edit-q-pts"><option value="200">200</option><option value="400">400</option><option value="600">600</option></select>
-        <textarea id="edit-q-text" rows="3"></textarea>
-        <input type="text" id="edit-q-correct" placeholder="الصح">
-        <input type="text" id="edit-q-wrongs" placeholder="خطأ | خطأ">
-        <input type="text" id="edit-q-url" placeholder="رابط الصورة المباشر">
-        <button class="btn-main btn-primary" style="background:var(--success);" onclick="window.saveEditedQuestion()">💾 حفظ</button>
-        <button class="btn-main" style="background:var(--danger);" onclick="document.getElementById('edit-modal').classList.add('hidden')">إلغاء</button>
+        <textarea id="edit-q-text" rows="3" placeholder="نص السؤال"></textarea>
+        <input type="text" id="edit-q-correct" placeholder="الإجابة الصحيحة">
+        <input type="text" id="edit-q-wrongs" placeholder="خطأ 1 | خطأ 2">
+        <input type="text" id="edit-q-url" placeholder="رابط الصورة المباشر (.jpg)">
+        <button class="btn-main" style="background:var(--success);" onclick="window.saveEditedQuestion()">💾 حفظ</button>
+        <button class="btn-main" style="background:var(--danger);" onclick="document.getElementById('edit-modal').classList.add('hidden')">إلغاء ✖️</button>
     </div>
 </div>
 
 <div id="view-admin" class="container hidden fade-in">
     <div class="auth-box">
-        <h3>📁 إدارة الفئات</h3>
+        <h4>📁 إدارة الفئات</h4>
         <div style="display: flex; gap: 5px;">
-            <input type="text" id="admin-new-cat-name" placeholder="فئة جديدة">
-            <button class="btn-main btn-primary" style="margin:0; width:70px;" onclick="window.saveNewCategory()">+</button>
+            <input type="text" id="admin-new-cat-name" placeholder="اسم فئة">
+            <button class="btn-main" style="background:var(--primary); margin:0; width:60px;" onclick="window.saveNewCategory()">+</button>
         </div>
         <div id="admin-cats-tags" style="display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px;"></div>
     </div>
     <div class="auth-box">
-        <h3>🚀 الرفع السريع</h3>
+        <h4>🚀 الرفع السريع</h4>
         <input type="text" id="bulk-cat-name" list="cats-autocomplete" placeholder="اسم الفئة">
         <datalist id="cats-autocomplete"></datalist>
         <textarea id="bulk-data" rows="4" placeholder='[{"q":"سؤال","a":"صح","w":["خطأ"],"p":200,"m":""}]'></textarea>
-        <button class="btn-main" style="background:#27ae60;" onclick="window.processBulkUpload()">رفع الأسئلة</button>
-        <button class="btn-main" style="background:var(--danger);" onclick="window.deleteCategoryQuestions()">مسح أسئلة الفئة 🗑️</button>
+        <button class="btn-main" style="background:#27ae60;" onclick="window.processBulkUpload()">رفع الأسئلة ✅</button>
     </div>
     <div class="auth-box"><h4>📋 قائمة الفئات</h4><div id="admin-qs-list"></div></div>
 </div>
@@ -211,7 +192,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-    import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, getDoc, setDoc, updateDoc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, getDoc, updateDoc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBRPly4tY1nUSIimYn5dvbKuO3ayn8p_4o",
@@ -227,33 +208,26 @@
     const db = getFirestore(app);
 
     const adminEmail = "ziad95005@gmail.com"; 
-    let allQuestions = [], playedIds = [], isSubscribed = false;
-    let currentPreviewCategory = localStorage.getItem('currentPreviewCat');
+    let allQuestions = [], isSubscribed = false, currentPreviewCategory = "";
 
-    // === نظام المزامنة والبدء ===
     onAuthStateChanged(auth, async (user) => {
         if(user) {
             document.getElementById("u-email").innerText = user.email;
             if(user.email === adminEmail) {
                 document.getElementById("tab-admin").classList.remove("hidden");
-                isSubscribed = true; // تفعيل اشتراك الإدارة فوراً
+                isSubscribed = true;
+            } else {
+                const userSnap = await getDoc(doc(db, "users", user.uid));
+                isSubscribed = userSnap.data()?.isSubscribed || false;
             }
-            
-            const userSnap = await getDoc(doc(db, "users", user.uid));
-            if (userSnap.exists()) {
-                const data = userSnap.data();
-                playedIds = data?.playedQuestions || [];
-                if(user.email !== adminEmail) isSubscribed = data?.isSubscribed || false;
-            }
-            
             document.getElementById("u-sub-status").innerText = isSubscribed ? "نشط ✅" : "غير نشط ❌";
-
+            document.getElementById("logged-in-view").classList.remove("hidden");
+            document.getElementById("logged-out-view").classList.add("hidden");
+            
             const lastTab = localStorage.getItem('activeTab') || 'home';
-            if (currentPreviewCategory) await window.refreshCategoryPreview(); else window.switchTab(lastTab);
+            window.switchTab(lastTab);
         } else {
-            document.getElementById("logged-in-view").classList.add("hidden");
-            document.getElementById("logged-out-view").classList.remove("hidden");
-            if (!localStorage.getItem('activeTab')) window.switchTab('home');
+            window.switchTab('auth');
         }
         fetchData();
         window.loadCategoriesForAdmin();
@@ -263,22 +237,17 @@
         const snap = await getDocs(collection(db, "live_questions"));
         allQuestions = snap.docs.map(d => ({id: d.id, ...d.data()}));
         const hGrid = document.getElementById("home-categories-preview");
-        if(hGrid) hGrid.innerHTML = [...new Set(allQuestions.map(q => q.category))].map(cat => `<div class="category-card" onclick="window.switchTab('game')"><h3>${cat}</h3></div>`).join('');
+        if(hGrid) hGrid.innerHTML = [...new Set(allQuestions.map(q => q.category))].map(cat => `<div class="category-card" onclick="window.checkSubscriptionAndPlay()"><h3>${cat}</h3></div>`).join('');
     }
 
     // دوال الحساب
     window.handleLogin = async () => {
-        const e = document.getElementById("login-email").value;
-        const p = document.getElementById("login-password").value;
-        try { await signInWithEmailAndPassword(auth, e, p); location.reload(); } catch(e) { alert("خطأ في الدخول"); }
+        try { await signInWithEmailAndPassword(auth, document.getElementById("login-email").value, document.getElementById("login-password").value); } catch(e) { alert("خطأ في الدخول"); }
     };
     window.handleSignup = async () => {
-        const e = document.getElementById("signup-email").value;
-        const p = document.getElementById("signup-password").value;
         try { 
-            const res = await createUserWithEmailAndPassword(auth, e, p);
-            await setDoc(doc(db, "users", res.user.uid), { email: e, isSubscribed: false, playedQuestions: [] });
-            location.reload();
+            const res = await createUserWithEmailAndPassword(auth, document.getElementById("signup-email").value, document.getElementById("signup-password").value);
+            await setDoc(doc(db, "users", res.user.uid), { email: res.user.email, isSubscribed: false, playedQuestions: [] });
         } catch(e) { alert("خطأ في التسجيل"); }
     };
     window.handleLogout = () => { signOut(auth); localStorage.clear(); location.reload(); };
@@ -287,14 +256,13 @@
         document.getElementById("signup-form").classList.toggle("hidden", !signup);
     };
 
-    // إدارة الأسئلة
+    // الإدارة
     window.loadCategoriesForAdmin = async () => {
         const snap = await getDocs(query(collection(db, "categories"), orderBy("name", "asc")));
-        const categories = snap.docs.map(d => ({id: d.id, name: d.data().name}));
         const tags = document.getElementById("admin-cats-tags");
-        if(tags) tags.innerHTML = categories.map(c => `<span style="background:#eee; padding:4px 10px; border-radius:15px; font-size:0.8em; border:1px solid #ccc;">${c.name} <b onclick="window.delCat('${c.id}')" style="color:red; cursor:pointer;">×</b></span>`).join('');
+        if(tags) tags.innerHTML = snap.docs.map(d => `<span style="background:#eee; padding:5px 10px; border-radius:15px; font-size:0.8em;">${d.data().name} <b onclick="window.delCat('${d.id}')" style="color:red; cursor:pointer;">×</b></span>`).join('');
         const dl = document.getElementById("cats-autocomplete");
-        if(dl) dl.innerHTML = categories.map(c => `<option value="${c.name}">`).join('');
+        if(dl) dl.innerHTML = snap.docs.map(d => `<option value="${d.data().name}">`).join('');
         window.loadAdminList();
     };
 
@@ -305,7 +273,7 @@
         document.getElementById("admin-new-cat-name").value = "";
         window.loadCategoriesForAdmin();
     };
-    window.delCat = async (id) => { if(confirm("حذف الفئة؟")) { await deleteDoc(doc(db, "categories", id)); window.loadCategoriesForAdmin(); }};
+    window.delCat = async (id) => { if(confirm("حذف؟")) { await deleteDoc(doc(db, "categories", id)); window.loadCategoriesForAdmin(); }};
 
     window.processBulkUpload = async () => {
         const cat = document.getElementById("bulk-cat-name").value.trim();
@@ -319,16 +287,8 @@
                     wrongAnswers: q.w || [], mediaUrl: q.m || "", mediaType: q.m ? "image" : "", isHidden: false, timestamp: serverTimestamp()
                 });
             }
-            alert("تم الرفع بنجاح ✅"); location.reload();
-        } catch(e) { alert("خطأ في صيغة البيانات (تأكد أنها JSON صحيحة)"); }
-    };
-
-    window.deleteCategoryQuestions = async () => {
-        const cat = document.getElementById("bulk-cat-name").value.trim();
-        if(!cat || !confirm(`حذف أسئلة فئة ${cat}؟`)) return;
-        const snap = await getDocs(collection(db, "live_questions"));
-        snap.forEach(async d => { if(d.data().category === cat) await deleteDoc(doc(db, "live_questions", d.id)); });
-        alert("تم المسح!"); window.loadAdminList();
+            alert("تم الرفع ✅"); location.reload();
+        } catch(e) { alert("خطأ في JSON"); }
     };
 
     window.loadAdminList = async () => {
@@ -342,21 +302,20 @@
             categorized[q.category].push({id: d.id, ...q});
         });
         list.innerHTML = Object.entries(categorized).map(([name, qs]) => `
-            <div style="border:1px solid #ccc; padding:10px; border-radius:10px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
-                <b style="font-size:0.9em;">${name} (${qs.length})</b>
-                <button onclick="window.openCategoryPreview('${name}')" style="background:var(--primary); color:white; border:none; padding:6px 12px; border-radius:5px; font-size:0.8em;">👁️ معاينة</button>
+            <div style="border:1px solid #ddd; padding:10px; border-radius:12px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+                <b>${name} (${qs.length})</b>
+                <button onclick="window.openCategoryPreview('${name}')" style="background:var(--primary); color:white; border:none; padding:8px 15px; border-radius:8px;">👁️ معاينة</button>
             </div>
         `).join('');
     };
 
     window.openCategoryPreview = (catName) => {
         currentPreviewCategory = catName;
-        localStorage.setItem('currentPreviewCat', catName);
         window.switchTab('preview');
-        document.getElementById("preview-title").innerText = `معاينة: ${catName}`;
+        document.getElementById("preview-title").innerText = catName;
         const grid = document.getElementById("preview-questions-grid");
-        const snap = allQuestions.filter(q => q.category === catName);
-        grid.innerHTML = snap.map((q, i) => `
+        const filtered = allQuestions.filter(q => q.category === catName);
+        grid.innerHTML = filtered.map((q, i) => `
             <div class="preview-card">
                 <div class="q-number-badge">${i+1}</div>
                 <div class="preview-img-container">${q.mediaUrl ? `<img src="${q.mediaUrl}" referrerpolicy="no-referrer">` : '<small>بدون صورة</small>'}</div>
@@ -365,8 +324,8 @@
                     <div style="color:green; font-size:0.85em;">✅ ${q.correctAnswer}</div>
                 </div>
                 <div class="preview-actions">
-                    <button onclick="window.openEditModal('${q.id}')" style="background:#3498db; color:white; border:none; flex:1; padding:8px; border-radius:5px; font-size:0.8em;">✏️</button>
-                    <button onclick="window.delQ('${q.id}')" style="background:red; color:white; border:none; flex:1; padding:8px; border-radius:5px; font-size:0.8em;">🗑️</button>
+                    <button onclick="window.openEditModal('${q.id}')" style="background:#3498db; color:white; border:none; flex:1; padding:10px; border-radius:8px;">✏️</button>
+                    <button onclick="window.delQ('${q.id}')" style="background:red; color:white; border:none; flex:1; padding:10px; border-radius:8px;">🗑️</button>
                 </div>
             </div>
         `).join('');
@@ -377,7 +336,6 @@
         allQuestions = snap.docs.map(d => ({id: d.id, ...d.data()}));
         window.openCategoryPreview(currentPreviewCategory);
     };
-    window.closeCategoryPreview = () => { localStorage.removeItem('currentPreviewCat'); window.switchTab('admin'); };
 
     window.openEditModal = (id) => {
         const q = allQuestions.find(x => x.id === id);
@@ -391,28 +349,31 @@
     };
 
     window.saveEditedQuestion = async () => {
-        const id = document.getElementById("edit-q-id").value;
-        const url = document.getElementById("edit-q-url").value.trim();
-        await updateDoc(doc(db, "live_questions", id), {
-            points: parseInt(document.getElementById("edit-q-pts").value),
-            question: document.getElementById("edit-q-text").value,
-            correctAnswer: document.getElementById("edit-q-correct").value,
-            wrongAnswers: document.getElementById("edit-q-wrongs").value.split("|").map(s=>s.trim()),
-            mediaUrl: url, mediaType: url ? "image" : ""
-        });
-        document.getElementById("edit-modal").classList.add("hidden");
-        window.refreshCategoryPreview();
+        try {
+            const id = document.getElementById("edit-q-id").value;
+            const url = document.getElementById("edit-q-url").value.trim();
+            await updateDoc(doc(db, "live_questions", id), {
+                points: parseInt(document.getElementById("edit-q-pts").value),
+                question: document.getElementById("edit-q-text").value,
+                correctAnswer: document.getElementById("edit-q-correct").value,
+                wrongAnswers: document.getElementById("edit-q-wrongs").value.split("|").map(s=>s.trim()),
+                mediaUrl: url, mediaType: url ? "image" : ""
+            });
+            document.getElementById("edit-modal").classList.add("hidden");
+            window.refreshCategoryPreview();
+        } catch(e) { alert("فشل الحفظ"); }
     };
     window.delQ = async (id) => { if(confirm("حذف؟")) { await deleteDoc(doc(db, "live_questions", id)); window.refreshCategoryPreview(); }};
 
     window.checkSubscriptionAndPlay = () => {
-        const user = auth.currentUser;
-        if(!user) { window.switchTab('auth'); return; }
-        if(user.email === adminEmail) isSubscribed = true; // تأكيد إضافي للأدمن
-        
-        if(!isSubscribed) { alert("يجب الاشتراك للعب 💎"); window.switchTab('auth'); return; }
-        window.switchTab('game');
-        window.renderGameCategories();
+        if(!auth.currentUser) { window.switchTab('auth'); return; }
+        if(isSubscribed || auth.currentUser.email === adminEmail) {
+            window.switchTab('game');
+            window.renderGameCategories();
+        } else {
+            alert("يجب الاشتراك للعب 💎");
+            window.switchTab('auth');
+        }
     };
 
     window.renderGameCategories = async () => {
@@ -425,8 +386,8 @@
     let selectedCats = [];
     window.toggleCatSelection = (name, el) => {
         const i = selectedCats.indexOf(name);
-        if(i > -1) { selectedCats.splice(i,1); el.style.borderColor = "#eee"; el.style.background = "var(--card-bg)"; }
-        else { if(selectedCats.length < 6) { selectedCats.push(name); el.style.borderColor = "var(--primary)"; el.style.background = "rgba(142,68,173,0.05)"; } }
+        if(i > -1) { selectedCats.splice(i,1); el.style.borderColor = "#e2e8f0"; el.style.background = "white"; }
+        else { if(selectedCats.length < 6) { selectedCats.push(name); el.style.borderColor = "var(--primary)"; el.style.background = "#f5f3ff"; } }
         document.getElementById("btn-confirm-categories").classList.toggle("hidden", selectedCats.length < 3);
     };
 
