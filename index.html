@@ -1298,21 +1298,19 @@
           <div class="admin-card">
             <h3>إضافة فئة جديدة</h3>
             <div class="admin-form-row single">
-              <input type="text" id="new-category-name" placeholder="اسم الفئة">
+              <input type="text" id="new-category-name" placeholder="اكتب اسم الفئة هنا">
             </div>
             <div class="admin-form-actions">
-              <button class="admin-btn primary" onclick="window.createCategoryQuestionStarter()">إنشاء الفئة</button>
+              <button class="admin-btn primary" onclick="window.createCategoryQuestionStarter()">إنشاء الفئة وحفظها</button>
             </div>
           </div>
 
           <div class="admin-card">
             <h3>إضافة مجموعة أسئلة (دفعة واحدة)</h3>
             <div class="admin-form-grid" style="margin-bottom: 12px;">
-              <select id="admin-bulk-category-select">
-                <option value="">اختر الفئة...</option>
-              </select>
+              <input type="text" id="admin-bulk-category-input" list="category-options" placeholder="اكتب أو اختر الفئة..." autocomplete="off">
             </div>
-            <p style="font-size: 0.9rem; color: #666; margin-top: 0;">أدخل الأسئلة بصيغة JSON لرفعها بضغطة زر (لا حاجة لكتابة اسم الفئة داخل الكود).</p>
+            <p style="font-size: 0.9rem; color: #666; margin-top: 0;">أدخل الأسئلة بصيغة JSON لرفعها بضغطة زر.</p>
             <textarea id="admin-bulk-json" rows="8" placeholder='[
   {
     "order": 1,
@@ -1332,7 +1330,7 @@
           <div class="admin-card">
             <h3>إضافة سؤال جديد</h3>
             <div class="admin-form-grid">
-              <select id="admin-category-select"></select>
+              <input type="text" id="admin-category-input" list="category-options" placeholder="اكتب أو اختر الفئة..." autocomplete="off">
               <input type="number" id="admin-q-order" placeholder="ترتيب السؤال">
               <select id="admin-q-points">
                 <option value="">اختر النقاط</option>
@@ -1400,6 +1398,9 @@
           </div>
         </div>
       </div>
+      
+      <datalist id="category-options"></datalist>
+
     </div>
   </div>
 
@@ -1422,7 +1423,7 @@
   <div id="view-setup" class="container hidden fade-in">
     <div class="auth-box">
       <h2>🎮 إعداد اللعبة</h2>
-      <p>اختر من 3 إلى 6 فئات</p>
+      <p>اختر من 3 إلى 6 فئات للعب</p>
       <div id="setup-categories" class="categories-grid"></div>
       <div style="margin-top:16px">
         <button class="btn-main btn-primary" onclick="window.goToTeams()">التالي</button>
@@ -1551,7 +1552,7 @@
       <input type="hidden" id="edit-q-id">
 
       <div class="admin-form-grid">
-        <select id="edit-q-category"></select>
+        <input type="text" id="edit-q-category-input" list="category-options" placeholder="الفئة" autocomplete="off">
         <input type="number" id="edit-q-order" placeholder="ترتيب السؤال">
         <select id="edit-q-points">
           <option value="">اختر النقاط</option>
@@ -1739,9 +1740,8 @@
 
     async function fetchExplicitCategories() {
       let explicitCats = [];
-      
       try {
-        const snap1 = await getDocs(collection(db, "category"));
+        const snap1 = await getDocs(collection(db, "categories")); // تم التصحيح هنا
         snap1.docs.forEach(d => {
           const data = d.data();
           explicitCats.push(data.name || data.title || data.category || d.id);
@@ -1749,7 +1749,6 @@
       } catch(e) {
         console.log(e);
       }
-
       return [...new Set(explicitCats)].filter(Boolean);
     }
 
@@ -1761,19 +1760,28 @@
 
     function populateCategorySelects() {
       const categories = getUniqueCategories();
+      const datalist = document.getElementById("category-options");
 
-      const selects = [
-        document.getElementById("admin-category-select"),
-        document.getElementById("edit-q-category"),
-        document.getElementById("admin-bulk-category-select")
-      ];
+      if (datalist) {
+        datalist.innerHTML = categories.map(cat => `<option value="${escapeHtml(cat)}">`).join("");
+      }
+    }
 
-      selects.forEach(select => {
-        if (!select) return;
-        select.innerHTML = categories.length
-          ? `<option value="">اختر الفئة...</option>` + categories.map(cat => `<option value="${escapeHtml(cat)}">${escapeHtml(cat)}</option>`).join("")
-          : `<option value="">لا توجد فئات</option>`;
-      });
+    async function ensureCategoryExists(catName) {
+      if (!catName) return;
+      const exists = getUniqueCategories().includes(catName);
+      if (!exists) {
+        try {
+          await addDoc(collection(db, "categories"), { // تم التصحيح هنا
+            name: catName,
+            createdAt: serverTimestamp()
+          });
+          allCategories.push(catName);
+          populateCategorySelects();
+        } catch (e) {
+          console.error(e);
+        }
+      }
     }
 
     function renderPowerBars() {
@@ -2371,10 +2379,12 @@
         return alert("الفئة موجودة بالفعل");
       }
 
-      await addDoc(collection(db, "category"), {
+      await addDoc(collection(db, "categories"), { // تم التصحيح هنا
         name: cat,
         createdAt: serverTimestamp()
       });
+
+      allCategories.push(cat);
 
       document.getElementById("new-category-name").value = "";
       alert("تم إنشاء الفئة بنجاح! يمكنك الآن إضافة أسئلة لها.");
@@ -2382,7 +2392,7 @@
     };
 
     window.addSingleQuestion = async () => {
-      const category = document.getElementById("admin-category-select")?.value;
+      const category = document.getElementById("admin-category-input")?.value.trim();
       const order = Number(document.getElementById("admin-q-order")?.value);
       const points = Number(document.getElementById("admin-q-points")?.value);
       const question = document.getElementById("admin-q-text")?.value.trim();
@@ -2398,6 +2408,8 @@
         return alert("أكمل البيانات المطلوبة");
       }
 
+      await ensureCategoryExists(category);
+
       await addDoc(collection(db, "live_questions"), {
         category,
         order,
@@ -2412,6 +2424,7 @@
         updatedAt: serverTimestamp()
       });
 
+      document.getElementById("admin-category-input").value = "";
       document.getElementById("admin-q-order").value = "";
       document.getElementById("admin-q-points").value = "";
       document.getElementById("admin-q-text").value = "";
@@ -2420,16 +2433,16 @@
       document.getElementById("admin-media-type").value = "";
       document.getElementById("admin-media-url").value = "";
 
-      alert("تمت إضافة السؤال");
+      alert("تمت إضافة السؤال بنجاح");
       await window.reloadAdminData();
     };
 
     window.addBulkQuestions = async () => {
       const jsonText = document.getElementById("admin-bulk-json")?.value.trim();
-      const selectedCategory = document.getElementById("admin-bulk-category-select")?.value;
+      const selectedCategory = document.getElementById("admin-bulk-category-input")?.value.trim();
 
       if (!selectedCategory) {
-        return alert("الرجاء اختيار الفئة أولاً من المستطيل العلوي");
+        return alert("الرجاء كتابة أو اختيار الفئة أولاً");
       }
 
       if (!jsonText) {
@@ -2445,6 +2458,8 @@
 
         const confirmed = confirm(`هل أنت متأكد من إضافة ${questionsList.length} سؤال إلى فئة "${selectedCategory}" دفعة واحدة؟`);
         if (!confirmed) return;
+
+        await ensureCategoryExists(selectedCategory);
 
         let addedCount = 0;
 
@@ -2467,6 +2482,7 @@
 
         alert(`تمت إضافة ${addedCount} سؤال بنجاح لفئة "${selectedCategory}"! 🎉`);
         document.getElementById("admin-bulk-json").value = "";
+        document.getElementById("admin-bulk-category-input").value = "";
         await window.reloadAdminData();
 
       } catch (error) {
@@ -2601,15 +2617,15 @@
                 ${renderMediaPreview(q)}
               </div>
 
-              <div class="q-box-left" style="display: flex; align-items: center; gap: 16px;">
-                <div class="q-box-actions" style="display: flex; gap: 8px;">
-                  <button class="icon-btn edit" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color:#fff; width: 42px; height: 42px; border:none; border-radius:12px; font-size:1.1rem; cursor:pointer;" title="تعديل" onclick="window.openEditModal('${q.id}')">✏️</button>
-                  <button class="icon-btn" style="background: linear-gradient(135deg, ${q.isHidden ? '#9ca3af, #6b7280' : '#f59e0b, #d97706'}); color:#fff; width: 42px; height: 42px; border:none; border-radius:12px; font-size:1.1rem; cursor:pointer;" title="${q.isHidden ? 'إظهار' : 'إخفاء'}" onclick="window.toggleHideQuestion('${q.id}', ${q.isHidden ? 'false' : 'true'})">
+              <div class="q-box-left">
+                <div class="q-box-actions">
+                  <button class="icon-btn edit" title="تعديل" onclick="window.openEditModal('${q.id}')">✏️</button>
+                  <button class="icon-btn ${q.isHidden ? 'hidden-state' : 'hide'}" title="${q.isHidden ? 'إظهار' : 'إخفاء'}" onclick="window.toggleHideQuestion('${q.id}', ${q.isHidden ? 'false' : 'true'})">
                     ${q.isHidden ? '👁️' : '🙈'}
                   </button>
-                  <button class="icon-btn delete" style="background: linear-gradient(135deg, #ef4444, #dc2626); color:#fff; width: 42px; height: 42px; border:none; border-radius:12px; font-size:1.1rem; cursor:pointer;" title="حذف" onclick="window.delQ('${q.id}')">🗑️</button>
+                  <button class="icon-btn delete" title="حذف" onclick="window.delQ('${q.id}')">🗑️</button>
                 </div>
-                <div class="q-box-number" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: #fff; width: 54px; height: 54px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 900; box-shadow: 0 8px 16px rgba(106,46,160,0.25); flex-shrink: 0;" title="رقم السؤال">${q.order || i + 1}</div>
+                <div class="q-box-number" title="رقم السؤال">${q.order || i + 1}</div>
               </div>
             </div>
           `).join("")}
@@ -2627,7 +2643,7 @@
       populateCategorySelects();
 
       document.getElementById("edit-q-id").value = q.id;
-      document.getElementById("edit-q-category").value = q.category || "";
+      document.getElementById("edit-q-category-input").value = q.category || "";
       document.getElementById("edit-q-order").value = q.order || "";
       document.getElementById("edit-q-points").value = q.points || "";
       document.getElementById("edit-q-text").value = q.question || "";
@@ -2642,7 +2658,7 @@
 
     window.saveEditedQuestion = async () => {
       const id = document.getElementById("edit-q-id")?.value;
-      const category = document.getElementById("edit-q-category")?.value;
+      const category = document.getElementById("edit-q-category-input")?.value.trim();
       const order = Number(document.getElementById("edit-q-order")?.value);
       const points = Number(document.getElementById("edit-q-points")?.value);
       const question = document.getElementById("edit-q-text")?.value.trim();
@@ -2651,6 +2667,8 @@
       if (!category || !order || !points || !question || !correctAnswer) {
         return alert("أكمل البيانات المطلوبة");
       }
+
+      await ensureCategoryExists(category);
 
       await updateDoc(doc(db, "live_questions", id), {
         category,
@@ -2756,25 +2774,33 @@
 
     function renderSetup() {
       const visibleQuestions = allQuestions.filter(q => !q.isHidden);
-      const cats = [...new Set(visibleQuestions.map(q => q.category))].sort((a, b) => a.localeCompare(b, "ar"));
+      const cats = getUniqueCategories(); // عرض جميع الفئات في الإعداد (حتى لو فارغة)
       
       const box = document.getElementById("setup-categories");
       if (!box) return;
 
       box.innerHTML = cats.map(c => {
         const selected = selectedCategories.includes(c);
+        // حساب الأسئلة الظاهرة عشان نعطي المستخدم تنبيه إذا اختار فئة فاضية
+        const visibleQCount = visibleQuestions.filter(q => q.category === c).length;
+        const emptyAlert = visibleQCount === 0 ? `<div style="font-size:0.7rem;color:#ef4444;margin-top:4px;">(فارغة)</div>` : '';
+
         return `
-          <div class="category-tile" onclick="window.toggleCategory('${c.replace(/'/g, "\\'")}')">
+          <div class="category-tile" onclick="window.toggleCategory('${c.replace(/'/g, "\\'")}', ${visibleQCount})">
             <div class="category-box" style="${selected ? "outline:3px solid #FFA64D; transform:scale(1.02);" : ""}">
               <div class="category-thumb">${escapeHtml((c || "?").trim().charAt(0))}</div>
             </div>
-            <div class="category-name">${escapeHtml(c)}</div>
+            <div class="category-name">${escapeHtml(c)}${emptyAlert}</div>
           </div>
         `;
       }).join("");
     }
 
-    window.toggleCategory = (cat) => {
+    window.toggleCategory = (cat, visibleQCount) => {
+      if (visibleQCount === 0 && !selectedCategories.includes(cat)) {
+        return alert("هذه الفئة لا تحتوي على أسئلة جاهزة للعب حالياً!");
+      }
+
       if (selectedCategories.includes(cat)) {
         selectedCategories = selectedCategories.filter(c => c !== cat);
       } else {
