@@ -15,72 +15,162 @@
             --border-color: #e2e8f0; --nav-bg: #ffffff;
         }
 
-        /* منع التمدد العرضي للجوال */
-        html, body { width: 100%; overflow-x: hidden; margin: 0; padding: 0; -webkit-text-size-adjust: 100%; }
-        body { font-family: 'Tajawal', sans-serif; background: var(--bg-color); color: var(--text-main); padding-top: 80px; }
+        /* منع مشاكل العرض في سفاري وقوقل جوال */
+        html, body { width: 100%; overflow-x: hidden; margin: 0; padding: 0; -webkit-text-size-adjust: 100%; box-sizing: border-box; }
+        body { font-family: 'Tajawal', sans-serif; background: var(--bg-color); color: var(--text-main); padding-top: 140px; /* مساحة كافية للهيدر في الجوال */ }
 
-        .navbar { background: var(--nav-bg); box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: fixed; top: 0; width: 100%; z-index: 2000; padding: 10px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; gap: 8px; }
-        .logo img { height: 40px; width: auto; }
-        .nav-links { display: flex; gap: 5px; width: 100%; justify-content: center; }
+        /* Navbar المطور - حل مشكلة التداخل */
+        .navbar { 
+            background: var(--nav-bg); 
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1); 
+            position: fixed; 
+            top: 0; 
+            width: 100%; 
+            z-index: 5000; 
+            padding: 10px; 
+            box-sizing: border-box; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            gap: 10px; 
+        }
         
-        .nav-btn { background: #f1f5f9; border: none; font-family: 'Tajawal'; font-weight: 700; cursor: pointer; padding: 6px 12px; border-radius: 8px; color: var(--text-main); font-size: 0.85em; flex: 1; max-width: 100px; text-align: center; }
+        .logo img { height: 40px; width: auto; }
+        
+        .nav-links { 
+            display: flex; 
+            gap: 5px; 
+            width: 100%; 
+            justify-content: center; 
+            flex-wrap: wrap; 
+        }
+        
+        .nav-btn { 
+            background: #f1f5f9; 
+            border: none; 
+            font-family: 'Tajawal'; 
+            font-weight: 700; 
+            cursor: pointer; 
+            padding: 8px 12px; 
+            border-radius: 10px; 
+            color: var(--text-main); 
+            font-size: 0.85em; 
+            flex: 1; 
+            max-width: 90px; 
+            text-align: center;
+            transition: 0.3s;
+        }
+        
         .nav-btn.active { background: var(--primary); color: white; }
         
-        .btn-play-nav { background: linear-gradient(45deg, var(--secondary), #d35400); color: white; border-radius: 20px; width: 90%; padding: 10px; font-weight: 900; border: none; cursor: pointer; animation: pulse 2s infinite; margin-top: 5px; }
-
-        @media (min-width: 768px) {
-            .navbar { flex-direction: row; padding: 5px 30px; height: 70px; justify-content: space-between; }
-            .logo { width: auto; }
-            .nav-links { width: auto; }
-            .btn-play-nav { width: auto; padding: 8px 25px; margin-top: 0; }
-            body { padding-top: 90px; }
+        .btn-play-nav { 
+            background: linear-gradient(45deg, var(--secondary), #d35400); 
+            color: white !important; 
+            border-radius: 15px; 
+            width: 100%; 
+            max-width: 350px;
+            padding: 12px; 
+            font-weight: 900; 
+            border: none; 
+            cursor: pointer; 
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(243, 156, 18, 0.3);
         }
 
-        .container { width: 100%; max-width: 900px; margin: 0 auto; padding: 10px; box-sizing: border-box; }
+        /* شاشات الكمبيوتر */
+        @media (min-width: 768px) {
+            body { padding-top: 90px; }
+            .navbar { flex-direction: row; padding: 10px 40px; height: 80px; justify-content: space-between; }
+            .logo { width: auto; }
+            .nav-links { width: auto; gap: 15px; }
+            .btn-play-nav { width: auto; padding: 10px 30px; }
+            .nav-btn { max-width: none; flex: none; padding: 10px 20px; }
+        }
+
+        .container { width: 100%; max-width: 800px; margin: 0 auto; padding: 15px; box-sizing: border-box; }
         .hidden { display: none !important; }
         
-        .auth-box { background: var(--card-bg); padding: 20px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); border: 1px solid var(--border-color); text-align: center; margin-bottom: 15px; }
+        .auth-box { 
+            background: var(--card-bg); 
+            padding: 25px; 
+            border-radius: 25px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05); 
+            border: 1px solid var(--border-color); 
+            text-align: center; 
+            margin-bottom: 20px; 
+            width: 100%;
+            box-sizing: border-box;
+        }
         
-        .categories-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 15px; }
-        @media (min-width: 600px) { .categories-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); } }
+        /* تحسين شبكة الفئات للجوال */
+        .categories-grid { 
+            display: grid; 
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 12px; 
+            margin-top: 10px; 
+        }
         
-        .category-card { background: var(--card-bg); padding: 15px 5px; border-radius: 15px; border: 2px solid var(--border-color); text-align: center; cursor: pointer; font-size: 0.9em; }
+        .category-card { 
+            background: var(--card-bg); 
+            padding: 25px 10px; 
+            border-radius: 20px; 
+            border: 2px solid var(--border-color); 
+            text-align: center; 
+            cursor: pointer; 
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-        /* شاشة المعاينة المحدثة */
+        /* تحسين شاشة حسابي المكتومة في الصورة */
+        .profile-data-card {
+            background: #f1f5f9;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: right;
+        }
+        .profile-data-card p { margin: 10px 0; font-size: 1.1em; }
+
+        input, select, textarea { 
+            width: 100%; 
+            padding: 14px; 
+            margin: 8px 0; 
+            border: 2px solid #e2e8f0; 
+            border-radius: 12px; 
+            font-family: 'Tajawal'; 
+            font-size: 16px; /* مهم جداً لمنع زووم سفاري */
+            box-sizing: border-box; 
+        }
+        
+        .btn-main { 
+            width: 100%; 
+            padding: 15px; 
+            font-weight: 900; 
+            border: none; 
+            border-radius: 15px; 
+            cursor: pointer; 
+            color: white; 
+            margin-top: 10px; 
+            font-family: 'Tajawal';
+            font-size: 1.1em;
+        }
+
+        /* المعاينة */
         .preview-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
-        @media (min-width: 600px) { .preview-grid { grid-template-columns: repeat(2, 1fr); } }
-
-        .preview-card { background: var(--card-bg); border-radius: 15px; border: 1px solid var(--border-color); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 5px 15px rgba(0,0,0,0.03); }
-        .q-number-badge { position: absolute; top: 10px; left: 10px; background: var(--primary); color: white; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.8em; z-index: 10; border: 2px solid white; }
-        
-        .preview-img-container { height: 140px; background: #f1f5f9; display: flex; justify-content: center; align-items: center; }
-        .preview-img-container img { width: 100%; height: 100%; object-fit: cover; }
-        
-        /* Modal Overlay Fix */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 5000; display: flex; justify-content: center; align-items: center; padding: 15px; box-sizing: border-box; }
-        .modal-content { background: var(--card-bg); padding: 20px; border-radius: 20px; width: 100%; max-width: 400px; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
-
-        input, select, textarea { width: 100%; padding: 12px; margin: 5px 0; border: 2px solid #e2e8f0; border-radius: 12px; font-family: 'Tajawal'; font-size: 16px; /* منع زووم سفاري التلقائي */ box-sizing: border-box; }
-        .btn-main { width: 100%; padding: 14px; font-weight: 900; border: none; border-radius: 12px; cursor: pointer; color: white; margin-top: 10px; font-family: 'Tajawal'; }
-
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
+        @media (min-width: 600px) { .preview-grid { grid-template-columns: 1fr 1fr; } }
     </style>
 
     <script>
-        // دالة التنقل الصارمة لمنع التداخل
         window.switchTab = (tabId) => {
-            const containers = document.querySelectorAll('.container');
-            containers.forEach(c => c.classList.add('hidden'));
-            
-            const btns = document.querySelectorAll('.nav-btn');
-            btns.forEach(b => b.classList.remove('active'));
-
+            document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             const target = document.getElementById(`view-${tabId}`);
             if(target) {
                 target.classList.remove('hidden');
                 localStorage.setItem('activeTab', tabId);
             }
-            
             const activeBtn = document.getElementById(`tab-${tabId}`);
             if(activeBtn) activeBtn.classList.add('active');
         };
@@ -101,7 +191,6 @@
 </nav>
 
 <div id="view-home" class="container fade-in">
-    <h3 style="text-align: center; color: var(--primary);">تحديات الأنمي والمنوعات 🧠</h3>
     <div class="categories-grid" id="home-categories-preview"></div>
 </div>
 
@@ -121,10 +210,11 @@
             <p>لديك حساب؟ <a href="#" onclick="window.toggleAuth(false)">دخول</a></p>
         </div>
     </div>
+    
     <div class="auth-box hidden" id="logged-in-view">
-        <div style="background:#f1f5f9; padding:15px; border-radius:15px; margin-bottom:15px;">
+        <div class="profile-data-card">
             <p><b>البريد:</b> <span id="u-email"></span></p>
-            <p><b>الاشتراك:</b> <span id="u-sub-status" style="font-weight:bold">...</span></p>
+            <p><b>الاشتراك:</b> <span id="u-sub-status">...</span></p>
         </div>
         <button class="btn-main" style="background:var(--danger)" onclick="window.handleLogout()">تسجيل الخروج 🚪</button>
     </div>
@@ -132,7 +222,7 @@
 
 <div id="view-game" class="container hidden fade-in">
     <div id="step-select-category">
-        <h3 style="text-align: center;">اختر الفئات للتحدي 🎯</h3>
+        <h3 style="text-align: center;">اختر الفئات للتحدي</h3>
         <div class="categories-grid" id="pro-categories-grid"></div>
         <button id="btn-confirm-categories" class="btn-main hidden" style="background:var(--secondary)" onclick="window.proceedToSettings()">متابعة للفرق ➡️</button>
     </div>
@@ -140,59 +230,34 @@
         <div class="auth-box">
             <input type="text" id="team1-name-input" placeholder="اسم الفريق 1">
             <input type="text" id="team2-name-input" placeholder="اسم الفريق 2">
-            <button class="btn-main" style="background:var(--primary)" onclick="window.finalizeSetupAndPlay()">ابدأ اللعب 🚀</button>
+            <button class="btn-main" style="background:var(--primary)" onclick="window.finalizeSetupAndPlay()">ابدأ 🚀</button>
         </div>
-    </div>
-</div>
-
-<div id="view-preview" class="container hidden fade-in">
-    <div class="preview-header">
-        <b id="preview-title">...</b>
-        <div style="display: flex; gap: 5px;">
-            <button class="nav-btn" style="background:#3498db; color:white;" onclick="window.refreshCategoryPreview()">🔄 تحديث</button>
-            <button class="nav-btn" style="background:#95a5a6; color:white;" onclick="window.switchTab('admin')">⬅️ رجوع</button>
-        </div>
-    </div>
-    <div id="preview-questions-grid" class="preview-grid"></div>
-</div>
-
-<div id="edit-modal" class="modal-overlay hidden">
-    <div class="modal-content">
-        <h3>✏️ تعديل السؤال</h3>
-        <input type="hidden" id="edit-q-id">
-        <select id="edit-q-pts"><option value="200">200</option><option value="400">400</option><option value="600">600</option></select>
-        <textarea id="edit-q-text" rows="3" placeholder="نص السؤال"></textarea>
-        <input type="text" id="edit-q-correct" placeholder="الإجابة الصحيحة">
-        <input type="text" id="edit-q-wrongs" placeholder="خطأ 1 | خطأ 2">
-        <input type="text" id="edit-q-url" placeholder="رابط الصورة المباشر (.jpg)">
-        <button class="btn-main" style="background:var(--success);" onclick="window.saveEditedQuestion()">💾 حفظ</button>
-        <button class="btn-main" style="background:var(--danger);" onclick="document.getElementById('edit-modal').classList.add('hidden')">إلغاء ✖️</button>
     </div>
 </div>
 
 <div id="view-admin" class="container hidden fade-in">
     <div class="auth-box">
-        <h4>📁 إدارة الفئات</h4>
-        <div style="display: flex; gap: 5px;">
-            <input type="text" id="admin-new-cat-name" placeholder="اسم فئة">
-            <button class="btn-main" style="background:var(--primary); margin:0; width:60px;" onclick="window.saveNewCategory()">+</button>
-        </div>
-        <div id="admin-cats-tags" style="display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px;"></div>
-    </div>
-    <div class="auth-box">
-        <h4>🚀 الرفع السريع</h4>
-        <input type="text" id="bulk-cat-name" list="cats-autocomplete" placeholder="اسم الفئة">
-        <datalist id="cats-autocomplete"></datalist>
-        <textarea id="bulk-data" rows="4" placeholder='[{"q":"سؤال","a":"صح","w":["خطأ"],"p":200,"m":""}]'></textarea>
+        <h4>📁 الفئات والرفع</h4>
+        <input type="text" id="bulk-cat-name" placeholder="اسم الفئة">
+        <textarea id="bulk-data" rows="4" placeholder='الصق كود الأسئلة هنا...'></textarea>
         <button class="btn-main" style="background:#27ae60;" onclick="window.processBulkUpload()">رفع الأسئلة ✅</button>
+        <button class="btn-main" style="background:var(--danger);" onclick="window.deleteCategoryQuestions()">مسح الفئة 🗑️</button>
     </div>
     <div class="auth-box"><h4>📋 قائمة الفئات</h4><div id="admin-qs-list"></div></div>
+</div>
+
+<div id="view-preview" class="container hidden fade-in">
+    <div class="auth-box" style="display:flex; justify-content:space-between; align-items:center; padding:15px;">
+        <b id="preview-title">...</b>
+        <button class="nav-btn" style="background:var(--danger); color:white; max-width:none;" onclick="window.switchTab('admin')">رجوع ⬅️</button>
+    </div>
+    <div id="preview-questions-grid" class="preview-grid"></div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-    import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, getDoc, updateDoc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, getDoc, setDoc, updateDoc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBRPly4tY1nUSIimYn5dvbKuO3ayn8p_4o",
@@ -208,7 +273,7 @@
     const db = getFirestore(app);
 
     const adminEmail = "ziad95005@gmail.com"; 
-    let allQuestions = [], isSubscribed = false, currentPreviewCategory = "";
+    let allQuestions = [], isSubscribed = false;
 
     onAuthStateChanged(auth, async (user) => {
         if(user) {
@@ -230,7 +295,6 @@
             window.switchTab('auth');
         }
         fetchData();
-        window.loadCategoriesForAdmin();
     });
 
     async function fetchData() {
@@ -240,7 +304,6 @@
         if(hGrid) hGrid.innerHTML = [...new Set(allQuestions.map(q => q.category))].map(cat => `<div class="category-card" onclick="window.checkSubscriptionAndPlay()"><h3>${cat}</h3></div>`).join('');
     }
 
-    // دوال الحساب
     window.handleLogin = async () => {
         try { await signInWithEmailAndPassword(auth, document.getElementById("login-email").value, document.getElementById("login-password").value); } catch(e) { alert("خطأ في الدخول"); }
     };
@@ -256,25 +319,6 @@
         document.getElementById("signup-form").classList.toggle("hidden", !signup);
     };
 
-    // الإدارة
-    window.loadCategoriesForAdmin = async () => {
-        const snap = await getDocs(query(collection(db, "categories"), orderBy("name", "asc")));
-        const tags = document.getElementById("admin-cats-tags");
-        if(tags) tags.innerHTML = snap.docs.map(d => `<span style="background:#eee; padding:5px 10px; border-radius:15px; font-size:0.8em;">${d.data().name} <b onclick="window.delCat('${d.id}')" style="color:red; cursor:pointer;">×</b></span>`).join('');
-        const dl = document.getElementById("cats-autocomplete");
-        if(dl) dl.innerHTML = snap.docs.map(d => `<option value="${d.data().name}">`).join('');
-        window.loadAdminList();
-    };
-
-    window.saveNewCategory = async () => {
-        const n = document.getElementById("admin-new-cat-name").value.trim();
-        if(!n) return;
-        await addDoc(collection(db, "categories"), { name: n, createdAt: serverTimestamp() });
-        document.getElementById("admin-new-cat-name").value = "";
-        window.loadCategoriesForAdmin();
-    };
-    window.delCat = async (id) => { if(confirm("حذف؟")) { await deleteDoc(doc(db, "categories", id)); window.loadCategoriesForAdmin(); }};
-
     window.processBulkUpload = async () => {
         const cat = document.getElementById("bulk-cat-name").value.trim();
         const dataStr = document.getElementById("bulk-data").value.trim();
@@ -284,25 +328,23 @@
             for(const q of qs) {
                 await addDoc(collection(db, "live_questions"), {
                     category: cat, points: q.p || 200, question: q.q, correctAnswer: q.a,
-                    wrongAnswers: q.w || [], mediaUrl: q.m || "", mediaType: q.m ? "image" : "", isHidden: false, timestamp: serverTimestamp()
+                    wrongAnswers: q.w || [], mediaUrl: q.m || "", mediaType: q.m ? "image" : "", timestamp: serverTimestamp()
                 });
             }
             alert("تم الرفع ✅"); location.reload();
-        } catch(e) { alert("خطأ في JSON"); }
+        } catch(e) { alert("تأكد من صيغة الكود"); }
     };
 
     window.loadAdminList = async () => {
         const list = document.getElementById("admin-qs-list");
         if(!list) return;
-        const snap = await getDocs(query(collection(db, "live_questions"), orderBy("timestamp", "desc")));
         const categorized = {};
-        snap.forEach(d => {
-            const q = d.data();
+        allQuestions.forEach(q => {
             if(!categorized[q.category]) categorized[q.category] = [];
-            categorized[q.category].push({id: d.id, ...q});
+            categorized[q.category].push(q);
         });
         list.innerHTML = Object.entries(categorized).map(([name, qs]) => `
-            <div style="border:1px solid #ddd; padding:10px; border-radius:12px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+            <div style="border:1px solid #ddd; padding:12px; border-radius:12px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
                 <b>${name} (${qs.length})</b>
                 <button onclick="window.openCategoryPreview('${name}')" style="background:var(--primary); color:white; border:none; padding:8px 15px; border-radius:8px;">👁️ معاينة</button>
             </div>
@@ -310,60 +352,22 @@
     };
 
     window.openCategoryPreview = (catName) => {
-        currentPreviewCategory = catName;
         window.switchTab('preview');
         document.getElementById("preview-title").innerText = catName;
         const grid = document.getElementById("preview-questions-grid");
         const filtered = allQuestions.filter(q => q.category === catName);
         grid.innerHTML = filtered.map((q, i) => `
-            <div class="preview-card">
+            <div class="auth-box" style="text-align:right; position:relative;">
                 <div class="q-number-badge">${i+1}</div>
-                <div class="preview-img-container">${q.mediaUrl ? `<img src="${q.mediaUrl}" referrerpolicy="no-referrer">` : '<small>بدون صورة</small>'}</div>
-                <div class="preview-content">
-                    <small style="color:var(--secondary)">[${q.points}ن]</small> <p style="margin:5px 0; font-size:0.9em; font-weight:bold;">${q.question}</p>
-                    <div style="color:green; font-size:0.85em;">✅ ${q.correctAnswer}</div>
+                <div style="height:100px; background:#f0f0f0; border-radius:10px; margin-bottom:10px; display:flex; justify-content:center; align-items:center; overflow:hidden;">
+                    ${q.mediaUrl ? `<img src="${q.mediaUrl}" style="width:100%; height:100%; object-fit:cover;" referrerpolicy="no-referrer">` : '<small>بدون صورة</small>'}
                 </div>
-                <div class="preview-actions">
-                    <button onclick="window.openEditModal('${q.id}')" style="background:#3498db; color:white; border:none; flex:1; padding:10px; border-radius:8px;">✏️</button>
-                    <button onclick="window.delQ('${q.id}')" style="background:red; color:white; border:none; flex:1; padding:10px; border-radius:8px;">🗑️</button>
-                </div>
+                <small style="color:var(--primary)">[${q.points} نقطة]</small>
+                <p style="font-weight:bold; margin:5px 0;">${q.question}</p>
+                <div style="color:var(--success); font-size:0.9em;">✅ ${q.correctAnswer}</div>
             </div>
         `).join('');
     };
-
-    window.refreshCategoryPreview = async () => {
-        const snap = await getDocs(collection(db, "live_questions"));
-        allQuestions = snap.docs.map(d => ({id: d.id, ...d.data()}));
-        window.openCategoryPreview(currentPreviewCategory);
-    };
-
-    window.openEditModal = (id) => {
-        const q = allQuestions.find(x => x.id === id);
-        document.getElementById("edit-q-id").value = id;
-        document.getElementById("edit-q-pts").value = q.points;
-        document.getElementById("edit-q-text").value = q.question;
-        document.getElementById("edit-q-correct").value = q.correctAnswer;
-        document.getElementById("edit-q-wrongs").value = q.wrongAnswers?.join(" | ") || "";
-        document.getElementById("edit-q-url").value = q.mediaUrl || "";
-        document.getElementById("edit-modal").classList.remove("hidden");
-    };
-
-    window.saveEditedQuestion = async () => {
-        try {
-            const id = document.getElementById("edit-q-id").value;
-            const url = document.getElementById("edit-q-url").value.trim();
-            await updateDoc(doc(db, "live_questions", id), {
-                points: parseInt(document.getElementById("edit-q-pts").value),
-                question: document.getElementById("edit-q-text").value,
-                correctAnswer: document.getElementById("edit-q-correct").value,
-                wrongAnswers: document.getElementById("edit-q-wrongs").value.split("|").map(s=>s.trim()),
-                mediaUrl: url, mediaType: url ? "image" : ""
-            });
-            document.getElementById("edit-modal").classList.add("hidden");
-            window.refreshCategoryPreview();
-        } catch(e) { alert("فشل الحفظ"); }
-    };
-    window.delQ = async (id) => { if(confirm("حذف؟")) { await deleteDoc(doc(db, "live_questions", id)); window.refreshCategoryPreview(); }};
 
     window.checkSubscriptionAndPlay = () => {
         if(!auth.currentUser) { window.switchTab('auth'); return; }
@@ -378,16 +382,15 @@
 
     window.renderGameCategories = async () => {
         const grid = document.getElementById("pro-categories-grid");
-        grid.innerHTML = "جاري التحميل...";
-        const snap = await getDocs(query(collection(db, "categories"), orderBy("name", "asc")));
-        grid.innerHTML = snap.docs.map(d => `<div class="category-card" onclick="window.toggleCatSelection('${d.data().name}', this)"><h3>${d.data().name}</h3></div>`).join('');
+        const cats = [...new Set(allQuestions.map(q => q.category))];
+        grid.innerHTML = cats.map(cat => `<div class="category-card" onclick="window.toggleCatSelection('${cat}', this)"><h3>${cat}</h3></div>`).join('');
     };
 
     let selectedCats = [];
     window.toggleCatSelection = (name, el) => {
         const i = selectedCats.indexOf(name);
-        if(i > -1) { selectedCats.splice(i,1); el.style.borderColor = "#e2e8f0"; el.style.background = "white"; }
-        else { if(selectedCats.length < 6) { selectedCats.push(name); el.style.borderColor = "var(--primary)"; el.style.background = "#f5f3ff"; } }
+        if(i > -1) { selectedCats.splice(i,1); el.style.borderColor = "#e2e8f0"; }
+        else { if(selectedCats.length < 6) { selectedCats.push(name); el.style.borderColor = "var(--primary)"; } }
         document.getElementById("btn-confirm-categories").classList.toggle("hidden", selectedCats.length < 3);
     };
 
@@ -395,7 +398,6 @@
         document.getElementById("step-select-category").classList.add("hidden");
         document.getElementById("step-game-settings").classList.remove("hidden");
     };
-
 </script>
 </body>
 </html>
