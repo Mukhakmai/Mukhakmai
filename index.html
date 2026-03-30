@@ -9,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     
     <style>
+        /* === إعدادات الثيمات === */
         :root { 
             --primary: #8e44ad; --secondary: #f39c12; --success: #27ae60; --danger: #e74c3c; 
             --bg-color: #f0f4f8; --card-bg: #ffffff; --text-main: #2c3e50; --text-muted: #7f8c8d; 
@@ -21,51 +22,63 @@
             --border-color: #334155; --nav-bg: #1e293b;
         }
 
-        body { font-family: 'Tajawal', sans-serif; background: var(--bg-color); color: var(--text-main); margin: 0; padding-top: 90px; transition: background 0.4s ease; overflow-x: hidden; }
+        body { font-family: 'Tajawal', sans-serif; background: var(--bg-color); color: var(--text-main); margin: 0; padding-top: 80px; transition: background 0.4s ease; overflow-x: hidden; width: 100%; }
         
-        /* Navbar Responsive */
+        /* Navbar المطور للجوال والكمبيوتر */
         .navbar { background: var(--nav-bg); box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: fixed; top: 0; width: 100%; min-height: 70px; display: flex; justify-content: space-between; align-items: center; z-index: 1000; padding: 5px 15px; box-sizing: border-box; }
-        .logo img { height: 50px; width: auto; }
-        .nav-links { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; justify-content: center; }
-        .nav-btn { background: none; border: none; font-family: 'Tajawal'; font-weight: 700; cursor: pointer; padding: 8px 10px; border-radius: 8px; color: var(--text-main); font-size: 0.85em; }
+        
+        .logo img { height: 45px; width: auto; }
+        .nav-links { display: flex; gap: 5px; align-items: center; }
+        
+        .nav-btn { background: none; border: none; font-family: 'Tajawal'; font-weight: 700; cursor: pointer; padding: 8px 10px; border-radius: 8px; color: var(--text-main); font-size: 0.85em; white-space: nowrap; }
         .nav-btn.active { color: var(--primary); background: rgba(142, 68, 173, 0.1); }
-        .btn-play-nav { background: linear-gradient(45deg, var(--secondary), #d35400); color: white !important; padding: 8px 15px; border-radius: 20px; font-size: 0.85em; }
+        
+        .btn-play-nav { background: linear-gradient(45deg, var(--secondary), #d35400); color: white !important; padding: 8px 15px; border-radius: 20px; animation: pulse 2s infinite; }
 
+        /* تعديلات الجوال (سفاري وقوقل) */
         @media (max-width: 600px) {
-            body { padding-top: 130px; }
-            .navbar { flex-direction: column; padding: 10px; }
-            .logo { margin-bottom: 5px; }
+            body { padding-top: 120px; }
+            .navbar { flex-direction: column; padding: 8px; gap: 5px; height: auto; }
+            .logo { width: 100%; text-align: center; }
             .nav-links { width: 100%; justify-content: space-evenly; }
-            .btn-play-nav { width: 90%; margin-top: 8px; text-align: center; }
-            .categories-grid { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
+            .btn-play-nav { width: 95%; text-align: center; margin: 5px auto; display: block; }
+            .categories-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 10px !important; }
+            .container { padding: 10px; }
+            .auth-box { padding: 15px; }
         }
 
-        .container { max-width: 900px; margin: 0 auto; padding: 15px; width: 100%; box-sizing: border-box; }
-        .auth-box { background: var(--card-bg); padding: 20px; border-radius: 20px; box-shadow: var(--card-shadow); margin-bottom: 20px; border: 1px solid var(--border-color); }
+        .container { max-width: 100%; width: 950px; margin: 0 auto; padding: 15px; box-sizing: border-box; }
+        .auth-box { background: var(--card-bg); padding: 25px; border-radius: 20px; box-shadow: var(--card-shadow); margin-bottom: 20px; border: 1px solid var(--border-color); }
         
         .categories-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; }
         .category-card { background: var(--card-bg); padding: 20px 10px; border-radius: 15px; border: 2px solid var(--border-color); text-align: center; cursor: pointer; transition: 0.3s; }
-        .category-card:hover { border-color: var(--primary); transform: translateY(-3px); }
+        
+        /* قائمة "حسابي" المنسقة لمنع التداخل */
+        .profile-menu { display: flex; flex-direction: row; justify-content: space-around; gap: 10px; margin-bottom: 20px; padding: 10px; background: rgba(0,0,0,0.02); border-radius: 10px; }
+        @media (max-width: 400px) { .profile-menu { flex-direction: column; align-items: center; } }
 
+        .score-display { display: flex; gap: 10px; margin-bottom: 15px; }
+        .score-box { flex: 1; background: var(--card-bg); padding: 10px; border-radius: 12px; text-align: center; border: 2px solid var(--primary); }
+
+        /* شاشة المعاينة والترقيم */
         .preview-header { display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); padding: 12px; border-radius: 12px; border: 2px solid var(--primary); margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
         .preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; }
         .preview-card { background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border-color); position: relative; overflow: hidden; display: flex; flex-direction: column; }
-        .preview-img-container { height: 150px; background: #f0f0f0; display: flex; justify-content: center; align-items: center; }
+        .q-number-badge { position: absolute; top: 8px; left: 8px; background: var(--primary); color: white; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.85em; z-index: 10; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        
+        .preview-img-container { height: 160px; background: #f0f0f0; display: flex; justify-content: center; align-items: center; }
         .preview-img-container img { width: 100%; height: 100%; object-fit: cover; }
-        .q-number-badge { position: absolute; top: 8px; left: 8px; background: var(--primary); color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75em; font-weight: bold; z-index: 10; border: 2px solid white; }
         
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); z-index: 3000; display: flex; justify-content: center; align-items: center; padding: 15px; box-sizing: border-box; }
-        .modal-content { background: var(--card-bg); padding: 20px; border-radius: 15px; width: 100%; max-width: 450px; max-height: 85vh; overflow-y: auto; position: relative; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 3000; display: flex; justify-content: center; align-items: center; padding: 10px; box-sizing: border-box; }
+        .modal-content { background: var(--card-bg); padding: 20px; border-radius: 20px; width: 100%; max-width: 450px; max-height: 85vh; overflow-y: auto; position: relative; }
         
-        input, select, textarea { width: 100%; padding: 10px; margin: 6px 0; border: 2px solid var(--border-color); border-radius: 10px; font-family: 'Tajawal'; font-size: 1em; box-sizing: border-box; color: var(--text-main); background: var(--bg-color); }
-        .btn-main { width: 100%; padding: 12px; font-weight: bold; border: none; border-radius: 10px; cursor: pointer; color: white; margin-top: 10px; font-family: 'Tajawal'; }
-        
-        .score-display { display: flex; gap: 10px; margin-bottom: 15px; }
-        .score-box { flex: 1; background: var(--card-bg); padding: 10px; border-radius: 12px; text-align: center; border: 2px solid var(--primary); }
+        input, select, textarea { width: 100%; padding: 12px; margin: 6px 0; border: 2px solid var(--border-color); border-radius: 10px; font-family: 'Tajawal'; font-size: 1em; box-sizing: border-box; background: var(--bg-color); color: var(--text-main); }
+        .btn-main { width: 100%; padding: 14px; font-weight: bold; border: none; border-radius: 12px; cursor: pointer; color: white; margin-top: 10px; font-family: 'Tajawal'; }
+
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
     </style>
 
     <script>
-        // حفظ واستعادة الثيم والصفحة
         window.switchTab = (tabId) => {
             if (tabId !== 'preview') {
                 document.getElementById('view-category-preview').classList.add('hidden');
@@ -74,10 +87,7 @@
             document.querySelectorAll('.container').forEach(c => c.classList.add('hidden'));
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             const target = document.getElementById(`view-${tabId}`);
-            if(target) {
-                target.classList.remove('hidden');
-                localStorage.setItem('activeTab', tabId); 
-            }
+            if(target) { target.classList.remove('hidden'); localStorage.setItem('activeTab', tabId); }
             const btn = document.getElementById(`tab-${tabId}`);
             if(btn) btn.classList.add('active');
         };
@@ -86,19 +96,19 @@
 <body>
 
 <nav class="navbar">
-    <div class="logo" onclick="window.switchTab('home')">
+    <div class="logo" onclick="window.switchTab('home')" style="cursor: pointer;">
         <img src="logo-clean.png" alt="مخك معي">
     </div>
     <div class="nav-links">
         <button class="nav-btn active" id="tab-home" onclick="window.switchTab('home')">الرئيسية</button>
-        <button class="nav-btn hidden" id="tab-admin" onclick="window.switchTab('admin')">الإدارة</button>
+        <button class="nav-btn hidden" id="tab-admin" onclick="window.switchTab('admin')" style="color:var(--danger)">⚙️ الإدارة</button>
         <button class="nav-btn" id="tab-auth" onclick="window.switchTab('auth')">حسابي</button>
         <button class="nav-btn btn-play-nav" onclick="window.checkSubscriptionAndPlay()">العب الآن 🚀</button>
     </div>
 </nav>
 
-<div id="view-home" class="container fade-in">
-    <h2 style="text-align: center; color: var(--primary);">تحدي المعلومات 🧠</h2>
+<div id="view-home" class="container fade-in text-center">
+    <h1 style="color: var(--primary); font-size: 1.8em; margin-bottom: 10px;">مخك معي؟ 🔥</h1>
     <div class="categories-grid" id="home-categories-preview"></div>
 </div>
 
@@ -109,20 +119,20 @@
             <input type="email" id="login-email" placeholder="البريد الإلكتروني">
             <input type="password" id="login-password" placeholder="كلمة المرور">
             <button class="btn-main btn-primary" onclick="window.handleLogin()">دخول</button>
-            <p style="font-size: 0.9em;">ليس لديك حساب؟ <a href="#" onclick="window.toggleAuth(true)">سجل الآن</a></p>
+            <p>ليس لديك حساب؟ <a href="#" onclick="window.toggleAuth(true)">سجل الآن</a></p>
         </div>
         <div id="signup-form" class="hidden">
             <input type="email" id="signup-email" placeholder="البريد الإلكتروني">
             <input type="password" id="signup-password" placeholder="كلمة المرور">
             <button class="btn-main btn-secondary" onclick="window.handleSignup()">إنشاء الحساب</button>
-            <p style="font-size: 0.9em;">لديك حساب؟ <a href="#" onclick="window.toggleAuth(false)">دخول</a></p>
+            <p>لديك حساب؟ <a href="#" onclick="window.toggleAuth(false)">دخول</a></p>
         </div>
         <p id="auth-error" style="color:red; font-size: 0.8em;"></p>
     </div>
     <div class="auth-box hidden" id="logged-in-view">
-        <div class="profile-menu" style="display: flex; justify-content: space-around; margin-bottom: 15px; border-bottom: 1px solid #ddd; padding-bottom: 10px;">
-            <span onclick="window.showProfileTab('info')" style="cursor:pointer; font-weight:bold;">معلوماتي</span>
-            <span onclick="window.handleLogout()" style="cursor:pointer; color:var(--danger); font-weight:bold;">خروج</span>
+        <div class="profile-menu">
+            <span onclick="window.showProfileTab('info')" style="cursor:pointer; font-weight:bold; color:var(--primary)">👤 معلوماتي</span>
+            <span onclick="window.handleLogout()" style="cursor:pointer; color:var(--danger); font-weight:bold">🚪 خروج</span>
         </div>
         <div id="p-info">
             <p><b>البريد:</b> <span id="u-email"></span></p>
@@ -133,7 +143,7 @@
 
 <div id="view-game" class="container hidden fade-in">
     <div id="step-select-category">
-        <h3 style="text-align: center;">اختر 3-6 فئات 🎯</h3>
+        <h3 style="text-align: center;">اختر الفئات للتحدي 🎯</h3>
         <div class="categories-grid" id="pro-categories-grid"></div>
         <button id="btn-confirm-categories" class="btn-main btn-secondary hidden" onclick="window.proceedToSettings()">متابعة للفرق ➡️</button>
     </div>
@@ -141,7 +151,7 @@
         <div class="auth-box">
             <input type="text" id="team1-name-input" placeholder="اسم الفريق 1">
             <input type="text" id="team2-name-input" placeholder="اسم الفريق 2">
-            <button class="btn-main btn-primary" onclick="window.finalizeSetupAndPlay()">ابدأ 🚀</button>
+            <button class="btn-main btn-primary" onclick="window.finalizeSetupAndPlay()">ابدأ اللعب 🚀</button>
         </div>
     </div>
     <div id="game-play-screen" class="hidden">
@@ -155,10 +165,10 @@
 
 <div id="view-category-preview" class="container hidden fade-in">
     <div class="preview-header">
-        <h4 id="preview-title" style="margin:0;">المعاينة</h4>
+        <h3 id="preview-title" style="margin: 0;">المعاينة</h3>
         <div style="display: flex; gap: 5px;">
-            <button class="nav-btn" style="background:#3498db; color:white;" onclick="window.refreshCategoryPreview()">🔄 تحديث</button>
-            <button class="nav-btn" style="background:#95a5a6; color:white;" onclick="window.closeCategoryPreview()">⬅️ رجوع</button>
+            <button class="nav-btn" style="background:#3498db; color:white; padding:5px 10px;" onclick="window.refreshCategoryPreview()">🔄 تحديث</button>
+            <button class="nav-btn" style="background:#95a5a6; color:white; padding:5px 10px;" onclick="window.closeCategoryPreview()">⬅️ رجوع</button>
         </div>
     </div>
     <div id="preview-questions-grid" class="preview-grid"></div>
@@ -171,8 +181,8 @@
         <select id="edit-q-pts"><option value="200">200</option><option value="400">400</option><option value="600">600</option></select>
         <textarea id="edit-q-text" rows="3"></textarea>
         <input type="text" id="edit-q-correct" placeholder="الصح">
-        <input type="text" id="edit-q-wrongs" placeholder="خطأ | خطأ (افصل بـ |)">
-        <input type="text" id="edit-q-url" placeholder="رابط الصورة المباشر (.jpg / .png)">
+        <input type="text" id="edit-q-wrongs" placeholder="خطأ | خطأ">
+        <input type="text" id="edit-q-url" placeholder="رابط الصورة المباشر">
         <button class="btn-main btn-primary" style="background:var(--success);" onclick="window.saveEditedQuestion()">💾 حفظ</button>
         <button class="btn-main" style="background:var(--danger);" onclick="document.getElementById('edit-modal').classList.add('hidden')">إلغاء</button>
     </div>
@@ -180,20 +190,20 @@
 
 <div id="view-admin" class="container hidden fade-in">
     <div class="auth-box">
-        <h4>📁 الفئات</h4>
+        <h3>📁 إدارة الفئات</h3>
         <div style="display: flex; gap: 5px;">
-            <input type="text" id="admin-new-cat-name" placeholder="اسم فئة">
-            <button class="btn-main btn-primary" style="margin:0; width:80px;" onclick="window.saveNewCategory()">+</button>
+            <input type="text" id="admin-new-cat-name" placeholder="فئة جديدة">
+            <button class="btn-main btn-primary" style="margin:0; width:70px;" onclick="window.saveNewCategory()">+</button>
         </div>
         <div id="admin-cats-tags" style="display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px;"></div>
     </div>
     <div class="auth-box">
-        <h4>🚀 الرفع السريع</h4>
+        <h3>🚀 الرفع السريع</h3>
         <input type="text" id="bulk-cat-name" list="cats-autocomplete" placeholder="اسم الفئة">
         <datalist id="cats-autocomplete"></datalist>
-        <textarea id="bulk-data" rows="3" placeholder='[{"q":"سؤال","a":"صح","w":["خطأ"],"p":200,"m":""}]'></textarea>
-        <button class="btn-main" style="background:#27ae60;" onclick="window.processBulkUpload()">رفع ☁️</button>
-        <button class="btn-main" style="background:var(--danger);" onclick="window.deleteCategoryQuestions()">حذف الفئة 🗑️</button>
+        <textarea id="bulk-data" rows="4" placeholder='[{"q":"سؤال","a":"صح","w":["خطأ"],"p":200,"m":""}]'></textarea>
+        <button class="btn-main" style="background:#27ae60;" onclick="window.processBulkUpload()">رفع الأسئلة</button>
+        <button class="btn-main" style="background:var(--danger);" onclick="window.deleteCategoryQuestions()">مسح أسئلة الفئة 🗑️</button>
     </div>
     <div class="auth-box"><h4>📋 قائمة الفئات</h4><div id="admin-qs-list"></div></div>
 </div>
@@ -220,23 +230,30 @@
     let allQuestions = [], playedIds = [], isSubscribed = false;
     let currentPreviewCategory = localStorage.getItem('currentPreviewCat');
 
+    // === نظام المزامنة والبدء ===
     onAuthStateChanged(auth, async (user) => {
         if(user) {
-            document.getElementById("logged-in-view").classList.remove("hidden");
-            document.getElementById("logged-out-view").classList.add("hidden");
             document.getElementById("u-email").innerText = user.email;
-            if(user.email === adminEmail) document.getElementById("tab-admin").classList.remove("hidden");
+            if(user.email === adminEmail) {
+                document.getElementById("tab-admin").classList.remove("hidden");
+                isSubscribed = true; // تفعيل اشتراك الإدارة فوراً
+            }
             
             const userSnap = await getDoc(doc(db, "users", user.uid));
-            const data = userSnap.data();
-            playedIds = data?.playedQuestions || [];
-            isSubscribed = data?.isSubscribed || (user.email === adminEmail);
+            if (userSnap.exists()) {
+                const data = userSnap.data();
+                playedIds = data?.playedQuestions || [];
+                if(user.email !== adminEmail) isSubscribed = data?.isSubscribed || false;
+            }
+            
             document.getElementById("u-sub-status").innerText = isSubscribed ? "نشط ✅" : "غير نشط ❌";
 
             const lastTab = localStorage.getItem('activeTab') || 'home';
             if (currentPreviewCategory) await window.refreshCategoryPreview(); else window.switchTab(lastTab);
         } else {
-            window.switchTab('auth');
+            document.getElementById("logged-in-view").classList.add("hidden");
+            document.getElementById("logged-out-view").classList.remove("hidden");
+            if (!localStorage.getItem('activeTab')) window.switchTab('home');
         }
         fetchData();
         window.loadCategoriesForAdmin();
@@ -275,7 +292,7 @@
         const snap = await getDocs(query(collection(db, "categories"), orderBy("name", "asc")));
         const categories = snap.docs.map(d => ({id: d.id, name: d.data().name}));
         const tags = document.getElementById("admin-cats-tags");
-        if(tags) tags.innerHTML = categories.map(c => `<span style="background:#ddd; padding:4px 8px; border-radius:10px; font-size:0.8em;">${c.name} <b onclick="window.delCat('${c.id}')" style="color:red; cursor:pointer;">×</b></span>`).join('');
+        if(tags) tags.innerHTML = categories.map(c => `<span style="background:#eee; padding:4px 10px; border-radius:15px; font-size:0.8em; border:1px solid #ccc;">${c.name} <b onclick="window.delCat('${c.id}')" style="color:red; cursor:pointer;">×</b></span>`).join('');
         const dl = document.getElementById("cats-autocomplete");
         if(dl) dl.innerHTML = categories.map(c => `<option value="${c.name}">`).join('');
         window.loadAdminList();
@@ -288,30 +305,30 @@
         document.getElementById("admin-new-cat-name").value = "";
         window.loadCategoriesForAdmin();
     };
-    window.delCat = async (id) => { if(confirm("حذف؟")) { await deleteDoc(doc(db, "categories", id)); window.loadCategoriesForAdmin(); }};
+    window.delCat = async (id) => { if(confirm("حذف الفئة؟")) { await deleteDoc(doc(db, "categories", id)); window.loadCategoriesForAdmin(); }};
 
     window.processBulkUpload = async () => {
         const cat = document.getElementById("bulk-cat-name").value.trim();
-        const data = document.getElementById("bulk-data").value.trim();
-        if(!cat || !data) return;
+        const dataStr = document.getElementById("bulk-data").value.trim();
+        if(!cat || !dataStr) return;
         try {
-            const qs = new Function("return " + data)();
+            const qs = JSON.parse(dataStr);
             for(const q of qs) {
                 await addDoc(collection(db, "live_questions"), {
                     category: cat, points: q.p || 200, question: q.q, correctAnswer: q.a,
-                    wrongAnswers: q.w || [], mediaUrl: q.m || "", mediaType: q.m ? "image" : "", timestamp: serverTimestamp()
+                    wrongAnswers: q.w || [], mediaUrl: q.m || "", mediaType: q.m ? "image" : "", isHidden: false, timestamp: serverTimestamp()
                 });
             }
-            alert("تم الرفع ✅"); location.reload();
-        } catch(e) { alert("خطأ في البيانات"); }
+            alert("تم الرفع بنجاح ✅"); location.reload();
+        } catch(e) { alert("خطأ في صيغة البيانات (تأكد أنها JSON صحيحة)"); }
     };
 
     window.deleteCategoryQuestions = async () => {
         const cat = document.getElementById("bulk-cat-name").value.trim();
-        if(!cat || !confirm(`حذف كل أسئلة ${cat}؟`)) return;
+        if(!cat || !confirm(`حذف أسئلة فئة ${cat}؟`)) return;
         const snap = await getDocs(collection(db, "live_questions"));
         snap.forEach(async d => { if(d.data().category === cat) await deleteDoc(doc(db, "live_questions", d.id)); });
-        alert("تم الحذف"); window.loadAdminList();
+        alert("تم المسح!"); window.loadAdminList();
     };
 
     window.loadAdminList = async () => {
@@ -326,8 +343,8 @@
         });
         list.innerHTML = Object.entries(categorized).map(([name, qs]) => `
             <div style="border:1px solid #ccc; padding:10px; border-radius:10px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
-                <b>${name} (${qs.length})</b>
-                <button onclick="window.openCategoryPreview('${name}')" style="background:var(--primary); color:white; border:none; padding:5px 10px; border-radius:5px;">👁️ معاينة</button>
+                <b style="font-size:0.9em;">${name} (${qs.length})</b>
+                <button onclick="window.openCategoryPreview('${name}')" style="background:var(--primary); color:white; border:none; padding:6px 12px; border-radius:5px; font-size:0.8em;">👁️ معاينة</button>
             </div>
         `).join('');
     };
@@ -342,14 +359,14 @@
         grid.innerHTML = snap.map((q, i) => `
             <div class="preview-card">
                 <div class="q-number-badge">${i+1}</div>
-                <div class="preview-img-container">${q.mediaUrl ? `<img src="${q.mediaUrl}" referrerpolicy="no-referrer">` : 'بدون صورة'}</div>
+                <div class="preview-img-container">${q.mediaUrl ? `<img src="${q.mediaUrl}" referrerpolicy="no-referrer">` : '<small>بدون صورة</small>'}</div>
                 <div class="preview-content">
-                    <small>[${q.points}ن]</small> <p style="margin:5px 0;">${q.question}</p>
-                    <div style="color:green; font-size:0.8em;">✅ ${q.correctAnswer}</div>
+                    <small style="color:var(--secondary)">[${q.points}ن]</small> <p style="margin:5px 0; font-size:0.9em; font-weight:bold;">${q.question}</p>
+                    <div style="color:green; font-size:0.85em;">✅ ${q.correctAnswer}</div>
                 </div>
                 <div class="preview-actions">
-                    <button onclick="window.openEditModal('${q.id}')" style="background:#3498db; color:white; border:none; flex:1; padding:5px; border-radius:5px;">✏️</button>
-                    <button onclick="window.delQ('${q.id}')" style="background:red; color:white; border:none; flex:1; padding:5px; border-radius:5px;">🗑️</button>
+                    <button onclick="window.openEditModal('${q.id}')" style="background:#3498db; color:white; border:none; flex:1; padding:8px; border-radius:5px; font-size:0.8em;">✏️</button>
+                    <button onclick="window.delQ('${q.id}')" style="background:red; color:white; border:none; flex:1; padding:8px; border-radius:5px; font-size:0.8em;">🗑️</button>
                 </div>
             </div>
         `).join('');
@@ -389,8 +406,11 @@
     window.delQ = async (id) => { if(confirm("حذف؟")) { await deleteDoc(doc(db, "live_questions", id)); window.refreshCategoryPreview(); }};
 
     window.checkSubscriptionAndPlay = () => {
-        if(!auth.currentUser) { window.switchTab('auth'); return; }
-        if(!isSubscribed) { window.switchTab('auth'); alert("اشترك أولاً"); return; }
+        const user = auth.currentUser;
+        if(!user) { window.switchTab('auth'); return; }
+        if(user.email === adminEmail) isSubscribed = true; // تأكيد إضافي للأدمن
+        
+        if(!isSubscribed) { alert("يجب الاشتراك للعب 💎"); window.switchTab('auth'); return; }
         window.switchTab('game');
         window.renderGameCategories();
     };
@@ -405,8 +425,8 @@
     let selectedCats = [];
     window.toggleCatSelection = (name, el) => {
         const i = selectedCats.indexOf(name);
-        if(i > -1) { selectedCats.splice(i,1); el.style.borderColor = "#eee"; }
-        else { selectedCats.push(name); el.style.borderColor = "var(--primary)"; }
+        if(i > -1) { selectedCats.splice(i,1); el.style.borderColor = "#eee"; el.style.background = "var(--card-bg)"; }
+        else { if(selectedCats.length < 6) { selectedCats.push(name); el.style.borderColor = "var(--primary)"; el.style.background = "rgba(142,68,173,0.05)"; } }
         document.getElementById("btn-confirm-categories").classList.toggle("hidden", selectedCats.length < 3);
     };
 
