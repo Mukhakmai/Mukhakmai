@@ -570,9 +570,6 @@
       margin-top: 6px;
     }
 
-    /* -------------------------------------
-       تصميم مربعات الأسئلة (Admin)
-       ------------------------------------- */
     .question-grid-admin {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -730,7 +727,6 @@
       padding: 20px;
     }
 
-    /* --- TV Board --- */
     .tv-shell {
       max-width: 1400px;
       margin: 0 auto;
@@ -1628,6 +1624,7 @@
     const adminEmail = "ziad95005@gmail.com";
 
     let allQuestions = [];
+    let allCategories = [];
     let isSubscribed = false;
     let selectedCategories = [];
     let teams = { A: "", B: "" };
@@ -1735,13 +1732,14 @@
             break;
         }
       } catch (e) {
-        console.error("Audio playback error:", e);
+        console.error("Audio error:", e);
       }
     }
 
     function getUniqueCategories() {
-      return [...new Set(allQuestions.map(q => q.category).filter(Boolean))]
-        .sort((a, b) => a.localeCompare(b, "ar"));
+      const qsCats = allQuestions.map(q => q.category).filter(Boolean);
+      const explicitCats = allCategories || [];
+      return [...new Set([...qsCats, ...explicitCats])].sort((a, b) => a.localeCompare(b, "ar"));
     }
 
     function populateCategorySelects() {
@@ -2292,6 +2290,13 @@
       const snap = await getDocs(collection(db, "live_questions"));
       allQuestions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
 
+      try {
+        const catSnap = await getDocs(collection(db, "categories"));
+        allCategories = catSnap.docs.map(d => d.data().name).filter(Boolean);
+      } catch (e) {
+        console.error(e);
+      }
+
       const visibleQuestions = allQuestions.filter(q => !q.isHidden);
       const hGrid = document.getElementById("home-categories-preview");
 
@@ -2332,6 +2337,14 @@
     window.reloadAdminData = async () => {
       const snap = await getDocs(query(collection(db, "live_questions"), orderBy("category"), orderBy("order")));
       allQuestions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      
+      try {
+        const catSnap = await getDocs(collection(db, "categories"));
+        allCategories = catSnap.docs.map(d => d.data().name).filter(Boolean);
+      } catch (e) {
+        console.error(e);
+      }
+
       populateCategorySelects();
       window.loadAdminList();
       await fetchData(false);
@@ -2343,27 +2356,18 @@
         return alert("اكتب اسم الفئة");
       }
 
-      const exists = allQuestions.some(q => q.category === cat);
+      const exists = getUniqueCategories().includes(cat);
       if (exists) {
         return alert("الفئة موجودة بالفعل");
       }
 
-      await addDoc(collection(db, "live_questions"), {
-        category: cat,
-        order: 1,
-        points: 200,
-        question: "سؤال تجريبي - عدله أو احذفه",
-        correctAnswer: "إجابة",
-        wrongAnswers: [],
-        mediaUrl: "",
-        mediaType: "",
-        isHidden: true,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
+      await addDoc(collection(db, "categories"), {
+        name: cat,
+        createdAt: serverTimestamp()
       });
 
       document.getElementById("new-category-name").value = "";
-      alert("تم إنشاء الفئة");
+      alert("تم إنشاء الفئة بنجاح! يمكنك الآن إضافة أسئلة لها.");
       await window.reloadAdminData();
     };
 
@@ -2410,7 +2414,6 @@
       await window.reloadAdminData();
     };
 
-    // --- دالة الإضافة الجماعية المحدثة ---
     window.addBulkQuestions = async () => {
       const jsonText = document.getElementById("admin-bulk-json")?.value.trim();
       const selectedCategory = document.getElementById("admin-bulk-category-select")?.value;
@@ -2437,7 +2440,7 @@
 
         for (const q of questionsList) {
           await addDoc(collection(db, "live_questions"), {
-            category: selectedCategory, // نستخدم الفئة المختارة
+            category: selectedCategory, 
             order: Number(q.order) || 1,
             points: Number(q.points) || 200,
             question: q.question || "",
@@ -2467,8 +2470,16 @@
       if (!list) return;
 
       const grouped = {};
+      const uniqueCats = getUniqueCategories();
+      
+      uniqueCats.forEach(c => {
+        grouped[c] = [];
+      });
+
       allQuestions.forEach(q => {
-        if (!grouped[q.category]) grouped[q.category] = [];
+        if (!grouped[q.category]) {
+          grouped[q.category] = [];
+        }
         grouped[q.category].push(q);
       });
 
@@ -2480,9 +2491,10 @@
       }
 
       list.innerHTML = cats.map(cat => {
-        const visibleCount = grouped[cat].filter(q => !q.isHidden).length;
-        const hiddenCount = grouped[cat].filter(q => q.isHidden).length;
-        const total = grouped[cat].length;
+        const qList = grouped[cat] || [];
+        const visibleCount = qList.filter(q => !q.isHidden).length;
+        const hiddenCount = qList.filter(q => q.isHidden).length;
+        const total = qList.length;
 
         return `
           <div class="admin-category-card" data-category-name="${escapeHtml(cat)}" style="cursor:pointer;" onclick="window.openAdminCategory('${cat.replace(/'/g, "\\'")}')">
@@ -2550,18 +2562,25 @@
         .sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
 
       if (!filtered.length) {
-        list.innerHTML = `<div class="auth-box">لا توجد أسئلة في هذه الفئة.</div>`;
+        list.innerHTML = `
+          <div class="auth-box" style="text-align:center; padding: 40px 20px;">
+            <div style="font-size: 3rem; margin-bottom: 10px;">📂</div>
+            <h3 style="margin-top:0;">لا توجد أسئلة في هذه الفئة</h3>
+            <p style="color:#666;">الفئة جاهزة ومحفوظة. يمكنك إضافة أسئلة لها عبر زر "إضافة سؤال جديد" أو مربع "الإضافة الجماعية".</p>
+          </div>
+        `;
         box.classList.remove("hidden");
+        window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
         return;
       }
 
       list.innerHTML = `
         <div class="question-grid-admin">
           ${filtered.map((q, i) => `
-            <div class="q-box-row" style="display: flex; background: #fff; border: 1px solid var(--border-color); border-radius: 20px; padding: 16px; margin-bottom: 14px; align-items: center; justify-content: space-between; gap: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
-              <div class="q-box-content" style="flex: 1; display: flex; flex-direction: column; gap: 10px;">
-                <div style="font-size: 1.2rem; font-weight: 900; color: var(--text-dark); line-height: 1.6;">${escapeHtml(q.question || "")}</div>
-                <div style="display: flex; flex-wrap: wrap; gap: 12px; font-size: 0.95rem; color: #4b5563;">
+            <div class="q-box-row">
+              <div class="q-box-content">
+                <div class="q-box-title">${escapeHtml(q.question || "")}</div>
+                <div class="q-box-details">
                   <span style="color:var(--success);font-weight:900;">✅ ${escapeHtml(q.correctAnswer || "")}</span>
                   <span>❌ ${escapeHtml((q.wrongAnswers || []).join(" | ") || "لا يوجد")}</span>
                   <span style="color:#b45309;font-weight:900;">🎯 ${q.points} نقطة</span>
@@ -2572,15 +2591,15 @@
                 ${renderMediaPreview(q)}
               </div>
 
-              <div class="q-box-left" style="display: flex; align-items: center; gap: 16px;">
-                <div class="q-box-actions" style="display: flex; gap: 8px;">
-                  <button class="icon-btn edit" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color:#fff; width: 42px; height: 42px; border:none; border-radius:12px; font-size:1.1rem; cursor:pointer;" title="تعديل" onclick="window.openEditModal('${q.id}')">✏️</button>
-                  <button class="icon-btn" style="background: linear-gradient(135deg, ${q.isHidden ? '#9ca3af, #6b7280' : '#f59e0b, #d97706'}); color:#fff; width: 42px; height: 42px; border:none; border-radius:12px; font-size:1.1rem; cursor:pointer;" title="${q.isHidden ? 'إظهار' : 'إخفاء'}" onclick="window.toggleHideQuestion('${q.id}', ${q.isHidden ? 'false' : 'true'})">
+              <div class="q-box-left">
+                <div class="q-box-actions">
+                  <button class="icon-btn edit" title="تعديل" onclick="window.openEditModal('${q.id}')">✏️</button>
+                  <button class="icon-btn ${q.isHidden ? 'hidden-state' : 'hide'}" title="${q.isHidden ? 'إظهار' : 'إخفاء'}" onclick="window.toggleHideQuestion('${q.id}', ${q.isHidden ? 'false' : 'true'})">
                     ${q.isHidden ? '👁️' : '🙈'}
                   </button>
-                  <button class="icon-btn delete" style="background: linear-gradient(135deg, #ef4444, #dc2626); color:#fff; width: 42px; height: 42px; border:none; border-radius:12px; font-size:1.1rem; cursor:pointer;" title="حذف" onclick="window.delQ('${q.id}')">🗑️</button>
+                  <button class="icon-btn delete" title="حذف" onclick="window.delQ('${q.id}')">🗑️</button>
                 </div>
-                <div class="q-box-number" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: #fff; width: 54px; height: 54px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 900; box-shadow: 0 8px 16px rgba(106,46,160,0.25); flex-shrink: 0;" title="رقم السؤال">${q.order || i + 1}</div>
+                <div class="q-box-number" title="رقم السؤال">${q.order || i + 1}</div>
               </div>
             </div>
           `).join("")}
