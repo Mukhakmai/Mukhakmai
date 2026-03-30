@@ -508,114 +508,95 @@
       margin-top:6px;
     }
 
-    .question-grid-admin{
-      display:grid;
-      grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
-      gap:14px;
+    /* -------------------------------------
+       تعديل تصميم مربعات الأسئلة (رقم السؤال يسار)
+       ------------------------------------- */
+    .q-box-row {
+      background: #fff;
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 16px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+      transition: transform 0.2s, border-color 0.2s;
     }
 
-    .question-card-admin{
-      background:#fff;
-      border:1px solid #e5e7eb;
-      border-radius:20px;
-      padding:16px;
-      box-shadow:0 8px 20px rgba(0,0,0,.05);
-      display:flex;
-      flex-direction:column;
-      gap:12px;
-      position:relative;
+    .q-box-row:hover {
+      transform: translateY(-2px);
+      border-color: var(--primary-light);
     }
 
-    .question-card-top{
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:10px;
+    .q-box-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
 
-    .question-meta-admin{
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
+    .q-box-title {
+      font-size: 1.2rem;
+      font-weight: 900;
+      color: var(--text-dark);
+      line-height: 1.6;
     }
 
-    .q-chip{
-      padding:6px 10px;
-      border-radius:999px;
-      font-size:.86rem;
-      font-weight:900;
-      line-height:1;
+    .q-box-details {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-size: 0.95rem;
+      color: #4b5563;
     }
 
-    .q-chip.order{
-      background:rgba(106,46,160,.12);
-      color:#6A2EA0;
+    .q-box-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
     }
 
-    .q-chip.points{
-      background:rgba(255,122,26,.14);
-      color:#b45309;
+    .q-box-actions {
+      display: flex;
+      gap: 8px;
     }
 
-    .q-chip.hidden{
-      background:rgba(239,68,68,.12);
-      color:#dc2626;
+    .q-box-number {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #fff;
+      width: 54px;
+      height: 54px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: 900;
+      box-shadow: 0 8px 16px rgba(106,46,160,0.25);
+      flex-shrink: 0;
     }
 
-    .q-chip.visible{
-      background:rgba(34,197,94,.12);
-      color:#16a34a;
+    .icon-btn {
+      width: 42px;
+      height: 42px;
+      border: none;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.1rem;
+      color: #fff;
+      transition: transform 0.15s;
     }
 
-    .q-actions-top{
-      display:flex;
-      gap:8px;
-    }
-
-    .icon-btn{
-      width:42px;
-      height:42px;
-      border:none;
-      border-radius:12px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      cursor:pointer;
-      font-size:1.1rem;
-      font-weight:900;
-    }
-
-    .icon-btn.edit{
-      background:linear-gradient(135deg,#6A2EA0,#4B1E6D);
-      color:#fff;
-    }
-
-    .icon-btn.hide{
-      background:linear-gradient(135deg,#f59e0b,#fbbf24);
-      color:#111827;
-    }
-
-    .icon-btn.delete{
-      background:linear-gradient(135deg,#ef4444,#dc2626);
-      color:#fff;
-    }
-
-    .question-text-admin{
-      font-size:1.05rem;
-      font-weight:900;
-      color:#111827;
-      line-height:1.8;
-    }
-
-    .question-answer-admin{
-      color:#16a34a;
-      font-weight:800;
-    }
-
-    .question-wrongs-admin{
-      color:#6b7280;
-      line-height:1.7;
-    }
+    .icon-btn:hover { transform: scale(1.05); }
+    .icon-btn.edit { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+    .icon-btn.hide { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    .icon-btn.delete { background: linear-gradient(135deg, #ef4444, #dc2626); }
+    .icon-btn.hidden-state { background: linear-gradient(135deg, #9ca3af, #6b7280); }
 
     .question-media-box{
       border:1px solid #e5e7eb;
@@ -623,18 +604,7 @@
       border-radius:16px;
       padding:10px;
     }
-
-    .question-media-label{
-      font-size:.85rem;
-      color:#6b7280;
-      margin-bottom:8px;
-      font-weight:700;
-    }
-
-    .question-empty-media{
-      color:#9ca3af;
-      font-size:.9rem;
-    }
+    .question-empty-media{ color:#9ca3af; font-size:.9rem; }
 
     .preview-btn{
       background:linear-gradient(135deg,#0ea5e9,#0284c7);
@@ -795,9 +765,7 @@
       width:100%;
       border:none;
       border-bottom:1px solid rgba(255,255,255,.06);
-      background:
-        linear-gradient(180deg,rgba(255,122,26,.15),transparent),
-        rgba(20,10,40,.9);
+      background:linear-gradient(180deg,rgba(255,122,26,.15),transparent),rgba(20,10,40,.9);
       color:var(--accent-light);
       font-size:2rem;
       font-weight:900;
@@ -809,9 +777,7 @@
 
     .tv-question-cell:hover{
       transform:scale(1.02);
-      background:
-        linear-gradient(180deg,rgba(255,122,26,.3),transparent),
-        rgba(20,10,40,1);
+      background:linear-gradient(180deg,rgba(255,122,26,.3),transparent),rgba(20,10,40,1);
     }
 
     .tv-question-cell.used{
@@ -835,9 +801,7 @@
       align-items:center;
       text-align:center;
       padding:30px;
-      background:
-        radial-gradient(circle,rgba(155,77,202,.2),transparent),
-        linear-gradient(180deg,#1a0f2e,#0f0a1a);
+      background:radial-gradient(circle,rgba(155,77,202,.2),transparent),linear-gradient(180deg,#1a0f2e,#0f0a1a);
       border:1px solid rgba(155,77,202,.2);
       border-radius:30px;
       box-shadow:var(--shadow);
@@ -951,9 +915,7 @@
       max-width:900px;
       text-align:center;
       padding:50px 30px;
-      background:
-        radial-gradient(circle at top,rgba(255,122,26,.25),transparent),
-        linear-gradient(180deg,#1a0f2e,#0f0a1a);
+      background:radial-gradient(circle at top,rgba(255,122,26,.25),transparent),linear-gradient(180deg,#1a0f2e,#0f0a1a);
       border:1px solid rgba(255,122,26,.3);
       border-radius:36px;
       box-shadow:var(--shadow);
@@ -1097,10 +1059,20 @@
       .container{padding:12px}
       .auth-box,.admin-card,.admin-header-card{padding:14px;border-radius:18px}
       .admin-form-grid,.admin-form-grid.two{grid-template-columns:1fr}
-      .question-grid-admin{grid-template-columns:1fr}
       .coupon-row{flex-direction:column;max-width:none}
       .tv-question-cell{font-size:1.5rem;padding:20px 6px}
       .timer-big{font-size:3rem}
+
+      /* تنسيق الموبايل للبطاقات الجديدة */
+      .q-box-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .q-box-left {
+        justify-content: space-between;
+        margin-top: 10px;
+        flex-direction: row-reverse;
+      }
     }
   </style>
 </head>
@@ -1326,7 +1298,7 @@
       <div class="admin-header-card">
         <div>
           <h2 style="margin:0;">معاينة الفئات</h2>
-          <p style="margin:8px 0 0;opacity:.85;">اختر أي فئة لمراجعة الأسئلة كما ستظهر</p>
+          <p style="margin:8px 0 0;opacity:.85;">اختر أي فئة لفتحها وتعديل أسئلتها</p>
         </div>
         <div class="admin-top-actions">
           <button class="admin-btn gray" onclick="window.switchTab('admin')">رجوع للإدارة</button>
@@ -1334,29 +1306,6 @@
       </div>
 
       <div id="admin-preview-categories" class="categories-grid"></div>
-    </div>
-  </div>
-
-  <div id="view-admin-preview-category" class="container hidden fade-in">
-    <div class="admin-shell">
-      <div class="admin-header-card">
-        <div>
-          <h2 id="admin-preview-category-title" style="margin:0;">اسم الفئة</h2>
-          <p style="margin:8px 0 0;opacity:.85;">مراجعة الأسئلة داخل الفئة</p>
-        </div>
-        <div class="admin-top-actions">
-          <button class="admin-btn gray" onclick="window.switchTab('admin-preview-home')">رجوع</button>
-        </div>
-      </div>
-
-      <div id="admin-preview-question-stage" class="admin-card"></div>
-
-      <div class="admin-card">
-        <div class="preview-nav-actions">
-          <button class="admin-btn gray" onclick="window.prevPreviewQuestion()">السابق</button>
-          <button class="admin-btn primary" onclick="window.nextPreviewQuestion()">التالي</button>
-        </div>
-      </div>
     </div>
   </div>
 
@@ -1591,8 +1540,6 @@
     let doubleActive = null;
     let blockedOpponent = null;
 
-    let previewCategoryQuestions = [];
-    let previewQuestionIndex = 0;
     let selectedPlan = null;
     let selectedPlanPrice = 0;
     let discountValue = 0;
@@ -2360,6 +2307,7 @@
       });
     };
 
+    // --- دالة عرض الوسائط المحدثة ---
     function renderMediaPreview(q) {
       if (!q.mediaType || !q.mediaUrl) return "";
 
@@ -2388,6 +2336,7 @@
       return `<div class="question-empty-media">نوع وسائط غير مدعوم</div>`;
     }
 
+    // --- دالة عرض الأسئلة بتصميم المربعات الجديد ---
     window.openAdminCategory = (catName) => {
       const box = document.getElementById("admin-category-questions-box");
       const title = document.getElementById("admin-current-category-title");
@@ -2408,54 +2357,64 @@
       }
 
       list.innerHTML = `
-        <div class="question-grid-admin">
-          ${filtered.map((q, i) => `
-            <div class="question-card-admin">
-              <div class="question-card-top">
-                <div class="question-meta-admin">
-                  <span class="q-chip order">#${q.order || i + 1}</span>
-                  <span class="q-chip points">${q.points || 0} نقطة</span>
-                  <span class="q-chip ${q.isHidden ? 'hidden' : 'visible'}">
-                    ${q.isHidden ? 'مخفي' : 'ظاهر'}
-                  </span>
-                </div>
-
-                <div class="q-actions-top">
-                  <button class="icon-btn edit" title="تعديل" onclick="window.openEditModal('${q.id}')">✏️</button>
-                  <button class="icon-btn hide" title="${q.isHidden ? 'إظهار' : 'إخفاء'}" onclick="window.toggleHideQuestion('${q.id}', ${q.isHidden ? 'false' : 'true'})">
-                    ${q.isHidden ? '👁️' : '🙈'}
-                  </button>
-                  <button class="icon-btn delete" title="حذف" onclick="window.delQ('${q.id}')">🗑️</button>
-                </div>
-              </div>
-
-              <div class="question-text-admin">
-                ${escapeHtml(q.question || "")}
-              </div>
-
-              <div class="question-answer-admin">
-                ✅ ${escapeHtml(q.correctAnswer || "")}
-              </div>
-
-              <div class="question-wrongs-admin">
-                ❌ ${(q.wrongAnswers || []).length ? escapeHtml(q.wrongAnswers.join(" | ")) : "لا توجد إجابات خاطئة"}
-              </div>
-
-              <div class="question-media-box">
-                <div class="question-media-label">
-                  نوع الوسائط: ${escapeHtml(q.mediaType || "بدون")}
-                </div>
-
-                ${
-                  q.mediaType && q.mediaUrl
-                    ? renderMediaPreview(q)
-                    : `<div class="question-empty-media">لا توجد وسائط</div>`
-                }
-              </div>
+        <div class="q-box-row" style="display: flex; background: #fff; border: 1px solid var(--border-color); border-radius: 20px; padding: 16px; margin-bottom: 14px; align-items: center; justify-content: space-between; gap: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
+          <div class="q-box-content" style="flex: 1; display: flex; flex-direction: column; gap: 10px;">
+            <div style="font-size: 1.2rem; font-weight: 900; color: var(--text-dark); line-height: 1.6;">${escapeHtml(filtered[0].question || "")}</div>
+            <div style="display: flex; flex-wrap: wrap; gap: 12px; font-size: 0.95rem; color: #4b5563;">
+              <span style="color:var(--success);font-weight:900;">✅ ${escapeHtml(filtered[0].correctAnswer || "")}</span>
+              <span>❌ ${escapeHtml((filtered[0].wrongAnswers || []).join(" | ") || "لا يوجد")}</span>
+              <span style="color:#b45309;font-weight:900;">🎯 ${filtered[0].points} نقطة</span>
+              <span style="color:${filtered[0].isHidden ? '#dc2626' : '#16a34a'};font-weight:900;">
+                ${filtered[0].isHidden ? '🙈 مخفي' : '👁️ ظاهر'}
+              </span>
             </div>
-          `).join("")}
+            ${renderMediaPreview(filtered[0])}
+          </div>
+
+          <div class="q-box-left" style="display: flex; align-items: center; gap: 16px;">
+            <div class="q-box-actions" style="display: flex; gap: 8px;">
+              <button class="icon-btn edit" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color:#fff; width: 42px; height: 42px; border:none; border-radius:12px; font-size:1.1rem; cursor:pointer;" title="تعديل" onclick="window.openEditModal('${filtered[0].id}')">✏️</button>
+              <button class="icon-btn" style="background: linear-gradient(135deg, ${filtered[0].isHidden ? '#9ca3af, #6b7280' : '#f59e0b, #d97706'}); color:#fff; width: 42px; height: 42px; border:none; border-radius:12px; font-size:1.1rem; cursor:pointer;" title="${filtered[0].isHidden ? 'إظهار' : 'إخفاء'}" onclick="window.toggleHideQuestion('${filtered[0].id}', ${filtered[0].isHidden ? 'false' : 'true'})">
+                ${filtered[0].isHidden ? '👁️' : '🙈'}
+              </button>
+              <button class="icon-btn delete" style="background: linear-gradient(135deg, #ef4444, #dc2626); color:#fff; width: 42px; height: 42px; border:none; border-radius:12px; font-size:1.1rem; cursor:pointer;" title="حذف" onclick="window.delQ('${filtered[0].id}')">🗑️</button>
+            </div>
+            <div class="q-box-number" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: #fff; width: 54px; height: 54px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 900; box-shadow: 0 8px 16px rgba(106,46,160,0.25); flex-shrink: 0;" title="رقم السؤال">${filtered[0].order || 1}</div>
+          </div>
         </div>
       `;
+
+      // Apply to the rest if more than 1
+      if(filtered.length > 1) {
+        let moreHtml = filtered.slice(1).map((q, i) => `
+          <div class="q-box-row" style="display: flex; background: #fff; border: 1px solid var(--border-color); border-radius: 20px; padding: 16px; margin-bottom: 14px; align-items: center; justify-content: space-between; gap: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
+            <div class="q-box-content" style="flex: 1; display: flex; flex-direction: column; gap: 10px;">
+              <div style="font-size: 1.2rem; font-weight: 900; color: var(--text-dark); line-height: 1.6;">${escapeHtml(q.question || "")}</div>
+              <div style="display: flex; flex-wrap: wrap; gap: 12px; font-size: 0.95rem; color: #4b5563;">
+                <span style="color:var(--success);font-weight:900;">✅ ${escapeHtml(q.correctAnswer || "")}</span>
+                <span>❌ ${escapeHtml((q.wrongAnswers || []).join(" | ") || "لا يوجد")}</span>
+                <span style="color:#b45309;font-weight:900;">🎯 ${q.points} نقطة</span>
+                <span style="color:${q.isHidden ? '#dc2626' : '#16a34a'};font-weight:900;">
+                  ${q.isHidden ? '🙈 مخفي' : '👁️ ظاهر'}
+                </span>
+              </div>
+              ${renderMediaPreview(q)}
+            </div>
+
+            <div class="q-box-left" style="display: flex; align-items: center; gap: 16px;">
+              <div class="q-box-actions" style="display: flex; gap: 8px;">
+                <button class="icon-btn edit" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color:#fff; width: 42px; height: 42px; border:none; border-radius:12px; font-size:1.1rem; cursor:pointer;" title="تعديل" onclick="window.openEditModal('${q.id}')">✏️</button>
+                <button class="icon-btn" style="background: linear-gradient(135deg, ${q.isHidden ? '#9ca3af, #6b7280' : '#f59e0b, #d97706'}); color:#fff; width: 42px; height: 42px; border:none; border-radius:12px; font-size:1.1rem; cursor:pointer;" title="${q.isHidden ? 'إظهار' : 'إخفاء'}" onclick="window.toggleHideQuestion('${q.id}', ${q.isHidden ? 'false' : 'true'})">
+                  ${q.isHidden ? '👁️' : '🙈'}
+                </button>
+                <button class="icon-btn delete" style="background: linear-gradient(135deg, #ef4444, #dc2626); color:#fff; width: 42px; height: 42px; border:none; border-radius:12px; font-size:1.1rem; cursor:pointer;" title="حذف" onclick="window.delQ('${q.id}')">🗑️</button>
+              </div>
+              <div class="q-box-number" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: #fff; width: 54px; height: 54px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 900; box-shadow: 0 8px 16px rgba(106,46,160,0.25); flex-shrink: 0;" title="رقم السؤال">${q.order || i + 2}</div>
+            </div>
+          </div>
+        `).join("");
+        list.innerHTML += moreHtml;
+      }
 
       box.classList.remove("hidden");
       window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
@@ -2561,6 +2520,7 @@
       document.getElementById("sub-user-email").value = "";
     };
 
+    // --- حل مشكلة الدخول من معاينة الفئات ---
     window.openAdminPreviewHome = () => {
       const grid = document.getElementById("admin-preview-categories");
       if (!grid) return;
@@ -2575,8 +2535,10 @@
 
       const cats = Object.keys(grouped).sort((a, b) => a.localeCompare(b, "ar"));
 
+      // بدلاً من توجيهه لـ openAdminPreviewCategory المحدودة،
+      // نوجهه مباشرة للقائمة الرئيسية (الإدارة) ليعدل براحته.
       grid.innerHTML = cats.map(cat => `
-        <div class="category-tile" onclick="window.openAdminPreviewCategory('${cat.replace(/'/g, "\\'")}')">
+        <div class="category-tile" onclick="window.switchTab('admin'); window.openAdminCategory('${cat.replace(/'/g, "\\'")}')">
           <div class="category-box">
             <div class="category-thumb">${escapeHtml((cat || "?").trim().charAt(0))}</div>
           </div>
@@ -2585,76 +2547,6 @@
       `).join("");
 
       window.switchTab("admin-preview-home");
-    };
-
-    window.openAdminPreviewCategory = (catName) => {
-      previewCategoryQuestions = allQuestions
-        .filter(q => q.category === catName && !q.isHidden)
-        .sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
-
-      previewQuestionIndex = 0;
-      document.getElementById("admin-preview-category-title").innerText = catName;
-      renderPreviewQuestion();
-      window.switchTab("admin-preview-category");
-    };
-
-    function renderPreviewQuestion() {
-      const box = document.getElementById("admin-preview-question-stage");
-      if (!box) return;
-
-      if (!previewCategoryQuestions.length) {
-        box.innerHTML = `<p>لا توجد أسئلة ظاهرة في هذه الفئة.</p>`;
-        return;
-      }
-
-      const q = previewCategoryQuestions[previewQuestionIndex];
-
-      box.innerHTML = `
-        <div style="text-align:right">
-          <div style="font-weight:900;color:var(--primary);margin-bottom:10px">
-            سؤال رقم ${q.order || (previewQuestionIndex + 1)} — ${q.points} نقطة
-          </div>
-
-          <div style="font-size:1.2rem;font-weight:bold;margin-bottom:12px">
-            ${escapeHtml(q.question || "")}
-          </div>
-
-          ${renderMediaPreview(q)}
-
-          <div style="margin-top:15px;color:var(--success);font-weight:900">
-            ✅ الإجابة الصحيحة: ${escapeHtml(q.correctAnswer || "")}
-          </div>
-
-          <div style="margin-top:10px;color:#666">
-            ❌ الخيارات الخاطئة: ${escapeHtml((q.wrongAnswers || []).join(" | ") || "لا يوجد")}
-          </div>
-        </div>
-      `;
-    }
-
-    window.nextPreviewQuestion = () => {
-      if (previewCategoryQuestions.length && previewQuestionIndex < previewCategoryQuestions.length - 1) {
-        previewQuestionIndex++;
-        renderPreviewQuestion();
-      }
-    };
-
-    window.prevPreviewQuestion = () => {
-      if (previewCategoryQuestions.length && previewQuestionIndex > 0) {
-        previewQuestionIndex--;
-        renderPreviewQuestion();
-      }
-    };
-
-    window.previewSingleQuestion = (id) => {
-      const q = allQuestions.find(x => x.id === id);
-      if (!q) return;
-
-      previewCategoryQuestions = [q];
-      previewQuestionIndex = 0;
-      document.getElementById("admin-preview-category-title").innerText = q.category || "معاينة سؤال";
-      renderPreviewQuestion();
-      window.switchTab("admin-preview-category");
     };
 
     function renderSetup() {
