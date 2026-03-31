@@ -874,6 +874,22 @@
       text-decoration: line-through;
     }
 
+    .tv-question-cell.empty-cell {
+      opacity: 0.45;
+      cursor: not-allowed;
+      color: #94a3b8;
+      background:
+        linear-gradient(180deg, rgba(100, 116, 139, 0.18), transparent),
+        rgba(20, 10, 40, 0.7);
+    }
+
+    .tv-question-cell.empty-cell:hover {
+      transform: none;
+      background:
+        linear-gradient(180deg, rgba(100, 116, 139, 0.18), transparent),
+        rgba(20, 10, 40, 0.7);
+    }
+
     .tv-question-cell:last-child {
       border-bottom: none;
     }
@@ -2339,7 +2355,7 @@
             const firstLetter = (cat || "?").trim().charAt(0);
 
             return `
-              <div class="category-tile" onclick="window.openCategoryPreview('${cat.replace(/'/g, "\\'")}')">
+              <div class="category-tile" onclick="window.openCategoryPreview('${cat.replace(/'/g, "\'")}')">
                 <div class="category-box">
                   <div class="play-count-badge ${playCount === 0 ? "zero" : ""}">${playCount}</div>
                   <div class="category-thumb">${escapeHtml(firstLetter)}</div>
@@ -2388,11 +2404,16 @@
         createdAt: serverTimestamp()
       });
 
-      allCategories.push(cat);
+      if (!allCategories.includes(cat)) {
+        allCategories.push(cat);
+      }
 
       document.getElementById("new-category-name").value = "";
-      alert("تم إنشاء الفئة بنجاح! يمكنك الآن إضافة أسئلة لها.");
-      await window.reloadAdminData();
+      populateCategorySelects();
+      window.loadAdminList();
+      await fetchData(false);
+
+      alert("تم إنشاء الفئة بنجاح، ويجب أن تظهر الآن في قائمة الفئات حتى لو ما فيها أسئلة");
     };
 
     window.addSingleQuestion = async () => {
@@ -2500,23 +2521,32 @@
       if (!list) return;
 
       const grouped = {};
-      const uniqueCats = getUniqueCategories();
 
-      uniqueCats.forEach(c => {
-        grouped[c] = [];
+      // نضمن إدخال كل الفئات المحفوظة حتى لو ما عندها أسئلة
+      const explicitCats = Array.isArray(allCategories) ? allCategories.filter(Boolean) : [];
+      const questionCats = Array.isArray(allQuestions) ? allQuestions.map(q => q.category).filter(Boolean) : [];
+      const cats = [...new Set([...explicitCats, ...questionCats])].sort((a, b) => a.localeCompare(b, "ar"));
+
+      cats.forEach(cat => {
+        grouped[cat] = [];
       });
 
       allQuestions.forEach(q => {
-        if (!grouped[q.category]) {
-          grouped[q.category] = [];
-        }
+        if (!grouped[q.category]) grouped[q.category] = [];
         grouped[q.category].push(q);
       });
 
-      const cats = Object.keys(grouped).sort((a, b) => a.localeCompare(b, "ar"));
-
       if (!cats.length) {
-        list.innerHTML = "لا توجد فئات حالياً.";
+        list.innerHTML = `
+          <div class="admin-category-card">
+            <div class="admin-category-top">
+              <div>
+                <b>لا توجد فئات حالياً</b>
+                <div class="admin-category-meta">أضف فئة جديدة من النموذج الموجود في اليمين</div>
+              </div>
+            </div>
+          </div>
+        `;
         return;
       }
 
@@ -2527,7 +2557,7 @@
         const total = qList.length;
 
         return `
-          <div class="admin-category-card" data-category-name="${escapeHtml(cat)}" style="cursor:pointer;" onclick="window.openAdminCategory('${cat.replace(/'/g, "\\'")}')">
+          <div class="admin-category-card" data-category-name="${escapeHtml(cat)}" style="cursor:pointer;" onclick="window.openAdminCategory('${cat.replace(/'/g, "\'")}')">
             <div class="admin-category-top">
               <div>
                 <b>${escapeHtml(cat)}</b>
@@ -2535,7 +2565,7 @@
                   ظاهر: ${visibleCount} | مخفي: ${hiddenCount} | الكل: ${total}
                 </div>
               </div>
-              <button class="admin-btn primary" onclick="event.stopPropagation(); window.openAdminCategory('${cat.replace(/'/g, "\\'")}')">فتح</button>
+              <button class="admin-btn primary" onclick="event.stopPropagation(); window.openAdminCategory('${cat.replace(/'/g, "\'")}')">فتح</button>
             </div>
           </div>
         `;
@@ -2544,10 +2574,29 @@
 
     window.filterAdminCategories = () => {
       const q = (document.getElementById("admin-category-search")?.value || "").trim().toLowerCase();
-      document.querySelectorAll("[data-category-name]").forEach(card => {
-        const name = card.getAttribute("data-category-name").toLowerCase();
-        card.style.display = name.includes(q) ? "" : "none";
+      const cards = [...document.querySelectorAll("[data-category-name]")];
+      let visible = 0;
+
+      cards.forEach(card => {
+        const name = (card.getAttribute("data-category-name") || "").toLowerCase();
+        const match = name.includes(q);
+        card.style.display = match ? "" : "none";
+        if (match) visible++;
       });
+
+      const list = document.getElementById("admin-categories-list");
+      if (!list) return;
+
+      const oldEmpty = document.getElementById("admin-search-empty");
+      if (oldEmpty) oldEmpty.remove();
+
+      if (cards.length > 0 && visible === 0) {
+        const msg = document.createElement("div");
+        msg.id = "admin-search-empty";
+        msg.className = "admin-category-card";
+        msg.innerHTML = `<div class="admin-category-top"><div><b>لا توجد نتائج</b><div class="admin-category-meta">جرّب اسمًا آخر أو تأكد أن الفئة محفوظة</div></div></div>`;
+        list.appendChild(msg);
+      }
     };
 
     function renderMediaPreview(q) {
@@ -2783,14 +2832,20 @@
       const box = document.getElementById("setup-categories");
       if (!box) return;
 
+      if (!cats.length) {
+        box.innerHTML = `<div class="auth-box" style="grid-column:1 / -1;text-align:center;">لا توجد فئات حالياً</div>`;
+        return;
+      }
+
       box.innerHTML = cats.map(c => {
         const selected = selectedCategories.includes(c);
         const visibleQCount = visibleQuestions.filter(q => q.category === c).length;
         const emptyAlert = visibleQCount === 0 ? `<div style="font-size:0.7rem;color:#ef4444;margin-top:4px;">(فارغة)</div>` : '';
 
         return `
-          <div class="category-tile" onclick="window.toggleCategory('${c.replace(/'/g, "\\'")}', ${visibleQCount})">
+          <div class="category-tile" onclick="window.toggleCategory('${c.replace(/'/g, "\'")}', ${visibleQCount})">
             <div class="category-box" style="${selected ? "outline:3px solid #FFA64D; transform:scale(1.02);" : ""}">
+              <div class="play-count-badge ${visibleQCount === 0 ? "zero" : ""}">${Math.floor(visibleQCount / 6)}</div>
               <div class="category-thumb">${escapeHtml((c || "?").trim().charAt(0))}</div>
             </div>
             <div class="category-name">${escapeHtml(c)}${emptyAlert}</div>
@@ -2866,12 +2921,20 @@
           ...qs.filter(q => Number(q.points) === 600).slice(0, 2)
         ];
 
+        while (pack.length < 6) {
+          pack.push(null);
+        }
+
         return `
           <div class="tv-category-column">
             <div class="tv-category-header">${escapeHtml(cat)}</div>
-            ${pack.map(q => `
+            ${pack.map(q => q ? `
               <button class="tv-question-cell" data-qid="${q.id}" onclick="window.openQuestion('${q.id}', this)">
                 ${q.points}
+              </button>
+            ` : `
+              <button class="tv-question-cell empty-cell" type="button" disabled>
+                —
               </button>
             `).join("")}
           </div>
