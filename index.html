@@ -2451,8 +2451,12 @@
     };
 
     async function fetchData(refreshAdmin = true) {
-      const snap = await getDocs(collection(db, "live_questions"));
-      allQuestions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      try {
+        const snap = await getDocs(collection(db, "live_questions"));
+        allQuestions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      } catch (e) {
+        console.error("خطأ في جلب الأسئلة:", e);
+      }
 
       allCategories = await fetchExplicitCategories();
 
@@ -2500,9 +2504,27 @@
       }
     };
 
+    // التعديل الجوهري الذي سيمنع اختفاء الفئات نهائياً!
     window.reloadAdminData = async () => {
-      const snap = await getDocs(query(collection(db, "live_questions"), orderBy("category"), orderBy("order")));
-      allQuestions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      try {
+        // المحاولة الأولى: جلب البيانات مرتبة (في حال كان الفهرس جاهزاً)
+        const snap = await getDocs(query(collection(db, "live_questions"), orderBy("category"), orderBy("order")));
+        allQuestions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      } catch (e) {
+        console.warn("جاري جلب البيانات بدون فهرس (لأن الفهرس قيد الإنشاء)...", e);
+        // خطة الإنقاذ: جلب البيانات بشكل عادي وترتيبها داخل المتصفح (مما يمنع توقف الكود)
+        const snap = await getDocs(collection(db, "live_questions"));
+        let qs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        
+        // الترتيب اليدوي الآمن
+        qs.sort((a, b) => {
+          if (a.category === b.category) {
+            return (Number(a.order) || 0) - (Number(b.order) || 0);
+          }
+          return (a.category || "").localeCompare(b.category || "", "ar");
+        });
+        allQuestions = qs;
+      }
 
       allCategories = await fetchExplicitCategories();
 
@@ -2539,7 +2561,6 @@
       alert("تم إنشاء الفئة بنجاح، ويجب أن تظهر الآن في قائمة الفئات حتى لو ما فيها أسئلة");
     };
 
-    // التعديل الرئيسي في دالة إضافة السؤال
     window.addSingleQuestion = async () => {
       const btn = document.getElementById("btn-add-single-q");
       const originalBtnText = btn.innerText;
@@ -2556,7 +2577,6 @@
           .filter(Boolean);
         const mediaType = document.getElementById("admin-media-type")?.value;
         
-        // التحقق من الملف المرفوع والرابط
         let mediaUrl = document.getElementById("admin-media-url")?.value.trim();
         const fileInput = document.getElementById("admin-media-file");
 
@@ -2564,7 +2584,6 @@
           return alert("أكمل البيانات المطلوبة");
         }
 
-        // إذا تم اختيار ملف من الجهاز، نرفعه أولاً إلى Supabase
         if (fileInput.files && fileInput.files.length > 0) {
           btn.innerText = "جاري الرفع...";
           btn.disabled = true;
@@ -2581,13 +2600,12 @@
           correctAnswer,
           wrongAnswers,
           mediaType,
-          mediaUrl, // الرابط الجديد من Supabase (أو الرابط اليدوي)
+          mediaUrl, 
           isHidden: false,
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp()
         });
 
-        // تصفير الحقول
         document.getElementById("admin-category-input").value = "";
         document.getElementById("admin-q-order").value = "";
         document.getElementById("admin-q-points").value = "";
@@ -2621,10 +2639,8 @@
         .replace(/[‘’]/g, "'")
         .replace(/،/g, ",");
 
-      // لو كتبت مفاتيح بدون تنصيص مثل question:
       text = text.replace(/([{,]\s*)([A-Za-z_][A-Za-z0-9_]*)(\s*:)/g, '$1"$2"$3');
 
-      // إزالة الفواصل الزائدة قبل } أو ]
       text = text.replace(/,\s*([}\]])/g, "$1");
 
       return text;
@@ -2710,7 +2726,6 @@
 
       const grouped = {};
 
-      // نضمن إدخال كل الفئات المحفوظة حتى لو ما عندها أسئلة
       const explicitCats = Array.isArray(allCategories) ? allCategories.filter(Boolean) : [];
       const questionCats = Array.isArray(allQuestions) ? allQuestions.map(q => q.category).filter(Boolean) : [];
       const cats = [...new Set([...explicitCats, ...questionCats])].sort((a, b) => a.localeCompare(b, "ar"));
@@ -2897,7 +2912,6 @@
       document.getElementById("edit-modal")?.classList.remove("hidden");
     };
 
-    // التعديل في دالة حفظ تعديل السؤال
     window.saveEditedQuestion = async () => {
       const btn = document.getElementById("btn-save-edit-q");
       const originalBtnText = btn.innerText;
@@ -2936,7 +2950,7 @@
             .map(s => s.trim())
             .filter(Boolean),
           mediaType: document.getElementById("edit-q-media-type").value,
-          mediaUrl: mediaUrl, // تحديث الرابط الجديد
+          mediaUrl: mediaUrl, 
           isHidden: document.getElementById("edit-q-hidden").checked,
           updatedAt: serverTimestamp()
         });
