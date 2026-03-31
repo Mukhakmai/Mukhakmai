@@ -2335,15 +2335,19 @@
           .map(cat => {
             const qs = grouped[cat] || [];
             const playCount = Math.floor(qs.length / 6);
+            const visibleQCount = qs.length;
             const firstLetter = (cat || "?").trim().charAt(0);
 
             return `
-              <div class="category-tile ${playCount === 0 ? "disabled-cat" : ""}" onclick="${playCount > 0 ? `window.openCategoryPreview('${cat.replace(/'/g, "\\'")}')` : ""}">
+              <div class="category-tile" onclick="window.openCategoryPreview('${cat.replace(/'/g, "\\'")}')">
                 <div class="category-box">
                   <div class="play-count-badge ${playCount === 0 ? "zero" : ""}">${playCount}</div>
                   <div class="category-thumb">${escapeHtml(firstLetter)}</div>
                 </div>
-                <div class="category-name">${escapeHtml(cat)}</div>
+                <div class="category-name">
+                  ${escapeHtml(cat)}
+                  ${visibleQCount === 0 ? `<div style="font-size:0.75rem;color:#fca5a5;margin-top:4px;">بدون أسئلة حالياً</div>` : ``}
+                </div>
               </div>
             `;
           }).join("");
@@ -3317,7 +3321,6 @@
         }
 
         await loadUserAccount(user);
-        await fetchData();
 
         const lastTab = localStorage.getItem("activeTab") || "home";
         window.switchTab(lastTab);
@@ -3326,9 +3329,10 @@
         document.getElementById("logged-in-view")?.classList.add("hidden");
         document.getElementById("logged-out-view")?.classList.remove("hidden");
         isSubscribed = false;
-        await fetchData();
         window.switchTab("auth");
       }
+
+      await fetchData();
     });
   </script>
 </body>
