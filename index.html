@@ -632,7 +632,8 @@
     .q-box-number {
       background: linear-gradient(135deg, var(--primary), var(--primary-dark));
       color: #fff;
-      width: 54px; height: 54px;
+      width: 54px;
+      height: 54px;
       border-radius: 14px;
       display: flex;
       align-items: center;
@@ -644,7 +645,8 @@
     }
 
     .icon-btn {
-      width: 42px; height: 42px;
+      width: 42px;
+      height: 42px;
       border: none;
       border-radius: 12px;
       display: flex;
@@ -660,10 +662,21 @@
       transform: scale(1.05);
     }
 
-    .icon-btn.edit { background: linear-gradient(135deg, #3b82f6, #2563eb); }
-    .icon-btn.hide { background: linear-gradient(135deg, #f59e0b, #d97706); }
-    .icon-btn.delete { background: linear-gradient(135deg, #ef4444, #dc2626); }
-    .icon-btn.hidden-state { background: linear-gradient(135deg, #9ca3af, #6b7280); }
+    .icon-btn.edit {
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+    }
+
+    .icon-btn.hide {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+    }
+
+    .icon-btn.delete {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+    }
+
+    .icon-btn.hidden-state {
+      background: linear-gradient(135deg, #9ca3af, #6b7280);
+    }
 
     .question-media-box {
       border: 1px solid #e5e7eb;
@@ -771,7 +784,11 @@
       box-shadow: var(--shadow);
     }
 
-    .round-label { font-weight: 800; color: var(--muted); }
+    .round-label {
+      font-weight: 800;
+      color: var(--muted);
+    }
+
     .timer-big {
       font-size: 4rem;
       line-height: 1;
@@ -796,7 +813,11 @@
       box-shadow: 0 8px 18px rgba(255, 122, 26, 0.25);
     }
 
-    .tv-board-columns { display: grid; gap: 16px; }
+    .tv-board-columns {
+      display: grid;
+      gap: 16px;
+    }
+
     .tv-board-3 { grid-template-columns: repeat(3, 1fr); }
     .tv-board-4 { grid-template-columns: repeat(4, 1fr); }
     .tv-board-5 { grid-template-columns: repeat(5, 1fr); }
@@ -862,11 +883,21 @@
         rgba(20, 10, 40, 0.7);
     }
 
-    .tv-question-cell.empty-cell:hover { transform: none; background: linear-gradient(180deg, rgba(100, 116, 139, 0.18), transparent), rgba(20, 10, 40, 0.7); }
+    .tv-question-cell.empty-cell:hover {
+      transform: none;
+      background:
+        linear-gradient(180deg, rgba(100, 116, 139, 0.18), transparent),
+        rgba(20, 10, 40, 0.7);
+    }
 
-    .tv-question-cell:last-child { border-bottom: none; }
+    .tv-question-cell:last-child {
+      border-bottom: none;
+    }
 
-    .tv-question-stage { display: grid; gap: 18px; }
+    .tv-question-stage {
+      display: grid;
+      gap: 18px;
+    }
 
     .question-hero {
       min-height: 320px;
@@ -942,8 +973,17 @@
       box-shadow: 0 0 20px rgba(34, 197, 94, 0.25);
     }
 
-    .control-deck { display: grid; gap: 14px; }
-    .control-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+    .control-deck {
+      display: grid;
+      gap: 14px;
+    }
+
+    .control-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
 
     .tv-btn {
       min-width: 140px;
@@ -953,7 +993,10 @@
       box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
     }
 
-    .tv-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .tv-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
 
     .tv-btn-blue { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); }
     .tv-btn-gold { background: linear-gradient(135deg, var(--accent), var(--accent-light)); color: #2d1807; }
@@ -962,7 +1005,11 @@
     .tv-btn-gray { background: linear-gradient(135deg, #64748b, #475569); }
     .tv-btn-purple { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
 
-    .result-picker { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .result-picker {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
 
     .winner-screen {
       min-height: 60vh;
@@ -984,11 +1031,34 @@
       box-shadow: var(--shadow);
     }
 
-    .winner-title { font-size: 1.4rem; color: var(--muted); margin-bottom: 14px; font-weight: 800; }
-    .winner-name { font-size: clamp(2rem, 5vw, 4.5rem); color: var(--accent-light); font-weight: 900; margin-bottom: 14px; }
-    .winner-score { font-size: 2rem; font-weight: 900; color: #fff; }
+    .winner-title {
+      font-size: 1.4rem;
+      color: var(--muted);
+      margin-bottom: 14px;
+      font-weight: 800;
+    }
 
-    .power-bar { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 8px; }
+    .winner-name {
+      font-size: clamp(2rem, 5vw, 4.5rem);
+      color: var(--accent-light);
+      font-weight: 900;
+      margin-bottom: 14px;
+    }
+
+    .winner-score {
+      font-size: 2rem;
+      font-weight: 900;
+      color: #fff;
+    }
+
+    .power-bar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 8px;
+    }
+
     .power-pill {
       background: rgba(255, 255, 255, 0.08);
       color: var(--muted);
@@ -997,15 +1067,52 @@
       font-size: 0.9rem;
       border: 1px solid rgba(255, 255, 255, 0.08);
     }
-    .power-pill.used { opacity: 0.35; text-decoration: line-through; }
 
-    @keyframes boardIn { from { opacity: 0; transform: translateY(20px) scale(0.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
-    @keyframes questionPop { 0% { opacity: 0; transform: scale(0.92); } 70% { opacity: 1; transform: scale(1.02); } 100% { opacity: 1; transform: scale(1); } }
-    @keyframes glowPulse { 0% { box-shadow: 0 0 0 rgba(255, 122, 26, 0); } 50% { box-shadow: 0 0 30px rgba(255, 122, 26, 0.35); } 100% { box-shadow: 0 0 0 rgba(255, 122, 26, 0); } }
-    @keyframes timerAlert { 0% { transform: scale(1); } 25% { transform: scale(1.08); } 50% { transform: scale(0.96); } 75% { transform: scale(1.08); } 100% { transform: scale(1); } }
-    @keyframes answerReveal { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes winnerZoom { 0% { opacity: 0; transform: scale(0.85); } 60% { opacity: 1; transform: scale(1.05); } 100% { opacity: 1; transform: scale(1); } }
-    @keyframes shimmerSweep { 0% { transform: translateX(-140%); } 100% { transform: translateX(140%); } }
+    .power-pill.used {
+      opacity: 0.35;
+      text-decoration: line-through;
+    }
+
+    @keyframes boardIn {
+      from { opacity: 0; transform: translateY(20px) scale(0.985); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @keyframes questionPop {
+      0% { opacity: 0; transform: scale(0.92); }
+      70% { opacity: 1; transform: scale(1.02); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes glowPulse {
+      0% { box-shadow: 0 0 0 rgba(255, 122, 26, 0); }
+      50% { box-shadow: 0 0 30px rgba(255, 122, 26, 0.35); }
+      100% { box-shadow: 0 0 0 rgba(255, 122, 26, 0); }
+    }
+
+    @keyframes timerAlert {
+      0% { transform: scale(1); }
+      25% { transform: scale(1.08); }
+      50% { transform: scale(0.96); }
+      75% { transform: scale(1.08); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes answerReveal {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes winnerZoom {
+      0% { opacity: 0; transform: scale(0.85); }
+      60% { opacity: 1; transform: scale(1.05); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes shimmerSweep {
+      0% { transform: translateX(-140%); }
+      100% { transform: translateX(140%); }
+    }
 
     .board-animate { animation: boardIn 0.45s ease; }
     .question-animate { animation: questionPop 0.45s ease; }
@@ -1014,12 +1121,31 @@
     .timer-danger { animation: timerAlert 0.7s ease infinite; color: var(--accent-light) !important; }
     .flash-score { animation: questionPop 0.35s ease; }
 
-    .tv-question-cell.selected { position: relative; overflow: hidden; animation: glowPulse 0.8s ease; }
-    .tv-question-cell.selected::after { content: ""; position: absolute; top: 0; right: 0; width: 45%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.18), transparent); animation: shimmerSweep 0.8s ease; }
+    .tv-question-cell.selected {
+      position: relative;
+      overflow: hidden;
+      animation: glowPulse 0.8s ease;
+    }
+
+    .tv-question-cell.selected::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 45%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.18), transparent);
+      animation: shimmerSweep 0.8s ease;
+    }
 
     @media (min-width: 768px) {
       body { padding-top: 100px; }
-      .navbar { flex-direction: row; justify-content: space-between; padding: 10px 34px; min-height: 82px; }
+      .navbar {
+        flex-direction: row;
+        justify-content: space-between;
+        padding: 10px 34px;
+        min-height: 82px;
+      }
       .nav-links { width: auto; }
       .btn-play-nav { width: auto; }
     }
@@ -1198,7 +1324,10 @@
           <div class="admin-card">
             <h3>إضافة مجموعة أسئلة (دفعة واحدة)</h3>
             <div class="admin-form-grid" style="margin-bottom: 12px;">
-              <input type="text" id="admin-bulk-category-input" list="category-options" placeholder="اكتب أو اختر الفئة..." autocomplete="off">
+              <div style="position:relative;">
+                <input type="text" id="admin-bulk-category-input" placeholder="اكتب أو اختر الفئة..." autocomplete="off" oninput="window.smartCategorySearch('admin-bulk-category-input','admin-bulk-category-results')" onfocus="window.smartCategorySearch('admin-bulk-category-input','admin-bulk-category-results')">
+                <div id="admin-bulk-category-results" style="position:absolute;top:100%;right:0;left:0;background:#fff;border:1px solid #e5e7eb;border-radius:12px;margin-top:6px;max-height:220px;overflow:auto;z-index:9999;box-shadow:0 10px 25px rgba(0,0,0,.08);display:none;"></div>
+              </div>
             </div>
             <p style="font-size: 0.9rem; color: #666; margin-top: 0;">أدخل الأسئلة بصيغة JSON لرفعها بضغطة زر.</p>
             <textarea id="admin-bulk-json" rows="8" placeholder='[
@@ -3314,7 +3443,8 @@
     document.addEventListener("click", (e) => {
       const pairs = [
         ["admin-category-input", "admin-category-results"],
-        ["edit-q-category-input", "edit-category-results"]
+        ["edit-q-category-input", "edit-category-results"],
+        ["admin-bulk-category-input", "admin-bulk-category-results"]
       ];
 
       pairs.forEach(([inputId, resultId]) => {
