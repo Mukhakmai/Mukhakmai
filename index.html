@@ -6,6 +6,8 @@
   <title>مخك معي؟ 🧠</title>
   <link rel="icon" href="favicon.png" type="image/png" />
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet" />
+  
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
     :root {
@@ -185,6 +187,17 @@
       background: #fff;
       color: #111827;
       outline: none;
+    }
+
+    input[type="file"] {
+      padding: 10px;
+      background: #f8fafc;
+      border: 2px dashed #cbd5e1;
+      cursor: pointer;
+    }
+
+    input[type="file"]:hover {
+      border-color: var(--primary-light);
     }
 
     textarea {
@@ -1377,12 +1390,15 @@
               <input type="text" id="admin-q-wrongs" placeholder="الإجابات الخاطئة | افصل بينهم بعلامة |">
             </div>
 
-            <div class="admin-form-row single">
-              <input type="text" id="admin-media-url" placeholder="رابط الصورة أو الصوت أو الفيديو">
+            <div class="admin-form-row single" style="display: flex; gap: 10px; flex-direction: column;">
+              <label style="font-size: 0.9rem; font-weight: bold; color: #4b5563;">اختر ملف للرفع (صورة، صوت، فيديو) إلى Supabase:</label>
+              <input type="file" id="admin-media-file" accept="image/*, audio/*, video/*">
+              <p style="margin: 0; font-size: 0.85rem; color: #6b7280; text-align: center;">أو</p>
+              <input type="text" id="admin-media-url" placeholder="ضع رابط مباشر هنا (إذا لم ترغب برفع ملف)">
             </div>
 
             <div class="admin-form-actions">
-              <button class="admin-btn green" onclick="window.addSingleQuestion()">إضافة السؤال</button>
+              <button class="admin-btn green" id="btn-add-single-q" onclick="window.addSingleQuestion()">إضافة السؤال</button>
             </div>
           </div>
 
@@ -1596,7 +1612,13 @@
       <textarea id="edit-q-text" rows="4" placeholder="نص السؤال"></textarea>
       <input type="text" id="edit-q-correct" placeholder="الإجابة الصحيحة">
       <input type="text" id="edit-q-wrongs" placeholder="خطأ 1 | خطأ 2 | خطأ 3">
-      <input type="text" id="edit-q-url" placeholder="رابط الوسائط">
+      
+      <div class="admin-form-row single" style="display: flex; gap: 10px; flex-direction: column; margin-top: 12px; margin-bottom: 12px;">
+        <label style="font-size: 0.9rem; font-weight: bold; color: #4b5563;">تحديث ملف الوسائط (في Supabase):</label>
+        <input type="file" id="edit-media-file" accept="image/*, audio/*, video/*">
+        <p style="margin: 0; font-size: 0.85rem; color: #6b7280; text-align: center;">أو رابط مباشر:</p>
+        <input type="text" id="edit-q-url" placeholder="رابط الوسائط الحالي">
+      </div>
 
       <label class="admin-check-row">
         <input type="checkbox" id="edit-q-hidden">
@@ -1604,7 +1626,7 @@
       </label>
 
       <div class="admin-form-actions">
-        <button class="admin-btn green" onclick="window.saveEditedQuestion()">حفظ</button>
+        <button class="admin-btn green" id="btn-save-edit-q" onclick="window.saveEditedQuestion()">حفظ</button>
         <button class="admin-btn gray" onclick="document.getElementById('edit-modal').classList.add('hidden')">إلغاء</button>
       </div>
     </div>
@@ -1635,6 +1657,7 @@
       orderBy
     } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
+    // إعدادات Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyBRPly4tY1nUSIimYn5dvbKuO3ayn8p_4o",
       authDomain: "mukhakmai.firebaseapp.com",
@@ -1647,6 +1670,11 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+
+    // إعدادات Supabase Storage
+    const supabaseUrl = 'https://cgvtasbjaehfzmnfdczf.supabase.co';
+    const supabaseKey = 'sb_publishable_7Ge8RTuKXEcNe2x_a7ce6w_yXqMDpT4';
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
     const adminEmail = "ziad95005@gmail.com";
 
@@ -1695,6 +1723,30 @@
 
     function shuffleArray(arr) {
       return [...arr].sort(() => Math.random() - 0.5);
+    }
+
+    // دالة رفع الملفات إلى Supabase Storage
+    async function uploadFileToSupabase(file) {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      // رفع الملف إلى Bucket اسمه 'Media'
+      const { data, error } = await supabase.storage
+        .from('Media')
+        .upload(filePath, file);
+
+      if (error) {
+        console.error("Supabase Upload Error:", error);
+        throw error;
+      }
+
+      // جلب الرابط العام للملف
+      const { data: publicUrlData } = supabase.storage
+        .from('Media')
+        .getPublicUrl(filePath);
+
+      return publicUrlData.publicUrl;
     }
 
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -2482,50 +2534,76 @@
       alert("تم إنشاء الفئة بنجاح، ويجب أن تظهر الآن في قائمة الفئات حتى لو ما فيها أسئلة");
     };
 
+    // التعديل الرئيسي في دالة إضافة السؤال
     window.addSingleQuestion = async () => {
-      const category = document.getElementById("admin-category-input")?.value.trim();
-      const order = Number(document.getElementById("admin-q-order")?.value);
-      const points = Number(document.getElementById("admin-q-points")?.value);
-      const question = document.getElementById("admin-q-text")?.value.trim();
-      const correctAnswer = document.getElementById("admin-q-correct")?.value.trim();
-      const wrongAnswers = document.getElementById("admin-q-wrongs")?.value
-        .split("|")
-        .map(s => s.trim())
-        .filter(Boolean);
-      const mediaType = document.getElementById("admin-media-type")?.value;
-      const mediaUrl = document.getElementById("admin-media-url")?.value.trim();
+      const btn = document.getElementById("btn-add-single-q");
+      const originalBtnText = btn.innerText;
 
-      if (!category || !order || !points || !question || !correctAnswer) {
-        return alert("أكمل البيانات المطلوبة");
+      try {
+        const category = document.getElementById("admin-category-input")?.value.trim();
+        const order = Number(document.getElementById("admin-q-order")?.value);
+        const points = Number(document.getElementById("admin-q-points")?.value);
+        const question = document.getElementById("admin-q-text")?.value.trim();
+        const correctAnswer = document.getElementById("admin-q-correct")?.value.trim();
+        const wrongAnswers = document.getElementById("admin-q-wrongs")?.value
+          .split("|")
+          .map(s => s.trim())
+          .filter(Boolean);
+        const mediaType = document.getElementById("admin-media-type")?.value;
+        
+        // التحقق من الملف المرفوع والرابط
+        let mediaUrl = document.getElementById("admin-media-url")?.value.trim();
+        const fileInput = document.getElementById("admin-media-file");
+
+        if (!category || !order || !points || !question || !correctAnswer) {
+          return alert("أكمل البيانات المطلوبة");
+        }
+
+        // إذا تم اختيار ملف من الجهاز، نرفعه أولاً إلى Supabase
+        if (fileInput.files && fileInput.files.length > 0) {
+          btn.innerText = "جاري الرفع...";
+          btn.disabled = true;
+          mediaUrl = await uploadFileToSupabase(fileInput.files[0]);
+        }
+
+        await ensureCategoryExists(category);
+
+        await addDoc(collection(db, "live_questions"), {
+          category,
+          order,
+          points,
+          question,
+          correctAnswer,
+          wrongAnswers,
+          mediaType,
+          mediaUrl, // الرابط الجديد من Supabase (أو الرابط اليدوي)
+          isHidden: false,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        });
+
+        // تصفير الحقول
+        document.getElementById("admin-category-input").value = "";
+        document.getElementById("admin-q-order").value = "";
+        document.getElementById("admin-q-points").value = "";
+        document.getElementById("admin-q-text").value = "";
+        document.getElementById("admin-q-correct").value = "";
+        document.getElementById("admin-q-wrongs").value = "";
+        document.getElementById("admin-media-type").value = "";
+        document.getElementById("admin-media-url").value = "";
+        if(fileInput) fileInput.value = "";
+
+        btn.innerText = originalBtnText;
+        btn.disabled = false;
+        alert("تمت إضافة السؤال بنجاح");
+        await window.reloadAdminData();
+
+      } catch(error) {
+        console.error(error);
+        alert("حدث خطأ: " + error.message);
+        btn.innerText = originalBtnText;
+        btn.disabled = false;
       }
-
-      await ensureCategoryExists(category);
-
-      await addDoc(collection(db, "live_questions"), {
-        category,
-        order,
-        points,
-        question,
-        correctAnswer,
-        wrongAnswers,
-        mediaType,
-        mediaUrl,
-        isHidden: false,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      });
-
-      document.getElementById("admin-category-input").value = "";
-      document.getElementById("admin-q-order").value = "";
-      document.getElementById("admin-q-points").value = "";
-      document.getElementById("admin-q-text").value = "";
-      document.getElementById("admin-q-correct").value = "";
-      document.getElementById("admin-q-wrongs").value = "";
-      document.getElementById("admin-media-type").value = "";
-      document.getElementById("admin-media-url").value = "";
-
-      alert("تمت إضافة السؤال بنجاح");
-      await window.reloadAdminData();
     };
 
     window.addBulkQuestions = async () => {
@@ -2775,43 +2853,68 @@
       document.getElementById("edit-modal")?.classList.remove("hidden");
     };
 
+    // التعديل في دالة حفظ تعديل السؤال
     window.saveEditedQuestion = async () => {
-      const id = document.getElementById("edit-q-id")?.value;
-      const category = document.getElementById("edit-q-category-input")?.value.trim();
-      const order = Number(document.getElementById("edit-q-order")?.value);
-      const points = Number(document.getElementById("edit-q-points")?.value);
-      const question = document.getElementById("edit-q-text")?.value.trim();
-      const correctAnswer = document.getElementById("edit-q-correct")?.value.trim();
+      const btn = document.getElementById("btn-save-edit-q");
+      const originalBtnText = btn.innerText;
 
-      if (!category || !order || !points || !question || !correctAnswer) {
-        return alert("أكمل البيانات المطلوبة");
-      }
+      try {
+        const id = document.getElementById("edit-q-id")?.value;
+        const category = document.getElementById("edit-q-category-input")?.value.trim();
+        const order = Number(document.getElementById("edit-q-order")?.value);
+        const points = Number(document.getElementById("edit-q-points")?.value);
+        const question = document.getElementById("edit-q-text")?.value.trim();
+        const correctAnswer = document.getElementById("edit-q-correct")?.value.trim();
+        
+        let mediaUrl = document.getElementById("edit-q-url")?.value.trim();
+        const fileInput = document.getElementById("edit-media-file");
 
-      await ensureCategoryExists(category);
+        if (!category || !order || !points || !question || !correctAnswer) {
+          return alert("أكمل البيانات المطلوبة");
+        }
 
-      await updateDoc(doc(db, "live_questions", id), {
-        category,
-        order,
-        points,
-        question,
-        correctAnswer,
-        wrongAnswers: document.getElementById("edit-q-wrongs").value
-          .split("|")
-          .map(s => s.trim())
-          .filter(Boolean),
-        mediaType: document.getElementById("edit-q-media-type").value,
-        mediaUrl: document.getElementById("edit-q-url").value.trim(),
-        isHidden: document.getElementById("edit-q-hidden").checked,
-        updatedAt: serverTimestamp()
-      });
+        if (fileInput.files && fileInput.files.length > 0) {
+          btn.innerText = "جاري الرفع...";
+          btn.disabled = true;
+          mediaUrl = await uploadFileToSupabase(fileInput.files[0]);
+        }
 
-      document.getElementById("edit-modal")?.classList.add("hidden");
-      await window.reloadAdminData();
+        await ensureCategoryExists(category);
 
-      const currentTitle = document.getElementById("admin-current-category-title")?.innerText || "";
-      const activeCat = currentTitle.replace("أسئلة فئة: ", "").trim();
-      if (activeCat) {
-        window.openAdminCategory(activeCat);
+        await updateDoc(doc(db, "live_questions", id), {
+          category,
+          order,
+          points,
+          question,
+          correctAnswer,
+          wrongAnswers: document.getElementById("edit-q-wrongs").value
+            .split("|")
+            .map(s => s.trim())
+            .filter(Boolean),
+          mediaType: document.getElementById("edit-q-media-type").value,
+          mediaUrl: mediaUrl, // تحديث الرابط الجديد
+          isHidden: document.getElementById("edit-q-hidden").checked,
+          updatedAt: serverTimestamp()
+        });
+
+        if(fileInput) fileInput.value = "";
+        btn.innerText = originalBtnText;
+        btn.disabled = false;
+
+        document.getElementById("edit-modal")?.classList.add("hidden");
+        await window.reloadAdminData();
+
+        const currentTitle = document.getElementById("admin-current-category-title")?.innerText || "";
+        const activeCat = currentTitle.replace("أسئلة فئة: ", "").trim();
+        if (activeCat) {
+          window.openAdminCategory(activeCat);
+        }
+
+      } catch (error) {
+        console.error(error);
+        alert("حدث خطأ في التعديل: " + error.message);
+        btn.innerText = originalBtnText;
+        btn.disabled = false;
       }
     };
 
