@@ -1343,7 +1343,10 @@
               </div>
             </div>
             <p style="font-size: 0.9rem; color: #666; margin-top: 0;">أدخل الأسئلة بصيغة JSON لرفعها بضغطة زر.</p>
-            <textarea id="admin-bulk-json" rows="8" placeholder='[
+            <textarea
+              id="admin-bulk-json"
+              rows="12"
+              placeholder='[
   {
     "order": 1,
     "points": 200,
@@ -1353,7 +1356,9 @@
     "mediaType": "",
     "mediaUrl": ""
   }
-]' style="direction: ltr; text-align: left; font-family: monospace;"></textarea>
+]'
+              style="direction:ltr;text-align:left;font-family:monospace;unicode-bidi:plaintext;"
+            ></textarea>
             <div class="admin-form-actions" style="margin-top: 12px;">
               <button class="admin-btn primary" onclick="window.addBulkQuestions()">رفع الأسئلة الجماعية 🚀</button>
             </div>
@@ -2606,57 +2611,96 @@
       }
     };
 
+    function normalizeLooseJson(input) {
+      let text = input.trim();
+
+      text = text.replace(/^\uFEFF/, "").trim();
+
+      text = text
+        .replace(/[“”]/g, '"')
+        .replace(/[‘’]/g, "'")
+        .replace(/،/g, ",");
+
+      // لو كتبت مفاتيح بدون تنصيص مثل question:
+      text = text.replace(/([{,]\s*)([A-Za-z_][A-Za-z0-9_]*)(\s*:)/g, '$1"$2"$3');
+
+      // إزالة الفواصل الزائدة قبل } أو ]
+      text = text.replace(/,\s*([}\]])/g, "$1");
+
+      return text;
+    }
+
     window.addBulkQuestions = async () => {
-      const jsonText = document.getElementById("admin-bulk-json")?.value.trim();
+      const raw = document.getElementById("admin-bulk-json")?.value || "";
       const selectedCategory = document.getElementById("admin-bulk-category-input")?.value.trim();
 
       if (!selectedCategory) {
-        return alert("الرجاء كتابة أو اختيار الفئة أولاً");
+        alert("الرجاء كتابة أو اختيار الفئة أولاً");
+        return;
       }
 
-      if (!jsonText) {
-        return alert("الرجاء إدخال بيانات الأسئلة في المربع");
+      if (!raw.trim()) {
+        alert("الرجاء إدخال بيانات الأسئلة");
+        return;
       }
 
       try {
-        const questionsList = JSON.parse(jsonText);
+        const cleaned = normalizeLooseJson(raw);
+        const questionsList = JSON.parse(cleaned);
 
         if (!Array.isArray(questionsList)) {
-          return alert("البيانات يجب أن تكون مصفوفة (Array) تبدأ بـ [ وتنتهي بـ ]");
+          alert("البيانات يجب أن تكون داخل مصفوفة تبدأ بـ [ وتنتهي بـ ]");
+          return;
         }
 
-        const confirmed = confirm(`هل أنت متأكد من إضافة ${questionsList.length} سؤال إلى فئة "${selectedCategory}" دفعة واحدة؟`);
+        const confirmed = confirm(`هل تريد إضافة ${questionsList.length} سؤال إلى فئة "${selectedCategory}"؟`);
         if (!confirmed) return;
 
         await ensureCategoryExists(selectedCategory);
 
         let addedCount = 0;
 
-        for (const q of questionsList) {
+        for (let i = 0; i < questionsList.length; i++) {
+          const q = questionsList[i];
+
+          const order = Number(q.order || i + 1);
+          const points = Number(q.points || 200);
+          const question = String(q.question || "").trim();
+          const correctAnswer = String(q.correctAnswer || "").trim();
+          const wrongAnswers = Array.isArray(q.wrongAnswers) ? q.wrongAnswers : [];
+          const mediaType = String(q.mediaType || "").trim();
+          const mediaUrl = String(q.mediaUrl || "").trim();
+          const isHidden = typeof q.isHidden === "boolean" ? q.isHidden : false;
+
+          if (!question || !correctAnswer) {
+            throw new Error(`يوجد سؤال ناقص عند العنصر رقم ${i + 1}`);
+          }
+
           await addDoc(collection(db, "live_questions"), {
-            category: selectedCategory, 
-            order: Number(q.order) || 1,
-            points: Number(q.points) || 200,
-            question: q.question || "",
-            correctAnswer: q.correctAnswer || "",
-            wrongAnswers: Array.isArray(q.wrongAnswers) ? q.wrongAnswers : [],
-            mediaType: q.mediaType || "",
-            mediaUrl: q.mediaUrl || "",
-            isHidden: false,
+            category: selectedCategory,
+            order,
+            points,
+            question,
+            correctAnswer,
+            wrongAnswers,
+            mediaType,
+            mediaUrl,
+            isHidden,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp()
           });
+
           addedCount++;
         }
 
-        alert(`تمت إضافة ${addedCount} سؤال بنجاح لفئة "${selectedCategory}"! 🎉`);
+        alert(`تمت إضافة ${addedCount} سؤال بنجاح ✅`);
         document.getElementById("admin-bulk-json").value = "";
         document.getElementById("admin-bulk-category-input").value = "";
         await window.reloadAdminData();
 
       } catch (error) {
-        console.error(error);
-        alert("يوجد خطأ في صيغة الـ JSON، الرجاء التأكد من الأقواس والفواصل.\nتفاصيل الخطأ: " + error.message);
+        console.error("Bulk upload error:", error);
+        alert("يوجد خطأ في صيغة JSON أو البيانات:\n" + (error?.message || "تحقق من النص"));
       }
     };
 
