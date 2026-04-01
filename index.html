@@ -583,7 +583,6 @@
       margin-top: 6px;
     }
 
-    /* تصميم مربعات الأسئلة */
     .question-grid-admin {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -1316,8 +1315,8 @@
           <p style="margin:8px 0 0;opacity:.85;">إدارة الفئات والأسئلة والوسائط والمعاينة</p>
         </div>
         <div class="admin-top-actions">
-          <button class="admin-btn primary" onclick="window.openAdminPreviewHome()">معاينة الفئات</button>
-          <button class="admin-btn orange" onclick="window.openGameSimulator()">محاكاة القيم</button>
+          <button class="admin-btn primary" onclick="window.reloadAdminData()">تحديث</button>
+          <button class="admin-btn orange" onclick="window.openAdminPreviewHome()">معاينة الفئات</button>
         </div>
       </div>
 
@@ -1662,7 +1661,6 @@
       orderBy
     } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-    // إعدادات Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyBRPly4tY1nUSIimYn5dvbKuO3ayn8p_4o",
       authDomain: "mukhakmai.firebaseapp.com",
@@ -1676,7 +1674,6 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // إعدادات Supabase Storage
     const supabaseUrl = 'https://cgvtasbjaehfzmnfdczf.supabase.co';
     const supabaseKey = 'sb_publishable_7Ge8RTuKXEcNe2x_a7ce6w_yXqMDpT4';
     const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
@@ -1730,13 +1727,11 @@
       return [...arr].sort(() => Math.random() - 0.5);
     }
 
-    // دالة رفع الملفات إلى Supabase Storage
     async function uploadFileToSupabase(file) {
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
       const filePath = `${fileName}`;
 
-      // رفع الملف إلى Bucket اسمه 'Media'
       const { data, error } = await supabase.storage
         .from('Media')
         .upload(filePath, file);
@@ -1746,7 +1741,6 @@
         throw error;
       }
 
-      // جلب الرابط العام للملف
       const { data: publicUrlData } = supabase.storage
         .from('Media')
         .getPublicUrl(filePath);
@@ -2504,19 +2498,14 @@
       }
     };
 
-    // التعديل الجوهري الذي سيمنع اختفاء الفئات نهائياً!
     window.reloadAdminData = async () => {
       try {
-        // المحاولة الأولى: جلب البيانات مرتبة (في حال كان الفهرس جاهزاً)
         const snap = await getDocs(query(collection(db, "live_questions"), orderBy("category"), orderBy("order")));
         allQuestions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       } catch (e) {
-        console.warn("جاري جلب البيانات بدون فهرس (لأن الفهرس قيد الإنشاء)...", e);
-        // خطة الإنقاذ: جلب البيانات بشكل عادي وترتيبها داخل المتصفح (مما يمنع توقف الكود)
+        console.warn("جاري جلب البيانات بدون فهرس...", e);
         const snap = await getDocs(collection(db, "live_questions"));
         let qs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        
-        // الترتيب اليدوي الآمن
         qs.sort((a, b) => {
           if (a.category === b.category) {
             return (Number(a.order) || 0) - (Number(b.order) || 0);
@@ -3641,6 +3630,7 @@
       }
 
       await fetchData();
+      await window.reloadAdminData();
     });
   </script>
 </body>
